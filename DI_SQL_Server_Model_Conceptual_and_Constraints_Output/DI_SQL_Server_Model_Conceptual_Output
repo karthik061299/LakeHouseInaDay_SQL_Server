@@ -1,0 +1,690 @@
+------------------------------------------------------------------------
+Author:        AAVA       
+Date:          
+Description:   Conceptual data model definition based on reporting requirements and source data structure
+------------------------------------------------------------------------
+
+1. Domain Overview
+The primary business domain is Human Capital Management and Project Resource Tracking, focusing on workforce, project assignments, timesheets, hiring, and related financials.
+
+2. List of Entity Names with Description
+1. New_Monthly_HC_Report: Monthly human capital report containing workforce, assignment, and financial details.
+2. SchTask: Workflow and task tracking for HR and project processes.
+3. Hiring_Initiator_Project_Info: Information on hiring initiators and project-specific hiring details.
+4. Timesheet_New: Timesheet entries for consultants/employees, capturing work hours by type.
+5. report_392_all: Consolidated reporting table combining workforce, assignment, and financial data.
+6. vw_billing_timesheet_daywise_ne: Daywise billing and approved hours for consultants.
+7. vw_consultant_timesheet_daywise: Daywise consultant timesheet hours.
+8. Working_Days_2025: Reference table for working days and holidays by month and region.
+
+3. List of Attributes for Each Entity (excluding ID attributes) with Business Description
+
+Entity: New_Monthly_HC_Report
+- gci id: Unique consultant/employee identifier
+- first name: Employee first name
+- last name: Employee last name
+- job title: Employee job title
+- hr_business_type: HR business classification
+- client code: Client identifier
+- start date: Assignment start date
+- termdate: Assignment termination date
+- Final_End_date: Final end date of assignment
+- NBR: Net Bill Rate
+- Merged Name: Combined name field for reporting
+- Super Merged Name: Higher-level combined name for reporting
+- market: Market region or segment
+- defined_New_VAS: Value-added service indicator
+- IS_SOW: Statement of Work indicator
+- GP: Gross Profit
+- NextValue: Next significant date (context-specific)
+- termination_reason: Reason for termination
+- FirstDay: First day of assignment
+- Emp_Status: Employee status
+- employee_category: Employee category/classification
+- LastDay: Last day of assignment
+- ee_wf_reason: Workflow reason for employee
+- old_Begin: Previous period headcount
+- Begin HC: Beginning headcount
+- Starts - New Project: New project starts count
+- Starts- Internal movements: Internal movement starts count
+- Terms: Terminations count
+- Other project Ends: Other project end count
+- OffBoard: Offboarding count
+- End HC: Ending headcount
+- Vol_term: Voluntary terminations count
+- adj: Adjustments
+- YYMM: Year and month (YYYYMM)
+- tower1: Organizational tower/group
+- req type: Request type
+- ITSSProjectName: ITSS project name
+- IS_Offshore: Offshore indicator
+- Subtier: Subtier classification
+- New_Visa_type: Visa type
+- Practice_type: Practice type
+- vertical: Vertical/business unit
+- CL_Group: Client group
+- salesrep: Sales representative
+- recruiter: Recruiter
+- PO_End: Purchase order end date
+- PO_End_Count: PO end count
+- Derived_Rev: Derived revenue
+- Derived_GP: Derived gross profit
+- Backlog_Rev: Backlog revenue
+- Backlog_GP: Backlog gross profit
+- Expected_Hrs: Expected hours
+- Expected_Total_Hrs: Expected total hours
+- ITSS: ITSS code
+- client_entity: Client entity
+- newtermdate: New termination date
+- Newoffboardingdate: New offboarding date
+- HWF_Process_name: HR workflow process name
+- Derived_System_End_date: Derived system end date
+- Cons_Ageing: Consultant ageing (tenure)
+- CP_Name: Client partner name
+- bill st units: Billing units
+- project city: Project city
+- project state: Project state
+- OpportunityID: Opportunity identifier
+- OpportunityName: Opportunity name
+- Bus_days: Business days
+- circle: Circle/region
+- community_new: Community name
+- ALT: Alternate contact/identifier
+- Market_Leader: Market leader
+- Acct_Owner: Account owner
+- st_yymm: Start year and month
+- PortfolioLeader: Portfolio leader
+- ClientPartner: Client partner
+- FP_Proj_ID: FP project identifier
+- FP_Proj_Name: FP project name
+- FP_TM: FP team/manager
+- project_type: Project type
+- FP_Proj_Planned: FP project planned indicator
+- Standard Job Title Horizon: Standard job title
+- Experience Level Title: Experience level title
+- User_Name: User name
+- Status: Status
+- asstatus: Assignment status
+- system_runtime: System runtime timestamp
+- BR_Start_date: Bill rate start date
+- Bill_ST: Billable standard time
+- Prev_BR: Previous bill rate
+- ProjType: Project type code
+- Mons_in_Same_Rate: Months in same rate
+- Rate_Time_Gr: Rate time group
+- Rate_Change_Type: Rate change type
+- Net_Addition: Net addition to headcount
+
+Entity: SchTask
+- SSN: Social security number (masked/identifier)
+- GCI_ID: Consultant/employee identifier
+- FName: First name
+- LName: Last name
+- Process_ID: Process identifier
+- Level_ID: Workflow level identifier
+- Last_Level: Last workflow level
+- Initiator: Task initiator
+- Initiator_Mail: Initiator email
+- Status: Task status
+- Comments: Workflow/task comments
+- DateCreated: Task creation date
+- TrackID: Tracking identifier
+- DateCompleted: Task completion date
+- Existing_Resource: Existing resource indicator
+- Term_ID: Termination identifier
+- legal_entity: Legal entity
+
+Entity: Hiring_Initiator_Project_Info
+- Candidate_LName: Candidate last name
+- Candidate_MI: Candidate middle initial
+- Candidate_FName: Candidate first name
+- Candidate_SSN: Candidate SSN (masked)
+- HR_Candidate_JobTitle: Candidate job title
+- HR_Candidate_JobDescription: Candidate job description
+- HR_Candidate_DOB: Candidate date of birth
+- HR_Candidate_Employee_Type: Candidate employee type
+- HR_Project_Referred_By: Referral source
+- HR_Project_Referral_Fees: Referral fees
+- HR_Project_Referral_Units: Referral units
+- HR_Relocation_Request: Relocation request indicator
+- HR_Relocation_departure_city: Departure city
+- HR_Relocation_departure_state: Departure state
+- HR_Relocation_departure_airport: Departure airport
+- HR_Relocation_departure_date: Departure date
+- HR_Relocation_departure_time: Departure time
+- HR_Relocation_arrival_city: Arrival city
+- HR_Relocation_arrival_state: Arrival state
+- HR_Relocation_arrival_airport: Arrival airport
+- HR_Relocation_arrival_date: Arrival date
+- HR_Relocation_arrival_time: Arrival time
+- HR_Relocation_AccomodationStartDate: Accommodation start date
+- HR_Relocation_AccomodationEndDate: Accommodation end date
+- HR_Relocation_AccomodationStartTime: Accommodation start time
+- HR_Relocation_AccomodationEndTime: Accommodation end time
+- HR_Relocation_CarPickup_Place: Car pickup place
+- HR_Relocation_CarPickup_AddressLine1: Car pickup address line 1
+- HR_Relocation_CarPickup_AddressLine2: Car pickup address line 2
+- HR_Relocation_CarPickup_City: Car pickup city
+- HR_Relocation_CarPickup_State: Car pickup state
+- HR_Relocation_CarPickup_Zip: Car pickup zip
+- HR_Relocation_CarReturn_City: Car return city
+- HR_Relocation_CarReturn_State: Car return state
+- HR_Relocation_CarReturn_Place: Car return place
+- HR_Relocation_CarReturn_AddressLine1: Car return address line 1
+- HR_Relocation_CarReturn_AddressLine2: Car return address line 2
+- HR_Relocation_CarReturn_Zip: Car return zip
+- HR_Relocation_RentalCarStartDate: Rental car start date
+- HR_Relocation_RentalCarEndDate: Rental car end date
+- HR_Relocation_RentalCarStartTime: Rental car start time
+- HR_Relocation_RentalCarEndTime: Rental car end time
+- HR_Relocation_MaxClientInvoice: Max client invoice for relocation
+- HR_Relocation_approving_manager: Approving manager
+- HR_Relocation_Notes: Relocation notes
+- HR_Recruiting_Manager: Recruiting manager
+- HR_Recruiting_AccountExecutive: Account executive
+- HR_Recruiting_Recruiter: Recruiter
+- HR_Recruiting_ResourceManager: Resource manager
+- HR_Recruiting_Office: Recruiting office
+- HR_Recruiting_ReqNo: Recruiting request number
+- HR_Recruiting_Direct: Direct recruiting indicator
+- HR_Recruiting_Replacement_For_GCIID: Replacement for GCI ID
+- HR_Recruiting_Replacement_For: Replacement for (name)
+- HR_Recruiting_Replacement_Reason: Replacement reason
+- HR_ClientInfo_ID: Client info ID
+- HR_ClientInfo_Name: Client info name
+- HR_ClientInfo_DNB: DNB number
+- HR_ClientInfo_Sector: Client sector
+- HR_ClientInfo_Manager_ID: Client manager ID
+- HR_ClientInfo_Manager: Client manager
+- HR_ClientInfo_Phone: Client phone
+- HR_ClientInfo_Phone_Extn: Phone extension
+- HR_ClientInfo_Email: Client email
+- HR_ClientInfo_Fax: Client fax
+- HR_ClientInfo_Cell: Client cell
+- HR_ClientInfo_Pager: Client pager
+- HR_ClientInfo_Pager_Pin: Pager pin
+- HR_ClientAgreements_SendTo: Agreements send to
+- HR_ClientAgreements_Phone: Agreements phone
+- HR_ClientAgreements_Phone_Extn: Agreements phone extension
+- HR_ClientAgreements_Email: Agreements email
+- HR_ClientAgreements_Fax: Agreements fax
+- HR_ClientAgreements_Cell: Agreements cell
+- HR_ClientAgreements_Pager: Agreements pager
+- HR_ClientAgreements_Pager_Pin: Agreements pager pin
+- HR_Project_SendInvoicesTo: Project invoice recipient
+- HR_Project_AddressToSend1: Project address line 1
+- HR_Project_AddressToSend2: Project address line 2
+- HR_Project_City: Project city
+- HR_Project_State: Project state
+- HR_Project_Zip: Project zip
+- HR_Project_Phone: Project phone
+- HR_Project_Phone_Extn: Project phone extension
+- HR_Project_Email: Project email
+- HR_Project_Fax: Project fax
+- HR_Project_Cell: Project cell
+- HR_Project_Pager: Project pager
+- HR_Project_Pager_Pin: Project pager pin
+- HR_Project_ST: Project standard time
+- HR_Project_OT: Project overtime
+- HR_Project_ST_Off: Project standard time off
+- HR_Project_OT_Off: Project overtime off
+- HR_Project_ST_Units: Project standard time units
+- HR_Project_OT_Units: Project overtime units
+- HR_Project_ST_Off_Units: Project standard time off units
+- HR_Project_OT_Off_Units: Project overtime off units
+- HR_Project_StartDate: Project start date
+- HR_Project_EndDate: Project end date
+- HR_Project_Location_AddressLine1: Project location address line 1
+- HR_Project_Location_AddressLine2: Project location address line 2
+- HR_Project_Location_City: Project location city
+- HR_Project_Location_State: Project location state
+- HR_Project_Location_Zip: Project location zip
+- HR_Project_InvoicingTerms: Project invoicing terms
+- HR_Project_PaymentTerms: Project payment terms
+- HR_Project_EndClient_ID: End client ID
+- HR_Project_EndClient_Name: End client name
+- HR_Project_EndClient_Sector: End client sector
+- HR_Accounts_Person: Accounts person
+- HR_Accounts_PhoneNo: Accounts phone
+- HR_Accounts_PhoneNo_Extn: Accounts phone extension
+- HR_Accounts_Email: Accounts email
+- HR_Accounts_FaxNo: Accounts fax
+- HR_Accounts_Cell: Accounts cell
+- HR_Accounts_Pager: Accounts pager
+- HR_Accounts_Pager_Pin: Accounts pager pin
+- HR_Project_Referrer_ID: Project referrer ID
+- UserCreated: User who created record
+- DateCreated: Record creation date
+- HR_Week_Cycle: HR week cycle
+- Project_Name: Project name
+- transition: Project transition
+- Is_OT_Allowed: Overtime allowed indicator
+- HR_Business_Type: HR business type
+- WebXl_EndClient_ID: WebXL end client ID
+- WebXl_EndClient_Name: WebXL end client name
+- Client_Offer_Acceptance_Date: Offer acceptance date
+- Project_Type: Project type
+- req_division: Request division
+- Client_Compliance_Checks_Reqd: Compliance checks required
+- HSU: HSU code
+- HSUDM: HSUDM code
+- Payroll_Location: Payroll location
+- Is_DT_Allowed: Double time allowed indicator
+- SBU: SBU code
+- BU: Business unit
+- Dept: Department
+- HCU: HCU code
+- Project_Category: Project category
+- Delivery_Model: Delivery model
+- BPOS_Project: BPOS project indicator
+- ER_Person: ER person
+- Print_Invoice_Address1: Invoice address line 1
+- Print_Invoice_Address2: Invoice address line 2
+- Print_Invoice_City: Invoice city
+- Print_Invoice_State: Invoice state
+- Print_Invoice_Zip: Invoice zip
+- Mail_Invoice_Address1: Mail invoice address line 1
+- Mail_Invoice_Address2: Mail invoice address line 2
+- Mail_Invoice_City: Mail invoice city
+- Mail_Invoice_State: Mail invoice state
+- Mail_Invoice_Zip: Mail invoice zip
+- Project_Zone: Project zone
+- Emp_Identifier: Employee identifier
+- CRE_Person: CRE person
+- HR_Project_Location_Country: Project location country
+- Agency: Agency
+- pwd: Password/identifier
+- PES_Doc_Sent: PES document sent indicator
+- PES_Confirm_Doc_Rcpt: PES document receipt confirmed
+- PES_Clearance_Rcvd: PES clearance received
+- PES_Doc_Sent_Date: PES document sent date
+- PES_Confirm_Doc_Rcpt_Date: PES document receipt date
+- PES_Clearance_Rcvd_Date: PES clearance date
+- Inv_Pay_Terms_Notes: Invoice/payment notes
+- CBC_Notes: CBC notes
+- Benefits_Plan: Benefits plan
+- BillingCompany: Billing company
+- SPINOFF_CPNY: Spinoff company
+- Position_Type: Position type
+- I9_Approver: I9 approver
+- FP_BILL_Rate: FP bill rate
+- TSLead: Timesheet lead
+- Inside_Sales: Inside sales
+- Markup: Markup
+- Maximum_Allowed_Markup: Maximum allowed markup
+- Actual_Markup: Actual markup
+- SCA_Hourly_Bill_Rate: SCA hourly bill rate
+- HR_Project_StartDate_Change_Reason: Start date change reason
+- source: Source
+- HR_Recruiting_VMO: Recruiting VMO
+- HR_Recruiting_Inside_Sales: Recruiting inside sales
+- HR_Recruiting_TL: Recruiting team lead
+- HR_Recruiting_NAM: Recruiting NAM
+- HR_Recruiting_ARM: Recruiting ARM
+- HR_Recruiting_RM: Recruiting RM
+- HR_Recruiting_ReqID: Recruiting request ID
+- HR_Recruiting_TAG: Recruiting tag
+- DateUpdated: Record update date
+- UserUpdated: User who updated record
+- Is_Swing_Shift_Associated_With_It: Swing shift association
+- FP_Bill_Rate_OT: FP overtime bill rate
+- Not_To_Exceed_YESNO: Not to exceed indicator
+- Exceed_YESNO: Exceed indicator
+- Is_OT_Billable: Overtime billable indicator
+- Is_premium_project_Associated_With_It: Premium project association
+- ITSS_Business_Development_Manager: ITSS business development manager
+- Practice_type: Practice type
+- Project_billing_type: Project billing type
+- Resource_billing_type: Resource billing type
+- Type_Consultant_category: Consultant category
+- Unique_identification_ID_Doc: Unique ID document
+- Region1: Region 1
+- Region2: Region 2
+- Region1_percentage: Region 1 percentage
+- Region2_percentage: Region 2 percentage
+- Soc_Code: SOC code
+- Soc_Desc: SOC description
+- req_duration: Request duration
+- Non_Billing_Type: Non-billing type
+- Worker_Entity_ID: Worker entity ID
+- OraclePersonID: Oracle person ID
+- Collabera_Email_ID: Collabera email ID
+- Onsite_Consultant_Relationship_Manager: Onsite consultant relationship manager
+- HR_project_county: Project county
+- EE_WF_Reasons: EE workflow reasons
+- GradeName: Grade name
+- ROLEFAMILY: Role family
+- SUBDEPARTMENT: Subdepartment
+- MSProjectType: MS project type
+- NetsuiteProjectId: Netsuite project ID
+- NetsuiteCreatedDate: Netsuite created date
+- NetsuiteModifiedDate: Netsuite modified date
+- StandardJobTitle: Standard job title
+- community: Community
+- parent_Account_name: Parent account name
+- Timesheet_Manager: Timesheet manager
+- TimeSheetManagerType: Timesheet manager type
+- Timesheet_Manager_Phone: Timesheet manager phone
+- Timesheet_Manager_Email: Timesheet manager email
+- HR_Project_Major_Group: Project major group
+- HR_Project_Minor_Group: Project minor group
+- HR_Project_Broad_Group: Project broad group
+- HR_Project_Detail_Group: Project detail group
+- 9Hours_Allowed: 9 hours allowed indicator
+- 9Hours_Effective_Date: 9 hours effective date
+
+Entity: Timesheet_New
+- gci_id: Consultant/employee identifier
+- pe_date: Period end date
+- task_id: Task identifier
+- c_date: Creation date
+- ST: Standard time hours
+- OT: Overtime hours
+- TIME_OFF: Time off hours
+- HO: Holiday hours
+- DT: Double time hours
+- NON_ST: Non-standard time hours
+- NON_OT: Non-overtime hours
+- Sick_Time: Sick time hours
+- NON_Sick_Time: Non-sick time hours
+- NON_DT: Non-double time hours
+
+Entity: report_392_all
+- gci id: Consultant/employee identifier
+- first name: First name
+- last name: Last name
+- employee type: Employee type
+- recruiting manager: Recruiting manager
+- resource manager: Resource manager
+- salesrep: Sales representative
+- inside_sales: Inside sales
+- recruiter: Recruiter
+- req type: Request type
+- ms_type: MS type
+- client code: Client code
+- client name: Client name
+- client_type: Client type
+- job title: Job title
+- bill st: Bill standard time
+- visa type: Visa type
+- bill st units: Bill standard units
+- salary: Salary
+- salary units: Salary units
+- pay st: Pay standard time
+- pay st units: Pay standard units
+- start date: Start date
+- end date: End date
+- po start date: PO start date
+- po end date: PO end date
+- project city: Project city
+- project state: Project state
+- no of free hours: Number of free hours
+- hr_business_type: HR business type
+- ee_wf_reason: EE workflow reason
+- singleman company: Singleman company indicator
+- status: Status
+- termination_reason: Termination reason
+- wf created on: Workflow created on
+- hcu: HCU code
+- hsu: HSU code
+- project zip: Project zip
+- cre_person: CRE person
+- assigned_hsu: Assigned HSU
+- req_category: Request category
+- gpm: Gross profit margin
+- gp: Gross profit
+- aca_cost: ACA cost
+- aca_classification: ACA classification
+- markup: Markup
+- actual_markup: Actual markup
+- maximum_allowed_markup: Maximum allowed markup
+- submitted_bill_rate: Submitted bill rate
+- req_division: Request division
+- pay rate to consultant: Pay rate to consultant
+- location: Location
+- rec_region: Recruiting region
+- client_region: Client region
+- dm: Delivery manager
+- delivery_director: Delivery director
+- bu: Business unit
+- es: ES code
+- nam: NAM code
+- client_sector: Client sector
+- skills: Skills
+- pskills: Primary skills
+- business_manager: Business manager
+- vmo: VMO code
+- rec_name: Recruiter name
+- Req_ID: Request ID
+- received: Received date
+- Submitted: Submitted date
+- responsetime: Response time
+- Inhouse: Inhouse indicator
+- Net_Bill_Rate: Net bill rate
+- Loaded_Pay_Rate: Loaded pay rate
+- NSO: NSO code
+- ESG_Vertical: ESG vertical
+- ESG_Industry: ESG industry
+- ESG_DNA: ESG DNA
+- ESG_NAM1: ESG NAM1
+- ESG_NAM2: ESG NAM2
+- ESG_NAM3: ESG NAM3
+- ESG_SAM: ESG SAM
+- ESG_ES: ESG ES
+- ESG_BU: ESG BU
+- SUB_GPM: Sub gross profit margin
+- manager_id: Manager ID
+- Submitted_By: Submitted by
+- HWF_Process_name: HR workflow process name
+- Transition: Transition
+- ITSS: ITSS code
+- GP2020: Gross profit 2020
+- GPM2020: Gross profit margin 2020
+- isbulk: Bulk indicator
+- jump: Jump indicator
+- client_class: Client class
+- MSP: MSP code
+- DTCUChoice1: DTCU choice
+- SubCat: Sub category
+- IsClassInitiative: Class initiative indicator
+- division: Division
+- divstart_date: Division start date
+- divend_date: Division end date
+- tl: Team lead
+- resource_manager: Resource manager
+- recruiting_manager: Recruiting manager
+- VAS_Type: VAS type
+- BUCKET: Bucket
+- RTR_DM: RTR delivery manager
+- ITSSProjectName: ITSS project name
+- RegionGroup: Region group
+- client_Markup: Client markup
+- Subtier: Subtier
+- Subtier_Address1: Subtier address 1
+- Subtier_Address2: Subtier address 2
+- Subtier_City: Subtier city
+- Subtier_State: Subtier state
+- Hiresource: Hire source
+- is_Hotbook_Hire: Hotbook hire indicator
+- Client_RM: Client resource manager
+- Job_Description: Job description
+- Client_Manager: Client manager
+- end_date_at_client: End date at client
+- term_date: Termination date
+- employee_status: Employee status
+- Level_ID: Level ID
+- OpsGrp: Operations group
+- Level_Name: Level name
+- Min_levelDatetime: Minimum level datetime
+- Max_levelDatetime: Maximum level datetime
+- First_Interview_date: First interview date
+- Is REC CES?: REC CES indicator
+- Is CES Initiative?: CES initiative indicator
+- VMO_Access: VMO access
+- Billing_Type: Billing type
+- VASSOW: VAS SOW indicator
+- Worker_Entity_ID: Worker entity ID
+- Circle: Circle
+- VMO_Access1: VMO access 1
+- VMO_Access2: VMO access 2
+- VMO_Access3: VMO access 3
+- VMO_Access4: VMO access 4
+- Inside_Sales_Person: Inside sales person
+- admin_1701: Admin 1701
+- corrected_staffadmin_1701: Corrected staff admin 1701
+- HR_Billing_Placement_Net_Fee: Billing placement net fee
+- New_Visa_type: New visa type
+- newenddate: New end date
+- Newoffboardingdate: New offboarding date
+- NewTermdate: New termination date
+- newhrisenddate: New HRIS end date
+- rtr_location: RTR location
+- HR_Recruiting_TL: Recruiting team lead
+- client_entity: Client entity
+- client_consent: Client consent
+- Ascendion_MetalReqID: Ascendion metal request ID
+- eeo: EEO code
+- veteran: Veteran status
+- Gender: Gender
+- Er_person: ER person
+- wfmetaljobdescription: Metal job description
+- HR_Candidate_Salary: Candidate salary
+- Interview_CreatedDate: Interview created date
+- Interview_on_Date: Interview date
+- IS_SOW: Statement of work indicator
+- IS_Offshore: Offshore indicator
+- New_VAS: New VAS indicator
+- VerticalName: Vertical name
+- Client_Group1: Client group 1
+- Billig_Type: Billing type
+- Super Merged Name: Super merged name
+- New_Category: New category
+- New_business_type: New business type
+- OpportunityID: Opportunity ID
+- OpportunityName: Opportunity name
+- Ms_ProjectId: MS project ID
+- MS_ProjectName: MS project name
+- ORC_ID: ORC ID
+- Market_Leader: Market leader
+- Circle_Metal: Circle metal
+- Community_New_Metal: Community new metal
+- Employee_Category: Employee category
+- IsBillRateSkip: Bill rate skip indicator
+- BillRate: Bill rate
+- RoleFamily: Role family
+- SubRoleFamily: Sub role family
+- Standard JobTitle: Standard job title
+- ClientInterviewRequired: Client interview required indicator
+- Redeploymenthire: Redeployment hire indicator
+- HRBrandLevelId: HR brand level ID
+- HRBandTitle: HR band title
+- latest_termination_reason: Latest termination reason
+- latest_termination_date: Latest termination date
+- Community: Community
+- ReqFulfillmentReason: Requirement fulfillment reason
+- EngagementType: Engagement type
+- RedepLedBy: Redeployment led by
+- Can_ExperienceLevelTitle: Candidate experience level title
+- Can_StandardJobTitleHorizon: Candidate standard job title horizon
+- CandidateEmail: Candidate email
+- Offboarding_Reason: Offboarding reason
+- Offboarding_Initiated: Offboarding initiated date
+- Offboarding_Status: Offboarding status
+- replcament_GCIID: Replacement GCI ID
+- replcament_EmployeeName: Replacement employee name
+- Senior Manager: Senior manager
+- Associate Manager: Associate manager
+- Director - Talent Engine: Director of talent engine
+- Manager: Manager
+- Rec_ExperienceLevelTitle: Recruiter experience level title
+- Rec_StandardJobTitleHorizon: Recruiter standard job title horizon
+- Task_Id: Task ID
+- proj_ID: Project ID
+- Projdesc: Project description
+- Client_Group: Client group
+- billST_New: New bill standard time
+- Candidate city: Candidate city
+- Candidate State: Candidate state
+- C2C_W2_FTE: Employment type
+- FP_TM: FP team/manager
+
+Entity: vw_billing_timesheet_daywise_ne
+- GCI_ID: Consultant/employee identifier
+- PE_DATE: Period end date
+- WEEK_DATE: Week date
+- BILLABLE: Billable indicator
+- Approved_hours(ST): Approved standard time hours
+- Approved_hours(Non_ST): Approved non-standard time hours
+- Approved_hours(OT): Approved overtime hours
+- Approved_hours(Non_OT): Approved non-overtime hours
+- Approved_hours(DT): Approved double time hours
+- Approved_hours(Non_DT): Approved non-double time hours
+- Approved_hours(Sick_Time): Approved sick time hours
+- Approved_hours(Non_Sick_Time): Approved non-sick time hours
+
+Entity: vw_consultant_timesheet_daywise
+- GCI_ID: Consultant/employee identifier
+- PE_DATE: Period end date
+- WEEK_DATE: Week date
+- BILLABLE: Billable indicator
+- Consultant_hours(ST): Consultant standard time hours
+- Consultant_hours(OT): Consultant overtime hours
+- Consultant_hours(DT): Consultant double time hours
+
+Entity: Working_Days_2025
+- Year: Year
+- Month: Month
+- Working_Days: Number of working days
+- Holiday_Baroda: Number of holidays in Baroda
+- Holiday_US: Number of holidays in US
+- Holiday_Chennai: Number of holidays in Chennai
+
+4. KPI List
+- Net Bill Rate (NBR)
+- Gross Profit (GP)
+- Derived Revenue (Derived_Rev)
+- Derived Gross Profit (Derived_GP)
+- Backlog Revenue (Backlog_Rev)
+- Backlog Gross Profit (Backlog_GP)
+- Begin Headcount (Begin HC)
+- End Headcount (End HC)
+- Voluntary Terminations (Vol_term)
+- Net Addition (Net_Addition)
+- Billable Hours (Bill_ST, Approved_hours(ST), Consultant_hours(ST))
+- Overtime Hours (OT, Approved_hours(OT), Consultant_hours(OT))
+- Double Time Hours (DT, Approved_hours(DT), Consultant_hours(DT))
+- Time Off (TIME_OFF, Sick_Time, Approved_hours(Sick_Time))
+
+5. Conceptual Data Model Diagram (Tabular Form)
+| Table/Entity                        | Related Table/Entity                | Relationship Key Field(s)        |
+|-------------------------------------|-------------------------------------|----------------------------------|
+| New_Monthly_HC_Report               | Timesheet_New                       | gci id = gci_id                  |
+| New_Monthly_HC_Report               | report_392_all                      | gci id = gci id                  |
+| Timesheet_New                       | vw_billing_timesheet_daywise_ne     | gci_id = GCI_ID, pe_date = PE_DATE |
+| Timesheet_New                       | vw_consultant_timesheet_daywise     | gci_id = GCI_ID, pe_date = PE_DATE |
+| SchTask                             | report_392_all                      | GCI_ID = gci id                  |
+| Hiring_Initiator_Project_Info       | report_392_all                      | Candidate_FName/LastName ≈ first name/last name |
+| report_392_all                      | New_Monthly_HC_Report               | gci id = gci id                  |
+| Working_Days_2025                   | Timesheet_New, vw_billing_timesheet_daywise_ne, vw_consultant_timesheet_daywise | Year/Month = derived from pe_date |
+
+6. Common Data Elements in Report Requirements
+- gci id / GCI_ID / gci_id: Consultant/employee identifier
+- first name / last name: Employee name
+- job title: Job title
+- client code: Client identifier
+- start date / end date: Assignment dates
+- hr_business_type: HR business type
+- recruiter / recruiting manager / resource manager: HR contacts
+- project city / project state: Project location
+- bill st / Bill_ST: Billable standard time
+- OT: Overtime hours
+- DT: Double time hours
+- TIME_OFF / Sick_Time: Time off
+- Status: Status
+- termination_reason: Termination reason
+- Emp_Status / employee_status: Employee status
+- Practice_type / vertical: Practice/business unit
+- salesrep: Sales representative
+
+7. API Cost Calculation
+   – Cost for this Call: $0.10
