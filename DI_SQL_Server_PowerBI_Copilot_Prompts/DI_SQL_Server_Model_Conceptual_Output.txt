@@ -1,0 +1,56 @@
+Power BI Copilot Prompt Set for HR/Timesheet Analytics Executive Dashboard
+
+1. Create a KPI Card visual to display the total active headcount. Use Go_Dim_New_Monthly_HC_Report[Emp_Status] filtered to 'Active' and Go_Dim_New_Monthly_HC_Report[gci_id] with a DISTINCTCOUNT aggregation. Title the card 'Total Active Employees', use a large bold font, and apply corporate blue (#0078D4) for the value. Add a date slicer and department filter for interactivity.
+
+2. Add a Gauge Chart to show the overall utilization rate. Use SUM of Go_Agg_Resource_Utilization[approved_hours] as the numerator and SUM of Go_Dim_New_Monthly_HC_Report[Expected_Hrs] as the denominator, with a target value of 0.85. Format the gauge with green for above target, orange for near target, and red for below target, and label it 'Overall Utilization Rate'. Include date range slicer, practice type, and market filters.
+
+3. Add a KPI Card with trend indicator to display total gross profit. Use SUM of Go_Dim_New_Monthly_HC_Report[GP] for the current value and calculate month-over-month growth using Go_Dim_New_Monthly_HC_Report[YYMM]. Title the card 'Total Gross Profit', show the trend as a small sparkline, and use green for positive growth and red for negative growth. Add date slicer, client, and project filters.
+
+4. Add a Clustered Column Chart to visualize headcount by department or practice. Use Go_Dim_New_Monthly_HC_Report[Practice_type] as the axis and DISTINCTCOUNT of Go_Dim_New_Monthly_HC_Report[gci_id] (filtered to 'Active') as the value, with Go_Dim_New_Monthly_HC_Report[YYMM] as a slicer. Clearly label axes and use contrasting colors for each practice. Enable drill-down to job titles and tooltip showing average salary.
+
+5. Add a Line and Clustered Column Chart to show new hires versus terminations trend over time. Use Go_Dim_New_Monthly_HC_Report[start_date], Go_Dim_New_Monthly_HC_Report[termdate], and Go_Dim_New_Monthly_HC_Report[YYMM]. Plot new hires and terminations as columns, and net headcount change as a line. Format with date on the X-axis, clear legends, and enable drill-through to employee details.
+
+6. Add a Donut Chart to display the distribution of billable versus non-billable hours. Use Go_Fact_vw_billing_timesheet_daywise_ne[billable] as the category and SUM of Go_Fact_vw_billing_timesheet_daywise_ne[approved_hours_st] as the value. Show percentage labels inside the donut and use blue for billable and gray for non-billable. Add date slicer, employee, and project filters.
+
+7. Add a Stacked Column Chart to break down daily timesheet hours. Use Go_Fact_Timesheet[pe_date] on the X-axis and SUM of Go_Fact_Timesheet[ST], [OT], [DT], and [TIME_OFF] as stacked values. Title the chart 'Daily Timesheet Hours Breakdown' and use distinct colors for each hour type. Enable date range slicer, employee multi-select, and drill-down to individual days.
+
+8. Add a Treemap to analyze revenue by client. Use Go_Dim_New_Monthly_HC_Report[client_code] as the group and SUM of Go_Dim_New_Monthly_HC_Report[GP] as the value. Display average bill rate (Go_Dim_New_Monthly_HC_Report[NBR]) in tooltips. Format with client names as labels and size representing revenue contribution. Add client filter, date slicer, and drill-through to project details.
+
+9. Add a Line Chart with markers to show profit margin trend over time. Use Go_Dim_New_Monthly_HC_Report[YYMM] as the X-axis, calculate profit margin percentage using SUM of Go_Dim_New_Monthly_HC_Report[GP] minus SUM of Go_Dim_report_392_all[salary], divided by SUM of Go_Dim_New_Monthly_HC_Report[GP]. Add a reference line at 25% and use blue for the trend line. Add date range slicer, practice, and market filters.
+
+10. Add a Matrix visual with conditional formatting as a project utilization heatmap. Use Go_Agg_Resource_Utilization[ITSSProjectName] as rows, Go_Agg_Resource_Utilization[YYMM] as columns, and AVERAGE of Go_Agg_Resource_Utilization[project_utilization] as values. Apply color scale: green for >=0.9, orange for >=0.8, yellow for >=0.7, red for below target. Add project filter, date slicer, and drill-through to resource details.
+
+11. Add a Clustered Bar Chart to show resource allocation by skills or practice. Use Go_Dim_New_Monthly_HC_Report[Practice_type] or [vertical] as the category and SUM of Go_Agg_Resource_Utilization[billed_fte] and [total_fte] to calculate allocation rate. Display allocation rate as data labels and use horizontal bars for readability. Add practice and skill filters, drill-down hierarchy, and tooltip with allocation details.
+
+12. Add a Gauge Chart to visualize timesheet submission compliance. Use COUNTROWS of Go_Fact_Timesheet for actual submissions and CROSSJOIN of Go_Dim_New_Monthly_HC_Report[gci_id] and dates for expected submissions. Calculate compliance rate and set the target at 100%. Use green for compliant, red for non-compliant, and label as 'Submission Compliance'. Add date range slicer, department, and employee status filters.
+
+13. Add a Table visual with data bars for employee performance scorecard. Use Go_Dim_New_Monthly_HC_Report[merged_name] as rows and calculated measures for utilization, revenue, and performance score as columns. Apply conditional formatting with data bars and color scale, and enable sorting by performance score. Add employee search, drill-through to detailed view, and conditional formatting.
+
+14. Add a Decomposition Tree visual for root cause analysis of utilization dips. Use Go_Agg_Resource_Utilization[project_utilization] as the value and allow drill-down by Practice_type, Market, and ITSSProjectName. Enable tooltips showing approved_hours and total_fte.
+
+15. Add a Slicer panel for global filtering. Include relative date slicer, employee status, practice type, market, and client code. Sync slicers across all pages for consistent filtering.
+
+16. Add a Narrative visual to summarize key trends and insights from the dashboard. Use natural language to highlight changes in headcount, utilization, profit margin, and compliance rates.
+
+Formatting and Best Practices:
+- All visuals should have clear, descriptive titles, axis labels, and legends where applicable.
+- Use corporate blue (#0078D4) as the primary highlight color, with green (#107C10) for positive metrics, red (#D13438) for negative, and orange (#FF8C00) for caution.
+- Apply consistent font sizes: Headers 14-16pt bold, body 10-12pt, KPIs 18-24pt bold.
+- Ensure accessibility with minimum 4.5:1 contrast ratio and avoid red-green combinations.
+- Add tooltips to all visuals for additional context (e.g., employee photo, project details, margin breakdown).
+- Enable drill-through on all relevant visuals to Employee Details, Project Deep Dive, and Client Analysis pages.
+- Use bookmarks for navigation: Summary View, Detailed View, Trend View, Current Month, Quarter, YTD.
+- Document all DAX measures and calculations in a dedicated data dictionary.
+
+Data Field Usage:
+- Use only columns present in the Gold Physical Data Model for all visuals and calculations.
+- Specify aggregations (SUM, DISTINCTCOUNT, AVERAGE) and filters (e.g., Emp_Status = 'Active') explicitly.
+- For trend and comparison visuals, use YYMM or pe_date from the Gold model as the time axis.
+
+Interactive Features:
+- Slicers for date, status, practice, market, client, and employee.
+- Drill-down and drill-through on charts and tables.
+- Conditional formatting for KPIs, gauges, and matrices.
+- Narrative and decomposition tree for advanced analytics and storytelling.
+
+This prompt set ensures a comprehensive, actionable, and user-friendly Power BI dashboard that aligns with reporting requirements, recommended visuals, and the Gold layer data model.
