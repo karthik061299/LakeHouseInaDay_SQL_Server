@@ -1,8 +1,3 @@
-Here is your content converted cleanly into **Markdown (.md)** format.
-I preserved hierarchy, bullet points, tables, and logic blocks for clarity.
-
----
-
 # **UTL Logic Updates – Comprehensive Report Requirements**
 
 ---
@@ -344,6 +339,4 @@ OnSite / Offshore
 Not in use after 2024
 Logic: `DTCUChoice1`
 
----
 
-If you want, I can also **export this entire markdown as a downloadable .md file**.
