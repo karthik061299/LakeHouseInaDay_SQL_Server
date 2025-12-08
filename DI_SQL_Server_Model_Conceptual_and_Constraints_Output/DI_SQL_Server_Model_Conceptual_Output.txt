@@ -1,0 +1,1807 @@
+------------------------------------------------------------------------
+Author:        AAVA       
+Date:          
+Description:   Conceptual Data Model for Workforce Management and Consulting Business Reporting System
+------------------------------------------------------------------------
+
+1. DOMAIN OVERVIEW
+========================================================================
+
+The conceptual data model represents a comprehensive Workforce Management and Consulting Business domain. This system manages the complete lifecycle of consulting engagements including:
+
+• Employee/Consultant Management - Tracking workforce information, skills, and employment status
+• Project and Client Management - Managing client relationships, projects, and engagements
+• Time and Attendance Tracking - Recording billable and non-billable hours
+• Hiring and Onboarding Processes - Managing recruitment workflows and candidate information
+• Financial Management - Tracking billing rates, costs, margins, and revenue
+• Resource Allocation - Assigning consultants to projects and managing utilization
+
+The primary business focus is on managing consulting resources, tracking their assignments to client projects, monitoring time worked, and calculating financial metrics such as gross profit and margins.
+
+
+2. LIST OF ENTITIES WITH DESCRIPTIONS
+========================================================================
+
+1. Employee Resource
+   Description: Represents individual consultants, contractors, and employees working on various projects. This is the core entity tracking workforce information including personal details, employment status, skills, and assignment history.
+
+2. Client Organization
+   Description: Represents client companies and organizations that engage consulting services. Includes both direct clients and end clients, tracking organizational details, sectors, and relationship information.
+
+3. Project Engagement
+   Description: Represents specific consulting projects or engagements where resources are assigned. Tracks project details, locations, duration, billing arrangements, and project categorization.
+
+4. Time Entry
+   Description: Captures daily time worked by consultants including regular hours, overtime, double time, and various leave types. Forms the basis for billing and payroll calculations.
+
+5. Hiring Workflow
+   Description: Manages the end-to-end hiring and onboarding process for new consultants including workflow stages, approvals, and process tracking.
+
+6. Project Assignment
+   Description: Links employees to specific projects with associated rates, dates, and assignment details. Represents the relationship between resources and their project allocations.
+
+7. Recruitment Request
+   Description: Represents job requisitions and hiring needs for specific positions, including requirements, skills needed, and request details.
+
+8. Financial Rate Structure
+   Description: Defines billing rates, pay rates, and associated financial terms for project assignments including standard time, overtime, and various rate components.
+
+9. Organizational Hierarchy
+   Description: Represents the internal organizational structure including business units, departments, regions, and reporting relationships.
+
+10. Client Agreement
+    Description: Captures contractual terms and conditions between the organization and clients including payment terms, invoicing arrangements, and agreement details.
+
+11. Working Calendar
+    Description: Defines working days, holidays, and business day calculations for different locations and regions to support accurate time and billing calculations.
+
+12. Skill Profile
+    Description: Represents technical and professional skills associated with employees and project requirements for matching and resource planning.
+
+
+3. LIST OF ATTRIBUTES FOR EACH ENTITY
+========================================================================
+
+ENTITY 1: EMPLOYEE RESOURCE
+------------------------------------------------------------------------
+
+1. GCI Identifier
+   Business Description: Unique global consultant identifier assigned to each employee/consultant in the system
+
+2. First Name
+   Business Description: Legal first name of the employee or consultant
+
+3. Last Name
+   Business Description: Legal last name of the employee or consultant
+
+4. Social Security Number
+   Business Description: Government-issued social security number for identification and tax purposes
+
+5. Job Title
+   Business Description: Current job title or role designation of the employee
+
+6. Standard Job Title
+   Business Description: Standardized job title classification used for organizational reporting and benchmarking
+
+7. Experience Level Title
+   Business Description: Classification of employee's experience level (e.g., Junior, Mid-level, Senior, Lead)
+
+8. Employee Type
+   Business Description: Classification of employment relationship (e.g., W2, C2C, 1099, Full-Time Employee)
+
+9. Employee Status
+   Business Description: Current employment status (e.g., Active, Terminated, On Leave, Suspended)
+
+10. Employee Category
+    Business Description: Categorization of employee for business reporting purposes
+
+11. Start Date
+    Business Description: Date when the employee began their current assignment or employment
+
+12. Termination Date
+    Business Description: Date when the employee's assignment or employment ended
+
+13. Final End Date
+    Business Description: Calculated final date considering all extensions and adjustments to the assignment
+
+14. Offboarding Date
+    Business Description: Date when the formal offboarding process was completed
+
+15. Termination Reason
+    Business Description: Documented reason for employment or assignment termination
+
+16. Offboarding Reason
+    Business Description: Specific reason code for the offboarding process
+
+17. Offboarding Status
+    Business Description: Current status of the offboarding workflow
+
+18. Visa Type
+    Business Description: Immigration visa classification for the employee (e.g., H1B, Green Card, Citizen)
+
+19. Date of Birth
+    Business Description: Employee's date of birth for age verification and compliance
+
+20. Gender
+    Business Description: Gender identification of the employee for diversity reporting
+
+21. Veteran Status
+    Business Description: Military veteran status for compliance and diversity reporting
+
+22. EEO Classification
+    Business Description: Equal Employment Opportunity classification for regulatory reporting
+
+23. Email Address
+    Business Description: Primary email address for employee communication
+
+24. Collabera Email
+    Business Description: Company-provided email address for internal communication
+
+25. Skills
+    Business Description: Technical and professional skills possessed by the employee
+
+26. Primary Skills
+    Business Description: Core competencies and primary skill areas of the employee
+
+27. Candidate City
+    Business Description: City where the candidate/employee is located
+
+28. Candidate State
+    Business Description: State where the candidate/employee is located
+
+29. Payroll Location
+    Business Description: Geographic location determining payroll processing and tax jurisdiction
+
+30. Legal Entity
+    Business Description: Legal employing entity within the corporate structure
+
+31. Worker Entity Identifier
+    Business Description: Identifier for the legal entity employing the worker
+
+32. Oracle Person Identifier
+    Business Description: Unique identifier in the Oracle HR system
+
+33. Role Family
+    Business Description: Broad categorization of job roles for organizational structure
+
+34. Sub Role Family
+    Business Description: Detailed sub-categorization within the role family
+
+35. Grade Name
+    Business Description: Employee grade level within the organizational hierarchy
+
+36. HR Band Level
+    Business Description: Compensation band level identifier
+
+37. HR Band Title
+    Business Description: Title associated with the compensation band level
+
+38. Is Existing Resource
+    Business Description: Flag indicating if this is an existing employee or new hire
+
+39. Is Replacement
+    Business Description: Flag indicating if this hire is replacing another employee
+
+40. Replacement For GCI
+    Business Description: GCI identifier of the employee being replaced
+
+41. Replacement Reason
+    Business Description: Reason for the replacement hire
+
+42. Is Redeployment Hire
+    Business Description: Flag indicating if this is an internal redeployment
+
+43. Redeployment Led By
+    Business Description: Person or team responsible for the redeployment
+
+44. Is Hotbook Hire
+    Business Description: Flag indicating if this was a rapid/hotbook hiring
+
+45. Hire Source
+    Business Description: Source or channel through which the candidate was hired
+
+46. Is Direct Hire
+    Business Description: Flag indicating if this is a direct hire versus contract
+
+47. Agency Name
+    Business Description: Name of staffing agency if hired through third party
+
+48. Referred By
+    Business Description: Name of person who referred the candidate
+
+49. Referral Fee Amount
+    Business Description: Monetary amount paid for employee referral
+
+50. Referral Fee Units
+    Business Description: Unit of measurement for referral fee (e.g., USD, percentage)
+
+51. Is PWD
+    Business Description: Flag indicating if employee is a person with disability
+
+52. Consent Provided
+    Business Description: Flag indicating if employee provided required consents
+
+53. Unique Identification Document
+    Business Description: Type of identification document provided by employee
+
+54. User Name
+    Business Description: System username for employee access
+
+55. User Created
+    Business Description: System user who created the employee record
+
+56. Date Created
+    Business Description: Timestamp when the employee record was created
+
+57. User Updated
+    Business Description: System user who last updated the employee record
+
+58. Date Updated
+    Business Description: Timestamp when the employee record was last updated
+
+
+ENTITY 2: CLIENT ORGANIZATION
+------------------------------------------------------------------------
+
+1. Client Code
+   Business Description: Unique identifier assigned to each client organization
+
+2. Client Name
+   Business Description: Legal or business name of the client organization
+
+3. Client Type
+   Business Description: Classification of client relationship (e.g., Direct, MSP, VMS)
+
+4. Client Sector
+   Business Description: Industry sector or vertical of the client organization
+
+5. Client Class
+   Business Description: Classification of client for business segmentation
+
+6. Client Group
+   Business Description: Grouping of related clients for reporting purposes
+
+7. Super Merged Name
+   Business Description: Consolidated name for merged or parent client organizations
+
+8. Parent Account Name
+   Business Description: Name of the parent company if client is a subsidiary
+
+9. DNB Number
+   Business Description: Dun & Bradstreet number for client identification
+
+10. Client Entity
+    Business Description: Specific legal entity of the client organization
+
+11. End Client Code
+    Business Description: Identifier for the ultimate end client if different from direct client
+
+12. End Client Name
+    Business Description: Name of the ultimate end client organization
+
+13. End Client Sector
+    Business Description: Industry sector of the end client
+
+14. MSP Name
+    Business Description: Name of Managed Service Provider if applicable
+
+15. Subtier Name
+    Business Description: Name of subtier vendor or intermediary
+
+16. Subtier Address Line 1
+    Business Description: First line of subtier organization address
+
+17. Subtier Address Line 2
+    Business Description: Second line of subtier organization address
+
+18. Subtier City
+    Business Description: City of subtier organization location
+
+19. Subtier State
+    Business Description: State of subtier organization location
+
+20. Client Manager Name
+    Business Description: Name of the primary manager at client organization
+
+21. Client Manager Phone
+    Business Description: Phone number of the client manager
+
+22. Client Manager Phone Extension
+    Business Description: Phone extension for the client manager
+
+23. Client Manager Email
+    Business Description: Email address of the client manager
+
+24. Client Manager Fax
+    Business Description: Fax number of the client manager
+
+25. Client Manager Cell
+    Business Description: Mobile phone number of the client manager
+
+26. Client Manager Pager
+    Business Description: Pager number of the client manager
+
+27. Client Manager Pager Pin
+    Business Description: Pager PIN for the client manager
+
+28. Client Markup Percentage
+    Business Description: Standard markup percentage applied for this client
+
+29. Client Region
+    Business Description: Geographic region where the client is located
+
+30. Vertical Name
+    Business Description: Business vertical or industry classification
+
+31. ESG Vertical
+    Business Description: ESG (Enterprise Solutions Group) vertical classification
+
+32. ESG Industry
+    Business Description: ESG industry classification
+
+33. ESG DNA
+    Business Description: ESG DNA classification for client categorization
+
+
+ENTITY 3: PROJECT ENGAGEMENT
+------------------------------------------------------------------------
+
+1. Project Name
+   Business Description: Descriptive name of the project or engagement
+
+2. ITSS Project Name
+   Business Description: IT Services and Solutions project name
+
+3. Project Description
+   Business Description: Detailed description of the project scope and objectives
+
+4. Project Type
+   Business Description: Classification of project (e.g., Fixed Price, Time & Material, SOW)
+
+5. MS Project Type
+    Business Description: Microsoft Project type classification
+
+6. Project Category
+   Business Description: Categorization of project for reporting purposes
+
+7. Engagement Type
+   Business Description: Type of engagement model (e.g., Staff Augmentation, Project-based)
+
+8. Project Billing Type
+   Business Description: Billing arrangement for the project (e.g., Hourly, Fixed Price, Milestone)
+
+9. Resource Billing Type
+   Business Description: How individual resources on the project are billed
+
+10. Is SOW Project
+    Business Description: Flag indicating if this is a Statement of Work project
+
+11. Is Offshore Project
+    Business Description: Flag indicating if project involves offshore resources
+
+12. Is BPOS Project
+    Business Description: Flag indicating if this is a Business Process Outsourcing project
+
+13. Project Start Date
+    Business Description: Planned or actual start date of the project
+
+14. Project End Date
+    Business Description: Planned or actual end date of the project
+
+15. PO Start Date
+    Business Description: Purchase order start date for the project
+
+16. PO End Date
+    Business Description: Purchase order end date for the project
+
+17. Project Location Address Line 1
+    Business Description: First line of project work location address
+
+18. Project Location Address Line 2
+    Business Description: Second line of project work location address
+
+19. Project City
+    Business Description: City where project work is performed
+
+20. Project State
+    Business Description: State where project work is performed
+
+21. Project Zip Code
+    Business Description: Postal code of project location
+
+22. Project County
+    Business Description: County of project location for tax purposes
+
+23. Project Country
+    Business Description: Country where project work is performed
+
+24. Project Zone
+    Business Description: Geographic zone classification for the project
+
+25. Region 1
+    Business Description: Primary region classification for the project
+
+26. Region 1 Percentage
+    Business Description: Percentage allocation to Region 1
+
+27. Region 2
+    Business Description: Secondary region classification for the project
+
+28. Region 2 Percentage
+    Business Description: Percentage allocation to Region 2
+
+29. Region Group
+    Business Description: Grouping of regions for reporting purposes
+
+30. Market
+    Business Description: Market segment or geographic market for the project
+
+31. Circle
+    Business Description: Business circle or group classification
+
+32. Community
+    Business Description: Practice community or competency group
+
+33. Practice Type
+    Business Description: Type of practice or service line
+
+34. Delivery Model
+    Business Description: Model for service delivery (e.g., Onsite, Offshore, Hybrid)
+
+35. Tower
+    Business Description: Service tower or capability area
+
+36. Opportunity Identifier
+    Business Description: Unique identifier for the sales opportunity
+
+37. Opportunity Name
+    Business Description: Name of the sales opportunity that led to the project
+
+38. FP Project Identifier
+    Business Description: Fixed Price project identifier
+
+39. FP Project Name
+    Business Description: Fixed Price project name
+
+40. FP Project Planned
+    Business Description: Planned revenue or hours for Fixed Price project
+
+41. MS Project Identifier
+    Business Description: Microsoft Project system identifier
+
+42. MS Project Name
+    Business Description: Microsoft Project system name
+
+43. Netsuite Project Identifier
+    Business Description: Unique identifier in Netsuite system
+
+44. Netsuite Created Date
+    Business Description: Date when project was created in Netsuite
+
+45. Netsuite Modified Date
+    Business Description: Date when project was last modified in Netsuite
+
+46. Transition Type
+    Business Description: Type of transition (e.g., New, Transition, Renewal)
+
+47. SOC Code
+    Business Description: Standard Occupational Classification code
+
+48. SOC Description
+    Business Description: Description of the SOC classification
+
+49. Request Duration
+    Business Description: Requested duration of the project in months or days
+
+50. Non Billing Type
+    Business Description: Classification for non-billable project types
+
+51. Project Major Group
+    Business Description: Major grouping classification for the project
+
+52. Project Minor Group
+    Business Description: Minor grouping classification for the project
+
+53. Project Broad Group
+    Business Description: Broad grouping classification for the project
+
+54. Project Detail Group
+    Business Description: Detailed grouping classification for the project
+
+55. Is 9 Hours Allowed
+    Business Description: Flag indicating if 9-hour workdays are permitted
+
+56. 9 Hours Effective Date
+    Business Description: Date from which 9-hour workdays are effective
+
+57. Week Cycle
+    Business Description: Weekly cycle definition for timesheet purposes
+
+58. Is Overtime Allowed
+    Business Description: Flag indicating if overtime is permitted on this project
+
+59. Is Double Time Allowed
+    Business Description: Flag indicating if double time is permitted
+
+60. Is Overtime Billable
+    Business Description: Flag indicating if overtime hours are billable to client
+
+61. Is Swing Shift Associated
+    Business Description: Flag indicating if swing shift schedules apply
+
+62. Is Premium Project Associated
+    Business Description: Flag indicating if premium rates apply
+
+63. Client Compliance Checks Required
+    Business Description: Flag indicating if special compliance checks are needed
+
+64. PES Document Sent
+    Business Description: Flag indicating if PES documentation was sent
+
+65. PES Document Sent Date
+    Business Description: Date when PES documentation was sent
+
+66. PES Confirm Document Receipt
+    Business Description: Flag confirming receipt of PES documentation
+
+67. PES Confirm Document Receipt Date
+    Business Description: Date when PES document receipt was confirmed
+
+68. PES Clearance Received
+    Business Description: Flag indicating PES clearance was received
+
+69. PES Clearance Received Date
+    Business Description: Date when PES clearance was received
+
+70. CBC Notes
+    Business Description: Compliance and background check notes
+
+
+ENTITY 4: TIME ENTRY
+------------------------------------------------------------------------
+
+1. Period End Date
+   Business Description: End date of the time entry period (typically weekly)
+
+2. Week Date
+   Business Description: Week ending date for the timesheet period
+
+3. Calendar Date
+   Business Description: Specific calendar date for the time entry
+
+4. Is Billable
+   Business Description: Flag indicating if the time is billable to client
+
+5. Standard Time Hours
+   Business Description: Regular working hours during standard time
+
+6. Overtime Hours
+   Business Description: Hours worked beyond standard time qualifying for overtime
+
+7. Double Time Hours
+   Business Description: Hours worked qualifying for double time rate
+
+8. Time Off Hours
+   Business Description: Hours of paid time off taken
+
+9. Holiday Hours
+   Business Description: Hours for recognized holidays
+
+10. Sick Time Hours
+    Business Description: Hours of sick leave taken
+
+11. Non-Billable Standard Time Hours
+    Business Description: Regular hours that are not billable to client
+
+12. Non-Billable Overtime Hours
+    Business Description: Overtime hours that are not billable to client
+
+13. Non-Billable Double Time Hours
+    Business Description: Double time hours that are not billable to client
+
+14. Non-Billable Sick Time Hours
+    Business Description: Sick time hours that are not billable to client
+
+15. Approved Standard Time Hours
+    Business Description: Standard time hours that have been approved
+
+16. Approved Overtime Hours
+    Business Description: Overtime hours that have been approved
+
+17. Approved Double Time Hours
+    Business Description: Double time hours that have been approved
+
+18. Approved Sick Time Hours
+    Business Description: Sick time hours that have been approved
+
+19. Approved Non-Billable Standard Time Hours
+    Business Description: Non-billable standard time hours that have been approved
+
+20. Approved Non-Billable Overtime Hours
+    Business Description: Non-billable overtime hours that have been approved
+
+21. Approved Non-Billable Double Time Hours
+    Business Description: Non-billable double time hours that have been approved
+
+22. Approved Non-Billable Sick Time Hours
+    Business Description: Non-billable sick time hours that have been approved
+
+23. Consultant Standard Time Hours
+    Business Description: Standard time hours submitted by consultant
+
+24. Consultant Overtime Hours
+    Business Description: Overtime hours submitted by consultant
+
+25. Consultant Double Time Hours
+    Business Description: Double time hours submitted by consultant
+
+26. Expected Hours
+    Business Description: Expected or planned hours for the period
+
+27. Expected Total Hours
+    Business Description: Total expected hours across all categories
+
+28. Business Days
+    Business Description: Number of business days in the period
+
+29. Number of Free Hours
+    Business Description: Hours available but not assigned or worked
+
+
+ENTITY 5: HIRING WORKFLOW
+------------------------------------------------------------------------
+
+1. Track Identifier
+   Business Description: Unique identifier for tracking the hiring workflow
+
+2. Process Name
+   Business Description: Name of the hiring workflow process
+
+3. HWF Process Name
+   Business Description: Human Workflow process name for the hiring stage
+
+4. Level Identifier
+   Business Description: Current level or stage in the hiring workflow
+
+5. Level Name
+   Business Description: Name of the current workflow level
+
+6. Last Level
+   Business Description: Final level in the hiring workflow
+
+7. Workflow Status
+   Business Description: Current status of the hiring workflow
+
+8. Initiator Name
+   Business Description: Person who initiated the hiring workflow
+
+9. Initiator Email
+   Business Description: Email address of the workflow initiator
+
+10. Workflow Comments
+    Business Description: Comments and notes added during the workflow
+
+11. Date Created
+    Business Description: Date when the hiring workflow was created
+
+12. Date Completed
+    Business Description: Date when the hiring workflow was completed
+
+13. Minimum Level DateTime
+    Business Description: Timestamp of the earliest workflow level
+
+14. Maximum Level DateTime
+    Business Description: Timestamp of the latest workflow level
+
+15. First Interview Date
+    Business Description: Date of the first interview conducted
+
+16. Interview Created Date
+    Business Description: Date when the interview was scheduled
+
+17. Interview On Date
+    Business Description: Actual date when the interview took place
+
+18. Client Interview Required
+    Business Description: Flag indicating if client interview is required
+
+19. Client Offer Acceptance Date
+    Business Description: Date when candidate accepted the client offer
+
+20. Workflow Created On
+    Business Description: Timestamp when workflow was created in the system
+
+21. Submitted Date
+    Business Description: Date when candidate was submitted for consideration
+
+22. Received Date
+    Business Description: Date when candidate application was received
+
+23. Response Time
+    Business Description: Time taken to respond to the candidate or request
+
+24. Submitted By
+    Business Description: Person who submitted the candidate
+
+25. Is In-House Candidate
+    Business Description: Flag indicating if candidate is from internal pool
+
+26. Is Bulk Submission
+    Business Description: Flag indicating if this was part of bulk submission
+
+27. Is Jump Submission
+    Business Description: Flag indicating if this was a jump/fast-track submission
+
+28. Is Class Initiative
+    Business Description: Flag indicating if this is part of a class hiring initiative
+
+29. Is REC CES
+    Business Description: Flag indicating if recruiter is from CES team
+
+30. Is CES Initiative
+    Business Description: Flag indicating if this is a CES initiative hire
+
+
+ENTITY 6: PROJECT ASSIGNMENT
+------------------------------------------------------------------------
+
+1. Assignment Start Date
+   Business Description: Date when the resource assignment to project begins
+
+2. Assignment End Date
+   Business Description: Date when the resource assignment to project ends
+
+3. End Date at Client
+   Business Description: Actual end date of work at client location
+
+4. Assignment Status
+   Business Description: Current status of the project assignment
+
+5. Bill Rate Standard Time
+   Business Description: Billing rate for standard time hours
+
+6. Bill Rate Overtime
+   Business Description: Billing rate for overtime hours
+
+7. Bill Rate Standard Time Units
+   Business Description: Unit of measurement for standard time billing rate
+
+8. Bill Rate Overtime Units
+   Business Description: Unit of measurement for overtime billing rate
+
+9. Bill Rate Standard Time Offshore
+   Business Description: Offshore billing rate for standard time
+
+10. Bill Rate Overtime Offshore
+    Business Description: Offshore billing rate for overtime
+
+11. Bill Rate Standard Time Offshore Units
+    Business Description: Unit of measurement for offshore standard time rate
+
+12. Bill Rate Overtime Offshore Units
+    Business Description: Unit of measurement for offshore overtime rate
+
+13. Net Bill Rate
+    Business Description: Net billing rate after adjustments
+
+14. Submitted Bill Rate
+    Business Description: Bill rate submitted in the proposal
+
+15. FP Bill Rate
+    Business Description: Fixed price billing rate
+
+16. FP Bill Rate Overtime
+    Business Description: Fixed price overtime billing rate
+
+17. SCA Hourly Bill Rate
+    Business Description: Service Contract Act hourly billing rate
+
+18. Is Bill Rate Skip
+    Business Description: Flag indicating if bill rate validation should be skipped
+
+19. Salary Amount
+    Business Description: Salary amount for the assignment
+
+20. Salary Units
+    Business Description: Unit of measurement for salary (e.g., Annual, Monthly)
+
+21. Pay Rate Standard Time
+    Business Description: Pay rate to consultant for standard time
+
+22. Pay Rate Standard Time Units
+    Business Description: Unit of measurement for standard time pay rate
+
+23. Loaded Pay Rate
+    Business Description: Fully loaded pay rate including benefits and overhead
+
+24. Pay Rate to Consultant
+    Business Description: Actual pay rate provided to the consultant
+
+25. Candidate Salary
+    Business Description: Salary offered to the candidate
+
+26. Markup Percentage
+    Business Description: Markup percentage applied to calculate bill rate
+
+27. Actual Markup
+    Business Description: Actual markup percentage achieved
+
+28. Maximum Allowed Markup
+    Business Description: Maximum markup percentage permitted
+
+29. Gross Profit
+    Business Description: Gross profit amount for the assignment
+
+30. Gross Profit Margin
+    Business Description: Gross profit margin percentage
+
+31. Gross Profit 2020
+    Business Description: Gross profit calculated using 2020 methodology
+
+32. Gross Profit Margin 2020
+    Business Description: Gross profit margin using 2020 methodology
+
+33. Submitted Gross Profit Margin
+    Business Description: Gross profit margin submitted in proposal
+
+34. Net Bill Rate
+    Business Description: Net billing rate after all adjustments
+
+35. Derived Revenue
+    Business Description: Calculated revenue based on hours and rates
+
+36. Derived Gross Profit
+    Business Description: Calculated gross profit from revenue and costs
+
+37. Backlog Revenue
+    Business Description: Revenue in backlog not yet recognized
+
+38. Backlog Gross Profit
+    Business Description: Gross profit in backlog not yet recognized
+
+39. ACA Cost
+    Business Description: Affordable Care Act related costs
+
+40. ACA Classification
+    Business Description: ACA classification for benefits eligibility
+
+41. Benefits Plan
+    Business Description: Benefits plan assigned to the resource
+
+42. HR Billing Placement Net Fee
+    Business Description: Net placement fee for billing purposes
+
+43. Not to Exceed Flag
+    Business Description: Flag indicating if not-to-exceed terms apply
+
+44. Exceed Flag
+    Business Description: Flag indicating if budget has been exceeded
+
+45. Invoicing Terms
+    Business Description: Terms for invoicing the client
+
+46. Payment Terms
+    Business Description: Payment terms agreed with client
+
+47. Invoice Payment Terms Notes
+    Business Description: Additional notes on invoice and payment terms
+
+48. PO End Count
+    Business Description: Count of purchase order end events
+
+49. Consultant Ageing
+    Business Description: Number of days consultant has been on assignment
+
+50. Start Date Change Reason
+    Business Description: Reason for changing the assignment start date
+
+51. Billing Company
+    Business Description: Legal entity responsible for billing
+
+52. Spinoff Company
+    Business Description: Spinoff company if applicable
+
+53. Position Type
+    Business Description: Type of position (e.g., Contract, Permanent)
+
+54. Consultant Category Type
+    Business Description: Category classification for the consultant
+
+55. VAS Type
+    Business Description: Value Added Services type classification
+
+56. New VAS
+    Business Description: New VAS classification
+
+57. Defined New VAS
+    Business Description: Defined new VAS category
+
+58. VASSOW Classification
+    Business Description: VAS Statement of Work classification
+
+59. Bucket Classification
+    Business Description: Bucket category for reporting purposes
+
+60. New Category
+    Business Description: New categorization for the assignment
+
+61. New Business Type
+    Business Description: New business type classification
+
+62. Billing Type
+    Business Description: Type of billing arrangement
+
+63. Employee Identifier
+    Business Description: Employee identifier for the assignment
+
+64. Task Identifier
+    Business Description: Task identifier in the project management system
+
+65. Requirement Fulfillment Reason
+    Business Description: Reason for fulfilling this requirement
+
+
+ENTITY 7: RECRUITMENT REQUEST
+------------------------------------------------------------------------
+
+1. Requisition Number
+   Business Description: Unique requisition number for the hiring request
+
+2. Requisition Identifier
+   Business Description: System identifier for the requisition
+
+3. Metal Requisition Identifier
+   Business Description: Requisition identifier in the Metal system
+
+4. Request Type
+   Business Description: Type of recruitment request (e.g., New, Replacement, Backfill)
+
+5. Request Category
+   Business Description: Category classification of the request
+
+6. Request Division
+   Business Description: Division requesting the resource
+
+7. Job Description
+   Business Description: Detailed description of the job requirements
+
+8. Metal Job Description
+   Business Description: Job description from the Metal system
+
+9. Required Skills
+   Business Description: Skills required for the position
+
+10. Primary Skills
+    Business Description: Primary skills needed for the role
+
+11. Requisition Duration
+    Business Description: Expected duration of the requisition
+
+12. Requisition Received Date
+    Business Description: Date when the requisition was received
+
+13. Requisition Submitted Date
+    Business Description: Date when the requisition was submitted
+
+14. Response Time
+    Business Description: Time taken to respond to the requisition
+
+15. Requirement Fulfillment Reason
+    Business Description: Reason for fulfilling this requirement
+
+
+ENTITY 8: FINANCIAL RATE STRUCTURE
+------------------------------------------------------------------------
+
+1. Bill Rate Standard Time
+   Business Description: Standard time billing rate per hour
+
+2. Bill Rate Overtime
+   Business Description: Overtime billing rate per hour
+
+3. Bill Rate Units
+   Business Description: Unit of measurement for billing rates
+
+4. Pay Rate Standard Time
+   Business Description: Standard time pay rate to consultant
+
+5. Pay Rate Units
+   Business Description: Unit of measurement for pay rates
+
+6. Net Bill Rate
+   Business Description: Net billing rate after deductions
+
+7. Loaded Pay Rate
+   Business Description: Fully loaded pay rate including all costs
+
+8. Markup Percentage
+   Business Description: Percentage markup on pay rate
+
+9. Actual Markup
+   Business Description: Actual markup percentage achieved
+
+10. Maximum Allowed Markup
+    Business Description: Maximum markup percentage allowed
+
+11. Gross Profit Amount
+    Business Description: Gross profit in monetary terms
+
+12. Gross Profit Margin
+    Business Description: Gross profit as a percentage of revenue
+
+13. Bill Rate Start Date
+    Business Description: Date when the billing rate becomes effective
+
+14. Previous Bill Rate
+    Business Description: Previous billing rate before change
+
+15. Months in Same Rate
+    Business Description: Number of months the rate has remained unchanged
+
+16. Rate Time Group
+    Business Description: Time-based grouping for rate changes
+
+17. Rate Change Type
+    Business Description: Type of rate change (e.g., Increase, Decrease, New)
+
+
+ENTITY 9: ORGANIZATIONAL HIERARCHY
+------------------------------------------------------------------------
+
+1. Business Unit
+   Business Description: Top-level business unit within the organization
+
+2. Sub Business Unit
+   Business Description: Sub-division within the business unit
+
+3. Department
+   Business Description: Department within the organizational structure
+
+4. Sub Department
+   Business Description: Sub-department classification
+
+5. Division
+   Business Description: Division within the organization
+
+6. Division Start Date
+   Business Description: Date when division assignment started
+
+7. Division End Date
+   Business Description: Date when division assignment ended
+
+8. Human Capital Unit
+   Business Description: Human capital organizational unit
+
+9. Human Services Unit
+   Business Description: Human services organizational unit
+
+10. Human Services Unit Delivery Manager
+    Business Description: Delivery manager for the HSU
+
+11. Assigned Human Services Unit
+    Business Description: HSU to which resource is assigned
+
+12. Operations Group
+    Business Description: Operations group classification
+
+13. Recruiting Office
+    Business Description: Office location for recruiting function
+
+14. Recruiting Region
+    Business Description: Geographic region for recruiting
+
+15. Location
+    Business Description: Physical location or office
+
+16. RTR Location
+    Business Description: Recruit-to-Retire location classification
+
+17. Recruiting Manager
+    Business Description: Manager responsible for recruiting
+
+18. Resource Manager
+    Business Description: Manager responsible for resource allocation
+
+19. Account Executive
+    Business Description: Account executive managing client relationship
+
+20. Sales Representative
+    Business Description: Sales representative for the account
+
+21. Inside Sales Person
+    Business Description: Inside sales team member
+
+22. Recruiter Name
+    Business Description: Name of the recruiter handling the position
+
+23. VMO Name
+    Business Description: Vendor Management Office representative
+
+24. VMO Access 1
+    Business Description: Primary VMO access person
+
+25. VMO Access 2
+    Business Description: Secondary VMO access person
+
+26. VMO Access 3
+    Business Description: Tertiary VMO access person
+
+27. VMO Access 4
+    Business Description: Quaternary VMO access person
+
+28. Team Lead
+    Business Description: Team lead for the group
+
+29. Delivery Manager
+    Business Description: Manager responsible for delivery
+
+30. Delivery Director
+    Business Description: Director overseeing delivery operations
+
+31. Business Manager
+    Business Description: Business manager for the unit
+
+32. ITSS Business Development Manager
+    Business Description: Business development manager for ITSS
+
+33. RTR Delivery Manager
+    Business Description: Recruit-to-Retire delivery manager
+
+34. National Account Manager
+    Business Description: Manager for national accounts
+
+35. ESG National Account Manager 1
+    Business Description: Primary ESG national account manager
+
+36. ESG National Account Manager 2
+    Business Description: Secondary ESG national account manager
+
+37. ESG National Account Manager 3
+    Business Description: Tertiary ESG national account manager
+
+38. ESG Senior Account Manager
+    Business Description: Senior account manager for ESG
+
+39. ESG Executive Sponsor
+    Business Description: Executive sponsor for ESG accounts
+
+40. ESG Business Unit
+    Business Description: ESG business unit classification
+
+41. NSO Name
+    Business Description: Named Sales Officer
+
+42. CRE Person
+    Business Description: Client Relationship Executive
+
+43. ER Person
+    Business Description: Employee Relations person
+
+44. I9 Approver
+    Business Description: Person authorized to approve I9 forms
+
+45. Timesheet Lead
+    Business Description: Lead responsible for timesheet management
+
+46. Timesheet Manager
+    Business Description: Manager responsible for timesheet approvals
+
+47. Timesheet Manager Type
+    Business Description: Type or classification of timesheet manager
+
+48. Timesheet Manager Phone
+    Business Description: Phone number of timesheet manager
+
+49. Timesheet Manager Email
+    Business Description: Email address of timesheet manager
+
+50. CP Name
+    Business Description: Client Partner name
+
+51. Client Partner
+    Business Description: Partner managing the client relationship
+
+52. Portfolio Leader
+    Business Description: Leader of the portfolio
+
+53. Account Owner
+    Business Description: Owner of the client account
+
+54. Market Leader
+    Business Description: Leader for the market segment
+
+55. ALT Name
+    Business Description: Account Leadership Team member name
+
+56. Senior Manager
+    Business Description: Senior manager in the hierarchy
+
+57. Associate Manager
+    Business Description: Associate level manager
+
+58. Director Talent Engine
+    Business Description: Director of talent acquisition engine
+
+59. Manager
+    Business Description: Direct manager in the reporting structure
+
+60. Onsite Consultant Relationship Manager
+    Business Description: Manager for onsite consultant relationships
+
+61. Admin 1701
+    Business Description: Administrative person for 1701 classification
+
+62. Corrected Staff Admin 1701
+    Business Description: Corrected staff admin for 1701
+
+63. Client Resource Manager
+    Business Description: Resource manager at client side
+
+64. ARM Name
+    Business Description: Account Relationship Manager
+
+65. RM Name
+    Business Description: Relationship Manager
+
+66. TAG Name
+    Business Description: Talent Acquisition Group member
+
+
+ENTITY 10: CLIENT AGREEMENT
+------------------------------------------------------------------------
+
+1. Send Agreements To
+   Business Description: Contact person to send agreements to
+
+2. Agreements Contact Phone
+   Business Description: Phone number of agreements contact
+
+3. Agreements Contact Phone Extension
+   Business Description: Phone extension of agreements contact
+
+4. Agreements Contact Email
+   Business Description: Email address of agreements contact
+
+5. Agreements Contact Fax
+   Business Description: Fax number of agreements contact
+
+6. Agreements Contact Cell
+   Business Description: Mobile phone of agreements contact
+
+7. Agreements Contact Pager
+   Business Description: Pager number of agreements contact
+
+8. Agreements Contact Pager Pin
+   Business Description: Pager PIN of agreements contact
+
+9. Send Invoices To
+   Business Description: Contact person to send invoices to
+
+10. Invoice Address Line 1
+    Business Description: First line of invoice mailing address
+
+11. Invoice Address Line 2
+    Business Description: Second line of invoice mailing address
+
+12. Invoice City
+    Business Description: City for invoice mailing address
+
+13. Invoice State
+    Business Description: State for invoice mailing address
+
+14. Invoice Zip Code
+    Business Description: Postal code for invoice mailing address
+
+15. Invoice Contact Phone
+    Business Description: Phone number of invoice contact
+
+16. Invoice Contact Phone Extension
+    Business Description: Phone extension of invoice contact
+
+17. Invoice Contact Email
+    Business Description: Email address of invoice contact
+
+18. Invoice Contact Fax
+    Business Description: Fax number of invoice contact
+
+19. Invoice Contact Cell
+    Business Description: Mobile phone of invoice contact
+
+20. Invoice Contact Pager
+    Business Description: Pager number of invoice contact
+
+21. Invoice Contact Pager Pin
+    Business Description: Pager PIN of invoice contact
+
+22. Print Invoice Address Line 1
+    Business Description: First line of printed invoice address
+
+23. Print Invoice Address Line 2
+    Business Description: Second line of printed invoice address
+
+24. Print Invoice City
+    Business Description: City for printed invoice address
+
+25. Print Invoice State
+    Business Description: State for printed invoice address
+
+26. Print Invoice Zip Code
+    Business Description: Postal code for printed invoice address
+
+27. Mail Invoice Address Line 1
+    Business Description: First line of mailed invoice address
+
+28. Mail Invoice Address Line 2
+    Business Description: Second line of mailed invoice address
+
+29. Mail Invoice City
+    Business Description: City for mailed invoice address
+
+30. Mail Invoice State
+    Business Description: State for mailed invoice address
+
+31. Mail Invoice Zip Code
+    Business Description: Postal code for mailed invoice address
+
+32. Accounts Payable Person
+    Business Description: Contact person in accounts payable
+
+33. Accounts Payable Phone
+    Business Description: Phone number of AP contact
+
+34. Accounts Payable Phone Extension
+    Business Description: Phone extension of AP contact
+
+35. Accounts Payable Email
+    Business Description: Email address of AP contact
+
+36. Accounts Payable Fax
+    Business Description: Fax number of AP contact
+
+37. Accounts Payable Cell
+    Business Description: Mobile phone of AP contact
+
+38. Accounts Payable Pager
+    Business Description: Pager number of AP contact
+
+39. Accounts Payable Pager Pin
+    Business Description: Pager PIN of AP contact
+
+40. Invoicing Terms
+    Business Description: Terms and conditions for invoicing
+
+41. Payment Terms
+    Business Description: Payment terms agreed with client
+
+
+ENTITY 11: WORKING CALENDAR
+------------------------------------------------------------------------
+
+1. Calendar Year
+   Business Description: Calendar year for the working days calculation
+
+2. Calendar Month
+   Business Description: Calendar month name
+
+3. Working Days Count
+   Business Description: Total number of working days in the month
+
+4. Holiday Count Baroda
+   Business Description: Number of holidays in Baroda location
+
+5. Holiday Count US
+   Business Description: Number of holidays in US locations
+
+6. Holiday Count Chennai
+   Business Description: Number of holidays in Chennai location
+
+7. Business Days
+   Business Description: Total business days available
+
+8. First Day of Month
+   Business Description: First calendar day of the month
+
+9. Last Day of Month
+   Business Description: Last calendar day of the month
+
+10. Year-Month Code
+    Business Description: Numeric code representing year and month (YYYYMM)
+
+11. Start Year-Month Code
+    Business Description: Year-month code for start date
+
+
+ENTITY 12: SKILL PROFILE
+------------------------------------------------------------------------
+
+1. Skills
+   Business Description: Comprehensive list of technical and professional skills
+
+2. Primary Skills
+   Business Description: Core competencies and primary skill areas
+
+3. DTCUChoice1
+   Business Description: DTCU (Digital Technology Competency Unit) choice classification
+
+4. Sub Category
+   Business Description: Sub-categorization of skills
+
+5. Standard Job Title
+   Business Description: Standardized job title based on skills
+
+6. Standard Job Title Horizon
+   Business Description: Future-oriented standard job title classification
+
+7. Experience Level Title
+   Business Description: Experience level based on skills and tenure
+
+8. Role Family
+   Business Description: Family of related roles
+
+9. Sub Role Family
+   Business Description: Sub-family within the role family
+
+
+4. KEY PERFORMANCE INDICATORS (KPIs)
+========================================================================
+
+1. Gross Profit (GP)
+   Description: Total gross profit generated from consulting engagements, calculated as revenue minus direct costs
+   Formula: Revenue - Direct Costs
+
+2. Gross Profit Margin (GPM)
+   Description: Gross profit as a percentage of revenue, indicating profitability of engagements
+   Formula: (Gross Profit / Revenue) × 100
+
+3. Net Bill Rate (NBR)
+   Description: Net billing rate charged to clients after adjustments and discounts
+
+4. Markup Percentage
+   Description: Percentage markup applied on pay rate to determine bill rate
+   Formula: ((Bill Rate - Pay Rate) / Pay Rate) × 100
+
+5. Actual Markup
+   Description: Actual markup percentage achieved on assignments
+
+6. Headcount Metrics:
+   - Begin HC: Headcount at the beginning of the period
+   - End HC: Headcount at the end of the period
+   - Starts - New Project: New hires starting on projects
+   - Starts - Internal Movements: Internal transfers and movements
+   - Terms: Terminations during the period
+   - Other Project Ends: Project completions
+   - OffBoard: Offboarding completions
+   - Net Addition: Net change in headcount
+
+7. Voluntary Terminations
+   Description: Number of voluntary terminations during the period
+
+8. Derived Revenue
+   Description: Calculated revenue based on hours worked and billing rates
+
+9. Derived Gross Profit
+   Description: Calculated gross profit from derived revenue
+
+10. Backlog Revenue
+    Description: Revenue in backlog not yet recognized
+
+11. Backlog Gross Profit
+    Description: Gross profit associated with backlog revenue
+
+12. Expected Hours
+    Description: Expected billable hours for the period
+
+13. Expected Total Hours
+    Description: Total expected hours including all categories
+
+14. Utilization Rate
+    Description: Percentage of available hours that are billable
+    Formula: (Billable Hours / Total Available Hours) × 100
+
+15. Response Time
+    Description: Time taken to respond to requisitions or candidates
+
+16. PO End Count
+    Description: Count of purchase orders ending in the period
+
+17. Consultant Ageing
+    Description: Number of days consultant has been on assignment
+
+18. ACA Cost
+    Description: Affordable Care Act related costs per employee
+
+19. Billing Placement Net Fee
+    Description: Net fee for placement billing
+
+20. Submitted Bill Rate
+    Description: Bill rate submitted in proposals
+
+21. Client Interview Required Count
+    Description: Number of positions requiring client interviews
+
+22. Redeployment Hire Count
+    Description: Number of internal redeployment hires
+
+23. Hotbook Hire Count
+    Description: Number of rapid/hotbook hires
+
+24. Referral Fee Amount
+    Description: Total referral fees paid
+
+25. Time to Fill
+    Description: Average time to fill open positions
+
+26. Submission to Hire Ratio
+    Description: Ratio of submissions to actual hires
+
+
+5. CONCEPTUAL DATA MODEL DIAGRAM - ENTITY RELATIONSHIPS
+========================================================================
+
+The following table shows the relationships between entities and the key fields connecting them:
+
++---------------------------+----------------------------+---------------------------+
+| FROM ENTITY               | TO ENTITY                  | CONNECTING KEY FIELD      |
++---------------------------+----------------------------+---------------------------+
+| Employee Resource         | Project Assignment         | GCI Identifier            |
+| Employee Resource         | Time Entry                 | GCI Identifier            |
+| Employee Resource         | Hiring Workflow            | GCI Identifier            |
+| Employee Resource         | Skill Profile              | GCI Identifier            |
+| Employee Resource         | Organizational Hierarchy   | GCI Identifier            |
++---------------------------+----------------------------+---------------------------+
+| Client Organization       | Project Engagement         | Client Code               |
+| Client Organization       | Client Agreement           | Client Code               |
+| Client Organization       | Project Assignment         | Client Code               |
++---------------------------+----------------------------+---------------------------+
+| Project Engagement        | Project Assignment         | Project Name              |
+| Project Engagement        | Time Entry                 | Task Identifier           |
+| Project Engagement        | Client Organization        | Client Code               |
+| Project Engagement        | Recruitment Request        | Project Name              |
++---------------------------+----------------------------+---------------------------+
+| Project Assignment        | Employee Resource          | GCI Identifier            |
+| Project Assignment        | Project Engagement         | Project Name              |
+| Project Assignment        | Financial Rate Structure   | Assignment Identifier     |
+| Project Assignment        | Time Entry                 | GCI Identifier +          |
+|                           |                            | Task Identifier           |
++---------------------------+----------------------------+---------------------------+
+| Time Entry                | Employee Resource          | GCI Identifier            |
+| Time Entry                | Project Assignment         | GCI Identifier +          |
+|                           |                            | Task Identifier           |
+| Time Entry                | Working Calendar           | Period End Date           |
++---------------------------+----------------------------+---------------------------+
+| Hiring Workflow           | Employee Resource          | GCI Identifier            |
+| Hiring Workflow           | Recruitment Request        | Requisition Identifier    |
+| Hiring Workflow           | Project Assignment         | Track Identifier          |
++---------------------------+----------------------------+---------------------------+
+| Recruitment Request       | Project Engagement         | Project Name              |
+| Recruitment Request       | Hiring Workflow            | Requisition Identifier    |
+| Recruitment Request       | Organizational Hierarchy   | Requisition Identifier    |
++---------------------------+----------------------------+---------------------------+
+| Financial Rate Structure  | Project Assignment         | Assignment Identifier     |
+| Financial Rate Structure  | Project Engagement         | Project Name              |
++---------------------------+----------------------------+---------------------------+
+| Organizational Hierarchy  | Employee Resource          | GCI Identifier            |
+| Organizational Hierarchy  | Project Engagement         | Business Unit             |
+| Organizational Hierarchy  | Recruitment Request        | Requisition Identifier    |
++---------------------------+----------------------------+---------------------------+
+| Client Agreement          | Client Organization        | Client Code               |
+| Client Agreement          | Project Engagement         | Client Code               |
++---------------------------+----------------------------+---------------------------+
+| Working Calendar          | Time Entry                 | Period End Date           |
+| Working Calendar          | Project Assignment         | Start Date / End Date     |
++---------------------------+----------------------------+---------------------------+
+| Skill Profile             | Employee Resource          | GCI Identifier            |
+| Skill Profile             | Recruitment Request        | Required Skills           |
++---------------------------+----------------------------+---------------------------+
+
+
+RELATIONSHIP CARDINALITY:
+
+1. One Employee Resource can have MANY Project Assignments (1:M)
+2. One Employee Resource can have MANY Time Entries (1:M)
+3. One Employee Resource has ONE Hiring Workflow (1:1)
+4. One Employee Resource has ONE Skill Profile (1:1)
+
+5. One Client Organization can have MANY Project Engagements (1:M)
+6. One Client Organization has ONE Client Agreement (1:1)
+
+7. One Project Engagement can have MANY Project Assignments (1:M)
+8. One Project Engagement can have MANY Recruitment Requests (1:M)
+
+9. One Project Assignment can have MANY Time Entries (1:M)
+10. One Project Assignment has ONE Financial Rate Structure (1:1)
+
+11. One Recruitment Request can have MANY Hiring Workflows (1:M)
+
+12. One Working Calendar applies to MANY Time Entries (1:M)
+
+
+6. COMMON DATA ELEMENTS IN REPORT REQUIREMENTS
+========================================================================
+
+Based on the source data model analysis, the following data elements are commonly referenced across multiple tables and reports:
+
+1. GCI Identifier (gci id, GCI_ID)
+   - Appears in: New_Monthly_HC_Report, SchTask, Timesheet_New, report_392_all, vw_billing_timesheet_daywise_ne, vw_consultant_timesheet_daywise
+   - Usage: Primary identifier for employees/consultants across all reporting
+
+2. First Name / Last Name
+   - Appears in: New_Monthly_HC_Report, SchTask, Hiring_Initiator_Project_Info, report_392_all
+   - Usage: Employee identification and reporting
+
+3. Client Code / Client Name
+   - Appears in: New_Monthly_HC_Report, report_392_all
+   - Usage: Client identification and revenue attribution
+
+4. Job Title
+   - Appears in: New_Monthly_HC_Report, Hiring_Initiator_Project_Info, report_392_all
+   - Usage: Role classification and resource planning
+
+5. Start Date / End Date / Termination Date
+   - Appears in: New_Monthly_HC_Report, Hiring_Initiator_Project_Info, report_392_all
+   - Usage: Assignment duration and headcount calculations
+
+6. Bill Rate (ST, OT)
+   - Appears in: New_Monthly_HC_Report, Hiring_Initiator_Project_Info, report_392_all
+   - Usage: Revenue calculations and financial reporting
+
+7. Pay Rate (ST)
+   - Appears in: report_392_all
+   - Usage: Cost calculations and margin analysis
+
+8. Gross Profit (GP) / Gross Profit Margin (GPM)
+   - Appears in: New_Monthly_HC_Report, report_392_all
+   - Usage: Profitability analysis and KPI reporting
+
+9. Project City / Project State
+   - Appears in: New_Monthly_HC_Report, Hiring_Initiator_Project_Info, report_392_all
+   - Usage: Geographic analysis and location-based reporting
+
+10. HR Business Type
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Business classification and segmentation
+
+11. Employee Status / Status
+    - Appears in: New_Monthly_HC_Report, SchTask, report_392_all
+    - Usage: Active headcount and status tracking
+
+12. Period End Date (PE_DATE)
+    - Appears in: Timesheet_New, vw_billing_timesheet_daywise_ne, vw_consultant_timesheet_daywise
+    - Usage: Time period identification for timesheet reporting
+
+13. Time Hours (ST, OT, DT, Sick_Time, TIME_OFF, HO)
+    - Appears in: Timesheet_New, vw_billing_timesheet_daywise_ne, vw_consultant_timesheet_daywise
+    - Usage: Time tracking and billing calculations
+
+14. Recruiter / Recruiting Manager / Resource Manager
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Team attribution and performance tracking
+
+15. Sales Representative / Inside Sales
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Sales attribution and commission calculations
+
+16. Market / Region / Circle / Community
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Geographic and organizational segmentation
+
+17. ITSS / ITSS Project Name
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: IT Services and Solutions project tracking
+
+18. IS_SOW / IS_Offshore
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Project type classification
+
+19. Visa Type / New_Visa_type
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Immigration compliance and workforce planning
+
+20. Practice Type / Vertical
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Service line and industry segmentation
+
+21. Opportunity ID / Opportunity Name
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Sales pipeline and opportunity tracking
+
+22. Employee Category / Employee Type
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Workforce classification
+
+23. Termination Reason / EE_WF_Reason
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Attrition analysis
+
+24. Request Type / Req Type
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Requisition classification
+
+25. Markup / Actual Markup / Maximum Allowed Markup
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Pricing and margin management
+
+26. Year-Month Code (YYMM, st_yymm)
+    - Appears in: New_Monthly_HC_Report
+    - Usage: Time period aggregation for reporting
+
+27. Headcount Metrics (Begin HC, End HC, Starts, Terms, OffBoard, Net Addition)
+    - Appears in: New_Monthly_HC_Report
+    - Usage: Headcount movement and trend analysis
+
+28. Derived Revenue / Derived GP / Backlog Revenue / Backlog GP
+    - Appears in: New_Monthly_HC_Report
+    - Usage: Financial forecasting and backlog management
+
+29. Task Identifier (task_id, Task_Id)
+    - Appears in: Timesheet_New, report_392_all
+    - Usage: Linking timesheets to project assignments
+
+30. Process Identifier / Level Identifier
+    - Appears in: SchTask, report_392_all
+    - Usage: Workflow tracking and process management
+
+31. Standard Job Title / Experience Level Title
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Standardized role classification
+
+32. Working Days / Business Days
+    - Appears in: New_Monthly_HC_Report, Working_Days_2025
+    - Usage: Capacity planning and utilization calculations
+
+33. Billable Flag
+    - Appears in: vw_billing_timesheet_daywise_ne, vw_consultant_timesheet_daywise
+    - Usage: Distinguishing billable vs non-billable time
+
+34. Week Date
+    - Appears in: vw_billing_timesheet_daywise_ne, vw_consultant_timesheet_daywise
+    - Usage: Weekly aggregation of timesheet data
+
+35. FP_TM (Fixed Price / Time & Material)
+    - Appears in: New_Monthly_HC_Report, report_392_all
+    - Usage: Project billing type classification
+
+
+7. VALIDATION AGAINST REQUIREMENTS
+========================================================================
+
+The conceptual data model has been validated against the source data structure and covers:
+
+✓ Employee/Consultant Management - Complete coverage with Employee Resource entity
+✓ Client Management - Complete coverage with Client Organization entity
+✓ Project Management - Complete coverage with Project Engagement entity
+✓ Time Tracking - Complete coverage with Time Entry entity
+✓ Hiring Process - Complete coverage with Hiring Workflow and Recruitment Request entities
+✓ Financial Management - Complete coverage with Financial Rate Structure and Project Assignment entities
+✓ Organizational Structure - Complete coverage with Organizational Hierarchy entity
+✓ Contractual Terms - Complete coverage with Client Agreement entity
+✓ Calendar Management - Complete coverage with Working Calendar entity
+✓ Skills Management - Complete coverage with Skill Profile entity
+
+The model supports all key business processes:
+1. Hiring and onboarding of consultants
+2. Assignment of resources to projects
+3. Time entry and approval workflows
+4. Billing and invoicing processes
+5. Financial reporting and margin analysis
+6. Headcount tracking and workforce planning
+7. Client relationship management
+8. Compliance and regulatory reporting
+
+All KPIs identified can be calculated from the entities and attributes defined:
+- Gross Profit and Margins from Financial Rate Structure and Project Assignment
+- Headcount metrics from Employee Resource and Project Assignment
+- Utilization from Time Entry and Working Calendar
+- Revenue metrics from Financial Rate Structure and Time Entry
+
+
+8. API COST CALCULATION
+========================================================================
+
+Cost for this Call: $0.00
+
+Note: This analysis was performed using the GitHub File Reader Tool and GitHub File Writer Tool. The actual API costs would depend on the specific pricing model of the GitHub API and the volume of data processed. For this conceptual modeling exercise, no external paid APIs were utilized beyond the provided GitHub integration tools.
+
+------------------------------------------------------------------------
+END OF CONCEPTUAL DATA MODEL DOCUMENT
+------------------------------------------------------------------------
