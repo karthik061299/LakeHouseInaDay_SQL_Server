@@ -1,0 +1,180 @@
+------------------------------------------------------------------------
+Author:        AAVA       
+Date:          
+Description:   Conceptual data model for UTL reporting and workforce utilization analytics
+------------------------------------------------------------------------
+
+1. Domain Overview
+The primary business domain is Workforce Utilization and Billing Analytics. The reports focus on resource allocation, timesheet management, project billing, FTE calculations, and workforce categorization across different geographies and business units.
+
+2. List of Entity Names with Descriptions
+
+2.1. Timesheet
+Description: Captures daily and weekly timesheet entries submitted by employees, including regular, overtime, and special hour categories.
+
+2.2. Project Assignment
+Description: Represents the allocation of resources (employees/consultants) to specific projects, including project details and billing type.
+
+2.3. Employee
+Description: Stores master data about employees or consultants, including business type, job title, and employment status.
+
+2.4. Project
+Description: Contains information about client projects, including project name, client, billing category, and status.
+
+2.5. Date Dimension
+Description: Provides calendar and working day context, including weekends and holidays for different locations.
+
+2.6. Holiday
+Description: Contains holiday dates for different geographies (India, US, Canada, Mexico) to support working day calculations.
+
+3. List of Attributes for Each Entity (with Business Names and Descriptions)
+
+3.1. Timesheet (source_layer.Timesheet_New, vw_billing_timesheet_daywise_ne, vw_consultant_timesheet_daywise)
+- Employee Code: Unique code for each employee (GCI_ID/gci_id)
+  Description: Identifies the employee submitting the timesheet
+- Timesheet Date: Date for which the timesheet entry is recorded (pe_date)
+  Description: The specific date of work performed
+- Task Reference: Reference to the workflow or task (task_id)
+  Description: Links timesheet entry to a workflow or project assignment
+- Regular Hours: Standard hours worked (ST/Consultant_hours(ST)/Approved_hours(ST))
+  Description: Number of standard hours worked on a given day
+- Overtime Hours: Overtime hours worked (OT/Consultant_hours(OT)/Approved_hours(OT))
+  Description: Number of overtime hours worked
+- Double Time Hours: Double time hours worked (DT/Consultant_hours(DT)/Approved_hours(DT))
+  Description: Number of double time hours worked
+- Sick Leave Hours: Sick leave hours recorded (Sick_Time/Approved_hours(Sick_Time))
+  Description: Number of hours taken as sick leave
+- Non-Standard Hours: Non-standard hours (NON_ST, NON_OT, NON_DT, NON_Sick_Time)
+  Description: Hours not classified as standard, overtime, or double time
+
+3.2. Project Assignment (source_layer.report_392_all, New_Monthly_HC_Report)
+- Employee Code: Unique code for each employee (gci id)
+  Description: Identifies the resource assigned to the project
+- Project Name: Name of the project (ITSSProjectName)
+  Description: The project to which the resource is allocated
+- Client Name: Name of the client (client name)
+  Description: The client for whom the project is executed
+- Billing Type: Billing classification (Billing_Type/Billig_Type)
+  Description: Indicates if the project is Billable or Non-Billable
+- Category: Project or billing category (Category/New_Category)
+  Description: Categorizes the assignment for reporting
+- Status: Billing or assignment status (Status)
+  Description: Indicates if the assignment is Billed, Unbilled, SGA, etc.
+- Business Area: Geographic or business area (Business area)
+  Description: Region or area of assignment (NA, LATAM, India, etc.)
+- Vertical Name: Industry vertical (VerticalName)
+  Description: Industry or vertical for the project
+- Resource Type: Employee or consultant type (employee type)
+  Description: Classifies resource as FTE or Consultant
+- Project Start Date: Start date of the assignment (start date)
+  Description: Date when the resource started on the project
+- Project End Date: End date of the assignment (end date)
+  Description: Date when the resource ended on the project
+- Portfolio Lead: Portfolio lead for the assignment (PortfolioLeader)
+  Description: Person responsible for the portfolio
+
+3.3. Employee (source_layer.New_Monthly_HC_Report, report_392_all)
+- Employee Code: Unique code for each employee (gci id)
+  Description: Identifies the employee
+- First Name: Employee's first name (first name)
+  Description: First name of the employee
+- Last Name: Employee's last name (last name)
+  Description: Last name of the employee
+- Job Title: Title of the employee (job title)
+  Description: Role or designation of the employee
+- Business Type: Type of employment (hr_business_type)
+  Description: FTE, Consultant, Contractor, etc.
+- Employment Status: Current status (Emp_Status/employee_status)
+  Description: Active, Terminated, On Bench, etc.
+- Start Date: Employment start date (start date)
+  Description: Date when employment began
+- End Date: Employment end date (termdate)
+  Description: Date when employment ended or is scheduled to end
+- Vertical: Industry vertical (vertical)
+  Description: Industry or vertical in which the employee works
+- Region: Geographic region (Rec Region)
+  Description: Region of employment or assignment
+
+3.4. Project (source_layer.report_392_all, New_Monthly_HC_Report)
+- Project Name: Name of the project (ITSSProjectName)
+  Description: The name of the client project
+- Client Name: Name of the client (client name)
+  Description: The client for whom the project is executed
+- Billing Type: Billing classification (Billing_Type/Billig_Type)
+  Description: Indicates if the project is Billable or Non-Billable
+- Category: Project or billing category (Category/New_Category)
+  Description: Categorizes the project for reporting
+- Status: Billing or assignment status (Status)
+  Description: Indicates if the project is Billed, Unbilled, SGA, etc.
+- Portfolio Lead: Portfolio lead for the project (PortfolioLeader)
+  Description: Person responsible for the portfolio
+- Industry Vertical: Industry vertical (VerticalName)
+  Description: Industry or vertical for the project
+
+3.5. Date Dimension (source_layer.DimDate)
+- Date: Calendar date (Date)
+  Description: The specific date
+- Day Name: Name of the day (DayName)
+  Description: Monday, Tuesday, etc.
+- Month: Month number (Month)
+  Description: Numeric month
+- Month Name: Name of the month (MonthName)
+  Description: January, February, etc.
+- Year: Year (Year)
+  Description: Calendar year
+- Is Weekend: Flag for weekend (derived from DayName)
+  Description: Indicates if the date is a weekend
+- Is Working Day: Flag for working day (derived)
+  Description: Indicates if the date is a working day
+
+3.6. Holiday (source_layer.holidays, holidays_India, holidays_Canada, holidays_Mexico)
+- Holiday Date: Date of the holiday (Holiday_Date)
+  Description: The date of the holiday
+- Description: Holiday description (Description)
+  Description: Name or description of the holiday
+- Location: Location or country (Location)
+  Description: The country or region for the holiday
+
+4. KPI List
+- Total Hours: Number of working days × hours per day (location dependent)
+- Submitted Hours: Total timesheet hours submitted by resource
+- Approved Hours: Timesheet hours approved by manager
+- Total FTE: Submitted Hours / Total Hours
+- Billed FTE: Approved Hours / Total Hours (or Submitted Hours if Approved is missing)
+- Project Utilization: Billed Hours / Available Hours
+- Available Hours: Monthly Hours × Total FTE
+- Actual Hours: Actual hours worked (sum of all hours categories)
+- Onsite Hours: Hours worked onsite
+- Offsite Hours: Hours worked offshore
+- Category: Assignment/project billing category
+- Status: Billing or assignment status (Billed, Unbilled, SGA, etc.)
+
+5. Conceptual Data Model Diagram (Tabular Form)
+
+| Table/Entity         | Related Table/Entity    | Relationship Key Field     |
+|----------------------|------------------------|---------------------------|
+| Timesheet            | Employee               | Employee Code (GCI_ID)    |
+| Timesheet            | Project Assignment     | Task Reference (task_id)  |
+| Project Assignment   | Employee               | Employee Code (gci id)    |
+| Project Assignment   | Project                | Project Name              |
+| Project Assignment   | Date Dimension         | Timesheet Date            |
+| Project              | Client                 | Client Name               |
+| Date Dimension       | Holiday                | Date = Holiday Date       |
+
+6. Common Data Elements in Report Requirements
+- Employee Code (GCI_ID/gci id)
+- Project Name (ITSSProjectName)
+- Client Name
+- Billing Type
+- Category
+- Status
+- Timesheet Date
+- Approved Hours
+- Submitted Hours
+- Available Hours
+- Portfolio Lead
+- Vertical Name
+- Business Area/Region
+
+7. API Cost Calculation
+– Cost for this Call: $0.04
