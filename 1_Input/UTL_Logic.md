@@ -40,6 +40,10 @@ Until Mid Q3'2024, for a resource if there is multiple allocation in same or dif
 
 * Timesheet hours submitted by the resource
 * The user will submit the hours in different forms: Consultant_hours(ST) or Approved_hours(ST), Consultant_hours(OT) or Approved_hours(OT), Consultant_hours(DT) or Approved_hours(DT), and Approved_hours(Sick_Time). These are the column names.
+* Table details:
+* Table name : vw_billing_timesheet_daywise_ne, Description : Provides day-wise approved timesheet hours for resources, categorized by billing type.
+* Table name : vw_consultant_timesheet_daywise, Description : Provides day-wise consultant timesheet hours for resources, categorized by billing type.
+* Table name : Timesheet_New, Description : Captures timesheet entries for resources, including hours worked, type of hours (standard, overtime, sick, etc.), and associated dates.
 
 ## Approved_hours
 
@@ -253,5 +257,6 @@ Definition: Requirement region name
 * Column name: id → WorkflowID/Task ID
 * Column name: Type → OnSite/Offshore
 * Column name: Tower → Logic : DTCUChoice1
+
 
 
