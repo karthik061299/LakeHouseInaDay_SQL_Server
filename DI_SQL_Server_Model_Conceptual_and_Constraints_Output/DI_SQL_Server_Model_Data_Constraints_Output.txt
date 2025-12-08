@@ -1,0 +1,73 @@
+------------------------------------------------------------------------
+Author: AAVA
+Date: [Today]
+Description: Data Expectations, Constraints, and Business Rules for Conceptual Data Model (SQL Server Source Layer)
+------------------------------------------------------------------------
+
+1. Data Expectations
+-------------------
+1.1. Data Completeness
+  1. All NOT NULL columns must have values (e.g., source_layer.New_Monthly_HC_Report.[IS_SOW], [CL_Group], [ITSS], [FP_TM], [system_runtime], [ProjType]; source_layer.SchTask.[ID], [Process_ID], [Level_ID], [Last_Level], [TS]; etc.).
+  2. Primary and unique keys (e.g., SchTask.ID, Hiring_Initiator_Project_Info.ID) must be populated for every record.
+
+1.2. Data Accuracy
+  3. Data types must be strictly adhered to as per DDL (e.g., datetime, numeric, varchar, money, float, etc.).
+  4. Numeric fields (e.g., [NBR], [GP], [Begin HC], [End HC]) must contain valid numeric values and not be left blank if NOT NULL.
+
+1.3. Data Format and Consistency
+  5. Date fields (e.g., [start date], [termdate], [Final_End_date]) must be in valid datetime format.
+  6. String fields must not exceed the defined length (e.g., varchar(50), varchar(100), etc.).
+  7. Money and float fields must be within the valid range for their data type.
+
+1.4. Referential Consistency
+  8. Foreign key relationships (as described in the conceptual model context) must be maintained (e.g., [gci id] in New_Monthly_HC_Report must match [gci id] in report_392_all).
+
+
+2. Constraints
+--------------
+2.1. Mandatory Fields
+  1. All columns defined as NOT NULL in the DDL must always have a value (see table definitions for specifics).
+  2. Primary keys must be unique and not null (e.g., SchTask.ID, Hiring_Initiator_Project_Info.ID).
+  3. Unique constraints must be enforced (e.g., IX_Hiring_Initiator_Project_Info on Hiring_Initiator_Project_Info.ID).
+
+2.2. Data Type Constraints
+  4. Each column must store data only of its defined type (e.g., money, float, int, varchar(N), datetime).
+  5. For columns with limited length (e.g., varchar(50)), input values must not exceed the specified length.
+
+2.3. Default Values
+  6. Columns with DEFAULT constraints (e.g., SchTask.Level_ID, SchTask.Last_Level) must default to 0 if not explicitly provided.
+
+2.4. Identity and Auto-Increment
+  7. SchTask.ID is an identity column and must auto-increment for each new record.
+
+2.5. Referential Integrity
+  8. Logical relationships (e.g., [gci id] across tables) must be preserved for reporting joins and analytics.
+
+2.6. Other Constraints
+  9. All NOT NULL timestamp columns (e.g., SchTask.TS) must be system-generated and unique per row.
+
+
+3. Business Rules
+-----------------
+3.1. Operational Rules
+  1. Employee and project identifiers ([gci id], [HR_ClientInfo_ID], etc.) must be consistent across all related tables.
+  2. Timesheet entries (Timesheet_New) must have valid [gci_id], [pe_date], and [task_id] for each record.
+  3. Date fields representing start/end/termination must follow logical order (e.g., [start date] <= [termdate] <= [Final_End_date]).
+  4. Status and category fields (e.g., [Emp_Status], [employee_category], [Status]) must use only allowed domain values as per business definitions (not specified in DDL, but must be enforced in application layer).
+
+3.2. Reporting Logic
+  5. Aggregated reporting entities (e.g., report_392_all) must accurately reflect the latest and most complete data from source tables.
+  6. Calculated fields (e.g., [Derived_Rev], [Derived_GP], [Backlog_Rev], [Backlog_GP], [Expected_Hrs]) must be derived using consistent formulas as per reporting logic (not specified in DDL).
+
+3.3. Transformation Guidelines
+  7. String fields used for names (e.g., [Merged Name], [Super Merged Name], [PortfolioLeader]) should be trimmed and standardized for reporting.
+  8. All date and time fields must be stored and reported in a consistent timezone or format as per business policy.
+
+3.4. Data Processing
+  9. Any adjustments ([adj]) or offboarding ([OffBoard]) counts must be supported by corresponding workflow/task records in SchTask.
+  10. Only valid and active records (as per [Status], [Emp_Status], etc.) should be included in active headcount and billing reports.
+
+
+4. API Cost Calculation
+-----------------------
+Cost for this particular Api Call to LLM model: $0.00 (estimation based on text-only output, no LLM model call for PDF parsing)
