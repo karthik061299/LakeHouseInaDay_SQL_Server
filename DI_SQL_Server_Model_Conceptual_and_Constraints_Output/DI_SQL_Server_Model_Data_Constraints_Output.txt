@@ -1,0 +1,630 @@
+------------------------------------------------------------------------
+Author:        AAVA       
+Date:          
+Description:   Data Expectations, Constraints, and Business Rules for SQL Server Data Model
+------------------------------------------------------------------------
+
+
+================================================================================
+SECTION 1: DATA EXPECTATIONS
+================================================================================
+
+Data Expectations define the quality standards, completeness requirements, accuracy measures, format specifications, and consistency rules that the data must adhere to for reliable reporting and analytics.
+
+1. DATA COMPLETENESS EXPECTATIONS
+
+   1.1. Employee and Consultant Data Completeness
+       • All active employees must have a valid GCI ID (gci id) in the New_Monthly_HC_Report table
+       • Employee names (first name, last name) must be populated for all records
+       • Start dates must be present for all employee records
+       • Job titles must be assigned to all active employees
+       • Client codes must be populated for all billable resources
+
+   1.2. Project and Assignment Data Completeness
+       • All hiring workflows in SchTask must have a valid Process_ID
+       • Project information in Hiring_Initiator_Project_Info must include client details
+       • Start and end dates must be defined for all project assignments
+       • Billing rates (ST, OT) must be specified for billable projects
+
+   1.3. Timesheet Data Completeness
+       • All timesheet entries must have a valid GCI ID, period ending date (pe_date), and task_id
+       • At least one hour type (ST, OT, DT, TIME_OFF, etc.) must be recorded per timesheet entry
+       • Approved hours must be tracked separately from consultant-submitted hours
+
+   1.4. Reference Data Completeness
+       • Working days calendar (Working_Days_2025) must have entries for all months
+       • Holiday information must be maintained for all relevant locations (Baroda, US, Chennai)
+
+2. DATA ACCURACY EXPECTATIONS
+
+   2.1. Financial Data Accuracy
+       • Net Bill Rate (NBR) calculations must be accurate and reconcilable
+       • Gross Profit (GP) and Gross Profit Margin (GPM) must be calculated correctly
+       • Markup percentages must align with actual bill rates and pay rates
+       • Derived revenue and backlog figures must be validated against source systems
+
+   2.2. Date and Temporal Data Accuracy
+       • Termination dates must not precede start dates
+       • Final end dates must be the latest of all end date types (termdate, PO_End, etc.)
+       • Period ending dates in timesheets must align with defined week cycles
+       • System runtime timestamps must reflect actual processing times
+
+   2.3. Status and Classification Accuracy
+       • Employee status (Emp_Status) must reflect current employment state
+       • IS_SOW flag must accurately indicate Statement of Work engagements
+       • IS_Offshore flag must correctly identify offshore resources
+       • ITSS classification must be consistent across related tables
+
+3. DATA FORMAT EXPECTATIONS
+
+   3.1. Identifier Format Standards
+       • GCI ID must be numeric or follow a consistent alphanumeric pattern
+       • Client codes must follow standardized naming conventions
+       • SSN must be properly masked or encrypted in accordance with privacy regulations
+       • Worker Entity IDs must conform to Oracle system format standards
+
+   3.2. Date and Time Format Standards
+       • All date fields must use datetime data type with consistent format
+       • YYMM fields must be in integer format (YYYYMM)
+       • Period ending dates must align to standard week-ending days
+
+   3.3. Monetary Value Format Standards
+       • All currency fields must use money or numeric data types with appropriate precision
+       • Rates must be stored with sufficient decimal places for accuracy
+       • Percentage fields must be stored as decimal values or clearly defined units
+
+   3.4. Text and String Format Standards
+       • Email addresses must follow valid email format patterns
+       • Phone numbers must include proper formatting with extensions where applicable
+       • Names must be stored in proper case (Title Case)
+
+4. DATA CONSISTENCY EXPECTATIONS
+
+   4.1. Cross-Table Consistency
+       • GCI IDs must be consistent across all tables (New_Monthly_HC_Report, SchTask, Timesheet_New, report_392_all)
+       • Client information must match between Hiring_Initiator_Project_Info and New_Monthly_HC_Report
+       • Project dates must be consistent across hiring workflows and monthly reports
+       • Employee status must align across operational and reporting tables
+
+   4.2. Hierarchical Data Consistency
+       • Organizational hierarchies (tower1, Subtier, vertical) must be consistently maintained
+       • Reporting relationships (salesrep, recruiter, Market_Leader) must be valid and current
+       • Location hierarchies (market, circle, community_new) must be properly structured
+
+   4.3. Temporal Consistency
+       • Historical data must maintain referential integrity across time periods
+       • Month-over-month metrics must be calculable and consistent
+       • Headcount movements (Begin HC, End HC, Starts, Terms) must reconcile
+
+   4.4. Business Logic Consistency
+       • Billable vs. non-billable classifications must be mutually exclusive
+       • Employee categories must align with business type classifications
+       • VAS (Value Added Services) classifications must be consistent with project types
+
+
+================================================================================
+SECTION 2: DATA CONSTRAINTS
+================================================================================
+
+Data Constraints define the technical and logical restrictions that ensure data integrity, enforce business rules at the database level, and maintain referential relationships.
+
+1. MANDATORY FIELD CONSTRAINTS (NOT NULL)
+
+   1.1. Primary Identifier Constraints
+       • SchTask.ID - NOT NULL (Primary Key, Identity)
+       • SchTask.Process_ID - NOT NULL (Required for workflow tracking)
+       • Timesheet_New.gci_id - NOT NULL (Required for timesheet identification)
+       • Timesheet_New.pe_date - NOT NULL (Required for period identification)
+       • Timesheet_New.task_id - NOT NULL (Required for task association)
+
+   1.2. System and Audit Field Constraints
+       • SchTask.TS - NOT NULL (Timestamp for concurrency control)
+       • New_Monthly_HC_Report.system_runtime - NOT NULL (Required for data lineage)
+
+   1.3. Classification and Categorization Constraints
+       • New_Monthly_HC_Report.IS_SOW - NOT NULL (Required business classification)
+       • New_Monthly_HC_Report.CL_Group - NOT NULL (Required client grouping)
+       • New_Monthly_HC_Report.ITSS - NOT NULL (Required ITSS classification)
+       • New_Monthly_HC_Report.FP_TM - NOT NULL (Required for financial planning)
+       • New_Monthly_HC_Report.ProjType - NOT NULL (Required project type)
+
+   1.4. Default Value Constraints
+       • SchTask.Level_ID - NOT NULL with DEFAULT 0
+       • SchTask.Last_Level - NOT NULL with DEFAULT 0
+
+2. UNIQUENESS CONSTRAINTS
+
+   2.1. Primary Key Constraints
+       • SchTask.ID - Primary Key (Unique identifier for hiring tasks)
+       • Hiring_Initiator_Project_Info.ID - Unique constraint (Unique project initiation record)
+
+   2.2. Composite Uniqueness Requirements
+       • Timesheet_New: Combination of (gci_id, pe_date, task_id) should be unique
+       • New_Monthly_HC_Report: Combination of (gci id, YYMM, client code) should identify unique monthly records
+       • Working_Days_2025: Combination of (Year, Month) should be unique
+
+   2.3. Business Key Uniqueness
+       • GCI ID should be unique per employee across the organization
+       • SSN should be unique per individual (where applicable)
+       • Worker_Entity_ID should be unique per worker entity
+
+3. DATA TYPE AND LENGTH CONSTRAINTS
+
+   3.1. Numeric Precision Constraints
+       • ID fields: numeric(18,0) - No decimal places for identifiers
+       • Financial fields (NBR, GP): money data type - Fixed precision for currency
+       • Rate fields: numeric(38,36) - High precision for percentage calculations
+       • Hour fields: float - Decimal precision for time tracking
+
+   3.2. String Length Constraints
+       • Name fields (first name, last name): varchar(50) - Maximum 50 characters
+       • Email fields: varchar(50) to varchar(100) - Standard email length
+       • Description fields: varchar(100) to varchar(8000) - Variable based on content
+       • Code fields (client code, gci id): varchar(50) - Standardized code length
+       • Extended text fields: text, nvarchar(max) - Unlimited length for notes
+
+   3.3. Date and Time Constraints
+       • All date fields: datetime data type - Consistent temporal data type
+       • YYMM fields: int data type - Integer representation of year-month
+       • Timestamp fields: timestamp data type - System-generated version control
+
+4. REFERENTIAL INTEGRITY CONSTRAINTS
+
+   4.1. Employee and Consultant References
+       • Timesheet_New.gci_id should reference valid employees in New_Monthly_HC_Report
+       • SchTask.GCI_ID should reference valid employees in the system
+       • report_392_all.gci id should reference valid employees
+
+   4.2. Project and Assignment References
+       • Timesheet_New.task_id should reference valid projects in Hiring_Initiator_Project_Info
+       • New_Monthly_HC_Report.client code should reference valid clients
+       • SchTask.Process_ID should reference valid workflow processes
+
+   4.3. Organizational Hierarchy References
+       • Manager IDs should reference valid employees in the organization
+       • Recruiter, Salesrep, and other role assignments should reference valid users
+       • Client codes should reference valid client master records
+
+   4.4. Temporal References
+       • Period ending dates should align with valid calendar periods
+       • YYMM values should correspond to valid year-month combinations
+       • Working days should reference valid calendar entries
+
+5. DOMAIN AND VALUE CONSTRAINTS
+
+   5.1. Status and Flag Constraints
+       • IS_SOW: Must be 'Yes' or 'No' (varchar(7))
+       • IS_Offshore: Must be valid offshore indicator (varchar(20))
+       • Emp_Status: Must be from predefined list of employment statuses (varchar(25))
+       • Status: Must be from valid workflow status values (varchar(50))
+
+   5.2. Classification Constraints
+       • ITSS: Must be 'ITSS' or 'Non-ITSS' (varchar(100))
+       • FP_TM: Must be 'TM' or other valid values (varchar(2))
+       • ProjType: Must be valid project type code (varchar(2))
+       • CL_Group: Must be valid client group classification (varchar(32))
+
+   5.3. Numeric Range Constraints
+       • Hour values (ST, OT, DT): Must be >= 0 and <= 24 per day
+       • Percentage values (Begin HC, End HC, etc.): Must be between 0 and 1
+       • Markup percentages: Must be positive values
+       • Working days: Must be between 0 and 31
+
+   5.4. Date Range Constraints
+       • Start dates must be <= End dates
+       • Termination dates must be >= Start dates
+       • Period ending dates must be valid calendar dates
+       • Future dates should not exceed reasonable planning horizons
+
+6. DEPENDENCY CONSTRAINTS
+
+   6.1. Conditional Mandatory Fields
+       • If IS_SOW = 'Yes', then SOW-specific fields must be populated
+       • If Emp_Status = 'Terminated', then termdate must be populated
+       • If billable hours exist, then billing rates must be specified
+       • If IS_Offshore = 'Yes', then offshore location must be specified
+
+   6.2. Mutual Exclusivity Constraints
+       • An employee cannot have both 'Active' and 'Terminated' status simultaneously
+       • Billable and non-billable hours should be tracked separately
+       • ITSS and Non-ITSS classifications are mutually exclusive
+
+   6.3. Hierarchical Dependency Constraints
+       • Child records (timesheets) must have valid parent records (employees, projects)
+       • Workflow levels must progress sequentially (Level_ID)
+       • Organizational hierarchies must be properly nested
+
+7. BUSINESS RULE CONSTRAINTS
+
+   7.1. Financial Calculation Constraints
+       • GP (Gross Profit) = NBR (Net Bill Rate) - Pay Rate
+       • GPM (Gross Profit Margin) = GP / NBR
+       • Derived_Rev must be calculated based on approved hours and bill rates
+       • Markup must be calculated as (Bill Rate - Pay Rate) / Pay Rate
+
+   7.2. Headcount Movement Constraints
+       • End HC = Begin HC + Starts - Terms + adj
+       • Net_Addition = Starts - Terms
+       • Headcount metrics must reconcile month-over-month
+
+   7.3. Timesheet Validation Constraints
+       • Total daily hours should not exceed reasonable limits (e.g., 24 hours)
+       • Approved hours should not exceed consultant-submitted hours
+       • Billable hours must have corresponding billing rates
+
+
+================================================================================
+SECTION 3: BUSINESS RULES
+================================================================================
+
+Business Rules define the operational policies, calculation methodologies, transformation logic, and reporting standards that govern how data is processed, interpreted, and presented.
+
+1. EMPLOYEE LIFECYCLE BUSINESS RULES
+
+   1.1. Onboarding Rules
+       • New employees must be assigned a unique GCI ID upon hire
+       • Start date must be a valid business day
+       • All mandatory employee information must be collected before start date
+       • Employee category must be assigned based on employment type
+       • Initial project assignment must be completed before or on start date
+
+   1.2. Status Transition Rules
+       • Employee status transitions must follow defined workflow: New → Active → Terminated/Offboarded
+       • Status changes must be recorded with effective dates
+       • Terminated employees must have a termination reason specified
+       • Offboarding process must be completed before final end date
+
+   1.3. Termination and Offboarding Rules
+       • Termination date (termdate) is the last working day
+       • Final_End_date is the system-calculated end date considering all factors
+       • Offboarding date may differ from termination date
+       • Voluntary terminations (Vol_term) must be tracked separately
+       • Termination reasons must be categorized (ee_wf_reason)
+
+   1.4. Employee Classification Rules
+       • Employees must be classified by business type (hr_business_type)
+       • ITSS vs. Non-ITSS classification must be maintained
+       • Offshore vs. Onshore classification must be tracked (IS_Offshore)
+       • Employee category must align with employment type
+
+2. PROJECT AND ASSIGNMENT BUSINESS RULES
+
+   2.1. Project Setup Rules
+       • All projects must have a valid client code
+       • Project start and end dates must be defined
+       • Billing rates must be established before project start
+       • Project type must be classified (SOW, T&M, Fixed Price)
+       • ITSS projects must be identified and tracked separately
+
+   2.2. Assignment Rules
+       • Employees can be assigned to multiple projects with non-overlapping dates
+       • Each assignment must have defined billing rates (ST, OT, DT)
+       • Project location must be specified for each assignment
+       • Client-specific requirements must be documented
+
+   2.3. Project Transition Rules
+       • Internal movements (Starts- Internal movements) must be tracked separately from new hires
+       • Project ends (Other project Ends) must be distinguished from terminations
+       • Transitions must maintain continuity of employment
+
+   2.4. SOW (Statement of Work) Rules
+       • SOW projects must be flagged (IS_SOW = 'Yes')
+       • SOW projects may have different billing and reporting requirements
+       • SOW-specific metrics must be tracked separately
+
+3. FINANCIAL AND BILLING BUSINESS RULES
+
+   3.1. Rate Calculation Rules
+       • Net Bill Rate (NBR) is the rate charged to the client
+       • Pay Rate is the compensation paid to the employee/consultant
+       • Gross Profit (GP) = NBR - Pay Rate - Other Costs
+       • Gross Profit Margin (GPM) = (GP / NBR) × 100
+       • Markup = ((NBR - Pay Rate) / Pay Rate) × 100
+
+   3.2. Billing Rate Rules
+       • Standard Time (ST) rates apply to regular working hours
+       • Overtime (OT) rates apply to hours beyond standard work week
+       • Double Time (DT) rates apply to special circumstances (holidays, etc.)
+       • Rate units must be specified (hourly, daily, monthly)
+       • Bill rates may vary by project, client, or time period
+
+   3.3. Revenue Recognition Rules
+       • Derived_Rev is calculated based on approved billable hours × bill rate
+       • Backlog_Rev represents future revenue from committed projects
+       • Revenue must be recognized in the period when services are delivered
+       • Expected hours must be tracked for revenue forecasting
+
+   3.4. Markup and Margin Rules
+       • Actual_Markup must be calculated and compared to Maximum_Allowed_Markup
+       • Markup exceptions must be approved and documented
+       • Client-specific markup rules may apply (client_Markup)
+       • Margin targets must be maintained for profitability
+
+4. TIMESHEET AND HOURS TRACKING BUSINESS RULES
+
+   4.1. Time Entry Rules
+       • Timesheets must be submitted for each period ending date (pe_date)
+       • Hours must be categorized by type: ST, OT, DT, TIME_OFF, HO, Sick_Time
+       • Billable hours must be tracked separately from non-billable hours
+       • Consultant-submitted hours must be approved before billing
+
+   4.2. Hour Type Classification Rules
+       • ST (Standard Time): Regular working hours, typically up to 40 hours/week
+       • OT (Overtime): Hours beyond standard work week
+       • DT (Double Time): Premium hours (holidays, special circumstances)
+       • TIME_OFF: Paid time off, vacation, personal days
+       • HO (Holiday): Paid holidays
+       • Sick_Time: Sick leave hours
+       • NON_ST, NON_OT, NON_DT: Non-billable hours by category
+
+   4.3. Approval and Billing Rules
+       • Approved hours (from vw_billing_timesheet_daywise_ne) are used for billing
+       • Consultant hours (from vw_consultant_timesheet_daywise) are submitted hours
+       • Discrepancies between submitted and approved hours must be resolved
+       • Only approved billable hours generate revenue
+
+   4.4. Time Tracking Validation Rules
+       • Daily hours should not exceed 24 hours
+       • Weekly hours should align with employment agreements
+       • Overtime must be pre-approved for non-exempt employees
+       • Time-off must be approved and tracked against accruals
+
+5. HEADCOUNT AND WORKFORCE ANALYTICS BUSINESS RULES
+
+   5.1. Headcount Calculation Rules
+       • Begin HC: Headcount at the beginning of the period
+       • Starts - New Project: New hires starting on projects
+       • Starts- Internal movements: Existing employees moving to new projects
+       • Terms: Terminations during the period
+       • Other project Ends: Project completions without termination
+       • OffBoard: Employees in offboarding process
+       • End HC: Headcount at the end of the period
+       • Formula: End HC = Begin HC + Starts - Terms + adj
+
+   5.2. Movement Tracking Rules
+       • Net_Addition = Total Starts - Total Terms
+       • Voluntary vs. Involuntary terminations must be tracked separately
+       • Internal movements must not affect total headcount
+       • Adjustments (adj) must be documented and explained
+
+   5.3. Utilization and Capacity Rules
+       • Billable utilization = Billable Hours / Total Available Hours
+       • Bench time (non-billable) must be tracked and minimized
+       • Expected hours vs. actual hours must be monitored
+       • Capacity planning must consider working days and holidays
+
+   5.4. Reporting Period Rules
+       • Monthly reporting uses YYMM format (YYYYMM)
+       • Week-based reporting uses period ending dates (pe_date)
+       • Fiscal periods must align with organizational calendar
+       • Historical data must be preserved for trend analysis
+
+6. ORGANIZATIONAL HIERARCHY AND REPORTING BUSINESS RULES
+
+   6.1. Organizational Structure Rules
+       • Employees must be assigned to organizational units: tower1, vertical, Subtier
+       • Reporting relationships must be maintained: salesrep, recruiter, Market_Leader
+       • Hierarchies must be consistent: market → circle → community_new
+       • Client groupings must be defined: CL_Group, Super Merged Name
+
+   6.2. Role and Responsibility Rules
+       • Each employee must have assigned roles: recruiter, salesrep, resource manager
+       • Leadership roles must be tracked: Market_Leader, Portfolio Leader, Client Partner
+       • Approval hierarchies must be defined for workflows
+       • Responsibility changes must be tracked with effective dates
+
+   6.3. Client and Account Management Rules
+       • Clients must be classified by type, sector, and group
+       • Account ownership must be assigned (Acct_Owner)
+       • Client relationships must be tracked (Client Partner)
+       • End clients vs. direct clients must be distinguished
+
+7. WORKFLOW AND PROCESS BUSINESS RULES
+
+   7.1. Hiring Workflow Rules (SchTask)
+       • Each hiring process must have a unique Process_ID
+       • Workflow must progress through defined levels (Level_ID)
+       • Each level must have an assigned owner/approver
+       • Workflow status must be tracked (Status)
+       • Completion dates must be recorded (DateCompleted)
+
+   7.2. Workflow Status Rules
+       • Valid statuses must be defined (e.g., Initiated, In Progress, Approved, Completed)
+       • Status transitions must follow defined rules
+       • Comments must be captured for status changes
+       • Initiator and completion information must be tracked
+
+   7.3. Approval and Authorization Rules
+       • Multi-level approvals must be supported (Level_ID, Last_Level)
+       • Approvers must have appropriate authority
+       • Approval timestamps must be recorded
+       • Rejected workflows must be handled appropriately
+
+8. DATA QUALITY AND GOVERNANCE BUSINESS RULES
+
+   8.1. Data Lineage Rules
+       • System runtime (system_runtime) must be recorded for all data loads
+       • Source system identifiers must be maintained
+       • Data transformation logic must be documented
+       • Historical changes must be tracked
+
+   8.2. Data Validation Rules
+       • Cross-table consistency must be validated
+       • Referential integrity must be maintained
+       • Business rule violations must be flagged and resolved
+       • Data quality metrics must be monitored
+
+   8.3. Master Data Management Rules
+       • Employee master data must be maintained in source systems
+       • Client master data must be synchronized
+       • Organizational hierarchies must be centrally managed
+       • Reference data must be version-controlled
+
+9. REPORTING AND ANALYTICS BUSINESS RULES
+
+   9.1. Report Calculation Rules
+       • Utilization reports must use approved billable hours
+       • Revenue reports must use derived revenue calculations
+       • Headcount reports must reconcile movements
+       • Profitability reports must include all cost components
+
+   9.2. Period-over-Period Comparison Rules
+       • Month-over-month comparisons must use consistent metrics
+       • Year-over-year comparisons must account for business days
+       • Trend analysis must consider seasonality
+       • Variance analysis must identify root causes
+
+   9.3. Forecasting and Planning Rules
+       • Backlog revenue must be tracked for future periods
+       • Expected hours must be used for capacity planning
+       • Pipeline data must inform hiring forecasts
+       • Working days calendar must be used for projections
+
+10. COMPLIANCE AND REGULATORY BUSINESS RULES
+
+   10.1. Data Privacy Rules
+       • Personally Identifiable Information (PII) must be protected
+       • SSN must be encrypted or masked
+       • Access to sensitive data must be controlled
+       • Data retention policies must be followed
+
+   10.2. Employment Law Compliance Rules
+       • Overtime rules must comply with labor laws
+       • Working hours must not exceed legal limits
+       • Time-off accruals must follow policy
+       • Termination processes must follow legal requirements
+
+   10.3. Financial Compliance Rules
+       • Revenue recognition must follow accounting standards
+       • Billing must be accurate and timely
+       • Financial data must be auditable
+       • Tax reporting requirements must be met
+
+   10.4. Audit and Control Rules
+       • All data changes must be logged
+       • Audit trails must be maintained
+       • Access controls must be enforced
+       • Regular data quality audits must be performed
+
+
+================================================================================
+SECTION 4: ALIGNMENT WITH SOURCE DATA MODEL
+================================================================================
+
+This section maps the identified constraints and business rules to the actual tables and columns in the source data model.
+
+1. NEW_MONTHLY_HC_REPORT TABLE CONSTRAINTS
+
+   • Primary Identifier: id (numeric(18,0))
+   • Employee Identifier: gci id (varchar(50)) - Must be populated
+   • Mandatory Classifications: IS_SOW, CL_Group, ITSS, FP_TM, ProjType - NOT NULL
+   • Date Fields: start date, termdate, Final_End_date - Must follow date logic rules
+   • Financial Fields: NBR, GP, Derived_Rev, Derived_GP - Must follow calculation rules
+   • Headcount Metrics: Begin HC, End HC, Starts, Terms, Net_Addition - Must reconcile
+   • System Field: system_runtime - NOT NULL for audit trail
+
+2. SCHTASK TABLE CONSTRAINTS
+
+   • Primary Key: ID (numeric(18,0), IDENTITY) - Unique, auto-generated
+   • Mandatory Fields: Process_ID, Level_ID (DEFAULT 0), Last_Level (DEFAULT 0)
+   • Timestamp: TS (timestamp) - NOT NULL for concurrency control
+   • Workflow Tracking: Status, Level_ID - Must follow workflow rules
+   • Employee Reference: GCI_ID - Should reference valid employees
+
+3. HIRING_INITIATOR_PROJECT_INFO TABLE CONSTRAINTS
+
+   • Unique Identifier: ID (numeric(18,0)) - Unique constraint
+   • Comprehensive Project Data: Contains extensive project and client information
+   • Rate Fields: HR_Project_ST, HR_Project_OT - Must be populated for billing
+   • Date Fields: HR_Project_StartDate, HR_Project_EndDate - Must be valid
+   • Client References: HR_ClientInfo_ID, HR_Project_EndClient_ID - Must be valid
+
+4. TIMESHEET_NEW TABLE CONSTRAINTS
+
+   • Composite Key: (gci_id, pe_date, task_id) - All NOT NULL
+   • Hour Type Fields: ST, OT, DT, TIME_OFF, HO, Sick_Time - Must be >= 0
+   • Billable vs. Non-Billable: Separate tracking of billable and non-billable hours
+   • Date Validation: pe_date must be valid period ending date
+
+5. REPORT_392_ALL TABLE CONSTRAINTS
+
+   • Comprehensive Reporting View: Combines data from multiple sources
+   • Derived Fields: Markup, Net_Bill_Rate, Loaded_Pay_Rate - Calculated fields
+   • Classification Fields: ITSS, VASSOW, IS_SOW - Must be consistent
+   • Status Tracking: status, employee_status, Emp_Status - Must align
+
+6. TIMESHEET VIEW CONSTRAINTS
+
+   • vw_billing_timesheet_daywise_ne: Approved hours for billing
+   • vw_consultant_timesheet_daywise: Consultant-submitted hours
+   • Billable Flag: Must be 'Yes' or 'No'
+   • Hour Segregation: Separate columns for different hour types
+
+7. WORKING_DAYS_2025 TABLE CONSTRAINTS
+
+   • Composite Key: (Year, Month) - Must be unique
+   • Working Days: Must be between 0 and 31
+   • Holiday Tracking: Separate columns for different locations
+   • Calendar Reference: Used for capacity and utilization calculations
+
+
+================================================================================
+SECTION 5: IMPLEMENTATION RECOMMENDATIONS
+================================================================================
+
+1. CONSTRAINT IMPLEMENTATION PRIORITIES
+
+   Priority 1 (Critical):
+   • Implement NOT NULL constraints on mandatory fields
+   • Establish primary key and unique constraints
+   • Create foreign key relationships for referential integrity
+   • Implement timestamp/audit fields for data lineage
+
+   Priority 2 (High):
+   • Implement check constraints for domain values
+   • Create validation rules for date logic
+   • Implement calculated field validations
+   • Establish cross-table consistency checks
+
+   Priority 3 (Medium):
+   • Implement business rule validations
+   • Create data quality monitoring
+   • Establish exception handling processes
+   • Implement data reconciliation procedures
+
+2. DATA QUALITY MONITORING
+
+   • Establish automated data quality checks
+   • Monitor constraint violations
+   • Track data completeness metrics
+   • Generate data quality scorecards
+   • Implement alerting for critical issues
+
+3. GOVERNANCE AND COMPLIANCE
+
+   • Document all business rules and constraints
+   • Establish change management processes
+   • Implement access controls and security
+   • Maintain audit trails
+   • Conduct regular compliance reviews
+
+4. CONTINUOUS IMPROVEMENT
+
+   • Review and update constraints regularly
+   • Incorporate feedback from users and stakeholders
+   • Monitor performance impact of constraints
+   • Optimize validation logic
+   • Enhance data quality over time
+
+
+================================================================================
+API COST CALCULATION
+================================================================================
+
+Cost for this particular API Call to LLM model: $0.00
+
+Note: This document was generated based on the source data model DDL script. The reporting requirements document (UTL_Logic.docx) could not be read due to encoding issues. For complete alignment with specific reporting requirements, please provide the requirements in a text-based format (.txt or .md).
+
+================================================================================
+END OF DOCUMENT
+================================================================================
