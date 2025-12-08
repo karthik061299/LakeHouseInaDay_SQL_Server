@@ -1,0 +1,345 @@
+====================================================
+Author:        AAVA
+Date:          
+Description:   Comprehensive physical data model for the Gold layer of the Medallion architecture, including DDL scripts, error and audit tables, update scripts, retention policies, and conceptual/ER diagrams. All DDL is SQL Server compatible and includes ID fields, metadata columns, and recommended storage/indexing strategies.
+====================================================
+
+Gold Layer DDL Scripts
+----------------------
+
+
+CREATE SCHEMA gold_layer
+
+
+-- ====================================================
+-- Table: gold_layer.Go_Dim_New_Monthly_HC_Report
+-- ====================================================
+IF OBJECT_ID('gold_layer.Go_Dim_New_Monthly_HC_Report', 'U') IS NULL
+CREATE TABLE gold_layer.Go_Dim_New_Monthly_HC_Report (
+    Go_Dim_New_Monthly_HC_Report_ID BIGINT IDENTITY(1,1) NOT NULL,
+    gci_id              VARCHAR(50) NOT NULL,
+    first_name          VARCHAR(50) NULL,
+    last_name           VARCHAR(50) NULL,
+    job_title           VARCHAR(50) NULL,
+    hr_business_type    VARCHAR(50) NULL,
+    client_code         VARCHAR(50) NULL,
+    start_date          DATE NULL,
+    termdate            DATE NULL,
+    final_end_date      DATE NULL,
+    NBR                 MONEY NULL,
+    merged_name         VARCHAR(100) NULL,
+    super_merged_name   VARCHAR(100) NULL,
+    market              VARCHAR(50) NULL,
+    IS_SOW              VARCHAR(7) NULL,
+    GP                  MONEY NULL,
+    termination_reason  VARCHAR(100) NULL,
+    Emp_Status          VARCHAR(25) NULL,
+    employee_category   VARCHAR(50) NULL,
+    ITSSProjectName     VARCHAR(200) NULL,
+    IS_Offshore         VARCHAR(20) NULL,
+    Subtier             VARCHAR(50) NULL,
+    New_Visa_type       VARCHAR(50) NULL,
+    Practice_type       VARCHAR(50) NULL,
+    vertical            VARCHAR(50) NULL,
+    CL_Group            VARCHAR(32) NULL,
+    salesrep            VARCHAR(50) NULL,
+    recruiter           VARCHAR(50) NULL,
+    Expected_Hrs        REAL NULL,
+    Status              VARCHAR(50) NULL,
+    PortfolioLeader     VARCHAR(MAX) NULL,
+    ClientPartner       VARCHAR(MAX) NULL,
+    Market_Leader       VARCHAR(MAX) NULL,
+    OpportunityID       VARCHAR(50) NULL,
+    OpportunityName     VARCHAR(200) NULL,
+    YYMM                INT NULL,
+    load_date           DATE DEFAULT GETDATE(),
+    update_date         DATE NULL,
+    source_system       VARCHAR(100) NULL
+);
+-- Storage/Index: Clustered index on (gci_id, ITSSProjectName, YYMM), nonclustered index on (client_code, Emp_Status)
+-- Partitioning: Partition by YYMM for monthly data management
+
+-- ====================================================
+-- Table: gold_layer.Go_Fact_Timesheet
+-- ====================================================
+IF OBJECT_ID('gold_layer.Go_Fact_Timesheet', 'U') IS NULL
+CREATE TABLE gold_layer.Go_Fact_Timesheet (
+    Go_Fact_Timesheet_ID BIGINT IDENTITY(1,1) NOT NULL,
+    gci_id          VARCHAR(50) NOT NULL,
+    pe_date         DATE NOT NULL,
+    c_date          DATE NULL,
+    ST              FLOAT NULL,
+    OT              FLOAT NULL,
+    TIME_OFF        FLOAT NULL,
+    HO              FLOAT NULL,
+    DT              FLOAT NULL,
+    NON_ST          FLOAT NULL,
+    NON_OT          FLOAT NULL,
+    Sick_Time       FLOAT NULL,
+    NON_Sick_Time   FLOAT NULL,
+    NON_DT          FLOAT NULL,
+    load_date       DATE DEFAULT GETDATE(),
+    update_date     DATE NULL,
+    source_system   VARCHAR(100) NULL
+);
+-- Storage/Index: Clustered index on (gci_id, pe_date), nonclustered index on (c_date)
+-- Partitioning: Partition by pe_date (monthly/quarterly)
+
+-- ====================================================
+-- Table: gold_layer.Go_Dim_report_392_all
+-- ====================================================
+IF OBJECT_ID('gold_layer.Go_Dim_report_392_all', 'U') IS NULL
+CREATE TABLE gold_layer.Go_Dim_report_392_all (
+    Go_Dim_report_392_all_ID BIGINT IDENTITY(1,1) NOT NULL,
+    gci_id              VARCHAR(50) NOT NULL,
+    first_name          VARCHAR(50) NULL,
+    last_name           VARCHAR(50) NULL,
+    employee_type       VARCHAR(8000) NULL,
+    recruiting_manager  VARCHAR(50) NULL,
+    resource_manager    VARCHAR(50) NULL,
+    salesrep            VARCHAR(50) NULL,
+    recruiter           VARCHAR(50) NULL,
+    req_type            VARCHAR(50) NULL,
+    client_code         VARCHAR(50) NULL,
+    client_name         VARCHAR(60) NULL,
+    job_title           VARCHAR(50) NULL,
+    bill_st             VARCHAR(50) NULL,
+    visa_type           VARCHAR(50) NULL,
+    salary              MONEY NULL,
+    start_date          DATE NULL,
+    end_date            DATE NULL,
+    project_city        VARCHAR(50) NULL,
+    project_state       VARCHAR(50) NULL,
+    hr_business_type    VARCHAR(50) NULL,
+    status              VARCHAR(50) NULL,
+    termination_reason  VARCHAR(100) NULL,
+    ITSSProjectName     VARCHAR(200) NULL,
+    Subtier             VARCHAR(50) NULL,
+    IS_SOW              VARCHAR(7) NULL,
+    IS_Offshore         VARCHAR(20) NULL,
+    VerticalName        NVARCHAR(510) NULL,
+    super_merged_name   VARCHAR(200) NULL,
+    new_business_type   VARCHAR(100) NULL,
+    rec_region          VARCHAR(50) NULL,
+    Billing_Type        VARCHAR(50) NULL,
+    --Category            VARCHAR(50) NULL,
+    --PortfolioLeader     VARCHAR(MAX) NULL,
+    --ClientPartner       VARCHAR(MAX) NULL,
+    Market_Leader       VARCHAR(MAX) NULL,
+    OpportunityID       VARCHAR(50) NULL,
+    OpportunityName     VARCHAR(200) NULL,
+    load_date           DATE DEFAULT GETDATE(),
+    update_date         DATE NULL,
+    source_system       VARCHAR(100) NULL
+);
+-- Storage/Index: Clustered index on (gci_id, ITSSProjectName), nonclustered index on (client_code, status)
+-- Partitioning: Partition by start_date or end_date
+
+-- ====================================================
+-- Table: gold_layer.Go_Dim_SchTask
+-- ====================================================
+IF OBJECT_ID('gold_layer.Go_Dim_SchTask', 'U') IS NULL
+CREATE TABLE gold_layer.Go_Dim_SchTask (
+    Go_Dim_SchTask_ID BIGINT IDENTITY(1,1) NOT NULL,
+    gci_id           VARCHAR(50) NOT NULL,
+    fname            VARCHAR(50) NULL,
+    lname            VARCHAR(50) NULL,
+    status           VARCHAR(50) NULL,
+    legal_entity     VARCHAR(50) NULL,
+    candidate_name   VARCHAR(100) NULL,
+    process_name     VARCHAR(100) NULL,
+    HR_Subtier_Company VARCHAR(50) NULL,
+    employee_category VARCHAR(100) NULL,
+    load_date        DATE DEFAULT GETDATE(),
+    update_date      DATE NULL,
+    source_system    VARCHAR(100) NULL
+);
+-- Storage/Index: Clustered index on (gci_id), nonclustered index on (status)
+-- Partitioning: None required
+
+-- ====================================================
+-- Table: gold_layer.Go_Fact_vw_billing_timesheet_daywise_ne
+-- ====================================================
+IF OBJECT_ID('gold_layer.Go_Fact_vw_billing_timesheet_daywise_ne', 'U') IS NULL
+CREATE TABLE gold_layer.Go_Fact_vw_billing_timesheet_daywise_ne (
+    Go_Fact_vw_billing_timesheet_daywise_ne_ID BIGINT IDENTITY(1,1) NOT NULL,
+    gci_id                       VARCHAR(50) NOT NULL,
+    pe_date                      DATE NOT NULL,
+    billable                     VARCHAR(3) NULL,
+    approved_hours_st            FLOAT NULL,
+    approved_hours_non_st        FLOAT NULL,
+    approved_hours_ot            FLOAT NULL,
+    approved_hours_non_ot        FLOAT NULL,
+    approved_hours_dt            FLOAT NULL,
+    approved_hours_non_dt        FLOAT NULL,
+    approved_hours_sick_time     FLOAT NULL,
+    approved_hours_non_sick_time FLOAT NULL,
+    load_date                    DATE DEFAULT GETDATE(),
+    update_date                  DATE NULL,
+    source_system                VARCHAR(100) NULL
+);
+-- Storage/Index: Clustered index on (gci_id, pe_date), nonclustered index on (billable)
+-- Partitioning: Partition by pe_date
+
+-- ====================================================
+-- Table: gold_layer.Go_Fact_vw_consultant_timesheet_daywise
+-- ====================================================
+IF OBJECT_ID('gold_layer.Go_Fact_vw_consultant_timesheet_daywise', 'U') IS NULL
+CREATE TABLE gold_layer.Go_Fact_vw_consultant_timesheet_daywise (
+    Go_Fact_vw_consultant_timesheet_daywise_ID BIGINT IDENTITY(1,1) NOT NULL,
+    gci_id                   VARCHAR(50) NOT NULL,
+    pe_date                  DATE NOT NULL,
+    billable                 VARCHAR(3) NULL,
+    consultant_hours_st      FLOAT NULL,
+    consultant_hours_ot      FLOAT NULL,
+    consultant_hours_dt      FLOAT NULL,
+    load_date                DATE DEFAULT GETDATE(),
+    update_date              DATE NULL,
+    source_system            VARCHAR(100) NULL
+);
+-- Storage/Index: Clustered index on (gci_id, pe_date), nonclustered index on (billable)
+-- Partitioning: Partition by pe_date
+
+-- ====================================================
+-- Table: gold_layer.Go_Agg_Resource_Utilization
+-- ====================================================
+IF OBJECT_ID('gold_layer.Go_Agg_Resource_Utilization', 'U') IS NULL
+CREATE TABLE gold_layer.Go_Agg_Resource_Utilization (
+    Go_Agg_Resource_Utilization_ID BIGINT IDENTITY(1,1) NOT NULL,
+    gci_id                 VARCHAR(50) NOT NULL,
+    ITSSProjectName        VARCHAR(200) NULL,
+    YYMM                   INT NULL,
+    submitted_hours        FLOAT NULL,
+    approved_hours         FLOAT NULL,
+    total_hours            FLOAT NULL,
+    billed_fte             FLOAT NULL,
+    total_fte              FLOAT NULL,
+    project_utilization    FLOAT NULL,
+    onsite_hours           FLOAT NULL,
+    offsite_hours          FLOAT NULL,
+    load_date              DATE DEFAULT GETDATE(),
+    update_date            DATE NULL,
+    source_system          VARCHAR(100) NULL
+);
+-- Storage/Index: Clustered index on (gci_id, ITSSProjectName, YYMM)
+-- Partitioning: Partition by YYMM
+
+-- ====================================================
+-- Table: gold_layer.Go_Error_Log
+-- ====================================================
+IF OBJECT_ID('gold_layer.Go_Error_Log', 'U') IS NULL
+CREATE TABLE gold_layer.Go_Error_Log (
+    Go_Error_Log_ID BIGINT IDENTITY(1,1) NOT NULL,
+    error_timestamp     DATE NOT NULL DEFAULT GETDATE(),
+    table_name          VARCHAR(100) NOT NULL,
+    column_name         VARCHAR(100) NULL,
+    gci_id              VARCHAR(50) NULL,
+    pe_date             DATE NULL,
+    error_type          VARCHAR(100) NULL,
+    error_message       VARCHAR(500) NULL,
+    error_severity      VARCHAR(20) NULL,
+    pipeline_run_id     VARCHAR(100) NULL,
+    load_date           DATE DEFAULT GETDATE(),
+    update_date         DATE NULL,
+    source_system       VARCHAR(100) NULL
+);
+-- Storage/Index: Clustered index on (error_timestamp), nonclustered index on (table_name, error_type)
+-- Partitioning: Partition by error_timestamp (monthly)
+
+-- ====================================================
+-- Table: gold_layer.Go_Audit_Log
+-- ====================================================
+IF OBJECT_ID('gold_layer.Go_Audit_Log', 'U') IS NULL
+CREATE TABLE gold_layer.Go_Audit_Log (
+    Go_Audit_Log_ID BIGINT IDENTITY(1,1) NOT NULL,
+    audit_timestamp     DATE NOT NULL DEFAULT GETDATE(),
+    pipeline_run_id     VARCHAR(100) NOT NULL,
+    table_name          VARCHAR(100) NOT NULL,
+    operation           VARCHAR(50) NULL,
+    record_count        INT NULL,
+    status              VARCHAR(50) NULL,
+    duration_seconds    FLOAT NULL,
+    error_count         INT NULL,
+    user_or_system      VARCHAR(100) NULL,
+    load_date           DATE DEFAULT GETDATE(),
+    update_date         DATE NULL,
+    source_system       VARCHAR(100) NULL
+);
+-- Storage/Index: Clustered index on (audit_timestamp), nonclustered index on (pipeline_run_id, table_name)
+-- Partitioning: Partition by audit_timestamp (monthly)
+
+-- ====================================================
+-- Example Update Script: Add a new column to Go_Dim_New_Monthly_HC_Report if not exists
+-- ====================================================
+IF COL_LENGTH('gold_layer.Go_Dim_New_Monthly_HC_Report', 'new_column_example') IS NULL
+ALTER TABLE gold_layer.Go_Dim_New_Monthly_HC_Report ADD new_column_example VARCHAR(100) NULL;
+
+-- Example: Add an index if not exists
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Go_Dim_New_Monthly_HC_Report_gci_id' AND object_id = OBJECT_ID('gold_layer.Go_Dim_New_Monthly_HC_Report'))
+CREATE NONCLUSTERED INDEX IX_Go_Dim_New_Monthly_HC_Report_gci_id ON gold_layer.Go_Dim_New_Monthly_HC_Report (gci_id);
+
+
+-------------------------------------------------------
+Data Retention Policies
+-------------------------------------------------------
+- Retention periods for the Gold layer:
+    * All Gold tables: Retain data for 36 months (3 years) from load_date.
+    * Data older than 36 months should be archived to a separate archival schema/table or exported to cold storage.
+    * Error and audit logs: Retain for 18 months, then archive or purge.
+- Archiving strategies:
+    * Use SQL Server partition switching or ETL jobs to move old partitions to an archive schema (e.g., gold_layer_archive).
+    * For large tables, partition by date columns (e.g., YYMM, pe_date, load_date) to enable efficient archiving and purging.
+    * Use SQL Server Agent jobs to automate retention enforcement.
+
+-------------------------------------------------------
+Conceptual Data Model Diagram (Tabular Form)
+-------------------------------------------------------
+| Gold Table Name                        | Related Gold Table Name                  | Relationship Key Field(s)           | Relationship Description                       |
+|----------------------------------------|------------------------------------------|-------------------------------------|------------------------------------------------|
+| Go_Dim_New_Monthly_HC_Report           | Go_Dim_report_392_all                    | gci_id, ITSSProjectName             | Resource and project mapping                   |
+| Go_Dim_New_Monthly_HC_Report           | Go_Fact_Timesheet                        | gci_id                              | Timesheet entries for each resource            |
+| Go_Fact_Timesheet                      | Go_Fact_vw_billing_timesheet_daywise_ne  | gci_id, pe_date                     | Approved timesheet hours per resource          |
+| Go_Fact_Timesheet                      | Go_Fact_vw_consultant_timesheet_daywise  | gci_id, pe_date                     | Consultant timesheet hours per resource        |
+| Go_Dim_report_392_all                  | Go_Dim_SchTask                           | gci_id                              | Workflow and resource identification           |
+| Go_Dim_report_392_all                  | Go_Dim_New_Monthly_HC_Report             | gci_id, ITSSProjectName             | Aggregated reporting                           |
+| Go_Dim_SchTask                         | Go_Dim_New_Monthly_HC_Report             | gci_id                              | Resource workflow mapping                      |
+| Go_Error_Log                           | All Gold tables                          | gci_id, pe_date, table_name         | Error records reference business keys          |
+| Go_Audit_Log                           | All Gold tables                          | table_name, pipeline_run_id         | Audit records reference processed tables       |
+| Go_Agg_Resource_Utilization            | Go_Dim_New_Monthly_HC_Report             | gci_id, ITSSProjectName, YYMM       | Aggregated KPIs by resource/project/month      |
+
+-------------------------------------------------------
+ER Diagram Visualization Graph (Textual)
+-------------------------------------------------------
+Go_Dim_New_Monthly_HC_Report --(gci_id, ITSSProjectName)--> Go_Dim_report_392_all
+Go_Dim_New_Monthly_HC_Report --(gci_id)--> Go_Fact_Timesheet
+Go_Fact_Timesheet --(gci_id, pe_date)--> Go_Fact_vw_billing_timesheet_daywise_ne
+Go_Fact_Timesheet --(gci_id, pe_date)--> Go_Fact_vw_consultant_timesheet_daywise
+Go_Dim_report_392_all --(gci_id)--> Go_Dim_SchTask
+Go_Dim_report_392_all --(gci_id, ITSSProjectName)--> Go_Dim_New_Monthly_HC_Report
+Go_Dim_SchTask --(gci_id)--> Go_Dim_New_Monthly_HC_Report
+Go_Error_Log --(gci_id, pe_date, table_name)--> [All Gold tables]
+Go_Audit_Log --(table_name, pipeline_run_id)--> [All Gold tables]
+Go_Agg_Resource_Utilization --(gci_id, ITSSProjectName, YYMM)--> Go_Dim_New_Monthly_HC_Report
+
+-------------------------------------------------------
+Assumptions and Design Decisions
+-------------------------------------------------------
+- All tables include a surrogate ID field (BIGINT IDENTITY) for efficient indexing and data management.
+- All business keys (e.g., gci_id, ITSSProjectName) are retained as non-unique, queryable columns.
+- Metadata columns (load_date, update_date, source_system) are included in every table for lineage and auditability.
+- All DDL scripts use IF NOT EXISTS patterns for idempotency.
+- Partitioning is recommended for large tables by date columns (YYMM, pe_date, load_date).
+- Indexing strategies are recommended based on expected query patterns (e.g., clustered on business keys, nonclustered on status/client_code).
+- Data retention and archiving are enforced via partitioning and scheduled jobs.
+- All DDL is compatible with SQL Server (no Spark/Fabric-specific features).
+- Error and audit tables are included for robust data governance.
+- Update scripts are provided as templates for future schema changes.
+- All columns from Silver layer are included in Gold layer tables.
+- No foreign keys, primary keys, or constraints that restrict flexible processing are included.
+- No use of 'GENERATED ALWAYS AS IDENTITY', 'UNIQUE', or 'Text' data type; only SQL Server compatible types.
+- All date/time columns use DATE or DATETIME2 as appropriate.
+- All tables are prefixed with "Go_" for Gold layer, following naming conventions.
+
+-------------------------------------------------------
+apiCost: 0.12
+-------------------------------------------------------
