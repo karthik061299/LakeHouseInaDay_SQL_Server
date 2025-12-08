@@ -5,7 +5,12 @@
 * 9 Hrs default for offshore (India) resources
 * 8 Hrs for rest of the location such as US, Canada & LATAM
 * We are excluding holidays applicable for the respective location, weekends (Saturday & Sunday), for days and weekend details we have a separate table and for the holiday details we have a separate table for each locations
-* Table Details : 'DimDate' - Weekends & working days, 'holidays_Mexico' - Mexico location holiday details, 'holidays_Canada' - Canada location holiday details, 'holidays_India' - India location holiday details, 'holidays' - US location holiday details
+* Table Details :
+* Table Nmae :'DimDate' - Weekends & working days,
+* Table Nmae :'holidays_Mexico' - Mexico location holiday details,
+* Table Nmae :'holidays_Canada' - Canada location holiday details,
+* Table Nmae :'holidays_India' - India location holiday details,
+* Table Nmae :'holidays' - US location holiday details
 * **Calculation - # of working days * respective location Hrs** i.e. for US August Total Hours = 19*8=152
 
 Until Mid Q3'2024, for a resource if there is multiple allocation in same or different accounts the FTE accounted was complete 1 FTE for each allocation. We implemented the weighted average logic to rectify this gap in the UTL dashboard.
@@ -248,4 +253,5 @@ Definition: Requirement region name
 * Column name: id → WorkflowID/Task ID
 * Column name: Type → OnSite/Offshore
 * Column name: Tower → Logic : DTCUChoice1
+
 
