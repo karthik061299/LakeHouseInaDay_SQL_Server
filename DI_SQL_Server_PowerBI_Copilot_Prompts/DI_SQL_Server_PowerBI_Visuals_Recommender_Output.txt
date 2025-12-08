@@ -1,0 +1,533 @@
+_____________________________________________
+## Author : AAVA
+## Created on :   
+## Description : Power BI Dashboard Visuals Recommender for HR/Timesheet Analytics System with comprehensive data modeling, DAX optimization, and visualization best practices
+_____________________________________________
+
+# POWER BI DASHBOARD VISUALS RECOMMENDER
+# HR/TIMESHEET ANALYTICS SYSTEM
+
+## EXECUTIVE SUMMARY
+This Power BI Dashboard Visuals Recommender provides comprehensive guidance for building high-performance, scalable dashboards for an HR/Timesheet analytics system. The recommendations are based on a Gold layer data model containing employee information, timesheet data, billing details, and resource utilization metrics for a consulting company.
+
+## DATA MODEL ANALYSIS
+
+### Key Fact Tables:
+- **Go_Fact_Timesheet**: Daily timesheet entries (ST, OT, DT, TIME_OFF, HO, Sick_Time)
+- **Go_Fact_vw_billing_timesheet_daywise_ne**: Approved billable hours by type
+- **Go_Fact_vw_consultant_timesheet_daywise**: Consultant-specific timesheet hours
+- **Go_Agg_Resource_Utilization**: Pre-aggregated utilization metrics
+
+### Key Dimension Tables:
+- **Go_Dim_New_Monthly_HC_Report**: Employee master data with financial metrics
+- **Go_Dim_report_392_all**: Extended employee and project information
+- **Go_Dim_SchTask**: Workflow and task-related employee data
+
+### Grain Analysis:
+- **Timesheet Facts**: Daily level (gci_id + pe_date)
+- **Employee Dimensions**: Employee level (gci_id)
+- **Utilization Aggregates**: Monthly level (gci_id + ITSSProjectName + YYMM)
+
+### Recommended Star Schema Relationships:
+```
+Go_Dim_New_Monthly_HC_Report (1) --> (*) Go_Fact_Timesheet [gci_id]
+Go_Dim_New_Monthly_HC_Report (1) --> (*) Go_Fact_vw_billing_timesheet_daywise_ne [gci_id]
+Go_Dim_New_Monthly_HC_Report (1) --> (*) Go_Fact_vw_consultant_timesheet_daywise [gci_id]
+Go_Dim_New_Monthly_HC_Report (1) --> (*) Go_Agg_Resource_Utilization [gci_id]
+Go_Dim_report_392_all (1) --> (*) Go_Fact_Timesheet [gci_id]
+```
+
+## 1. VISUAL RECOMMENDATIONS
+
+### 1.1 EXECUTIVE DASHBOARD - KPI OVERVIEW
+
+**Data Element:** Total Active Headcount
+**Recommended Visual:** KPI Card
+**Data Fields:** Go_Dim_New_Monthly_HC_Report[Emp_Status], Go_Dim_New_Monthly_HC_Report[gci_id]
+**DAX Measures:** 
+```dax
+Total Active Employees = 
+CALCULATE(
+    DISTINCTCOUNT(Go_Dim_New_Monthly_HC_Report[gci_id]),
+    Go_Dim_New_Monthly_HC_Report[Emp_Status] = "Active"
+)
+```
+**Interactivity:** Date slicer, Department filter, Status filter
+**Justification:** KPI cards provide immediate visibility to executive metrics with clear, large numbers
+**Optimization Tips:** Use DISTINCTCOUNT instead of COUNT for unique employee counting, filter context reduces data scan
+
+---
+
+**Data Element:** Overall Utilization Rate
+**Recommended Visual:** Gauge Chart
+**Data Fields:** Go_Agg_Resource_Utilization[approved_hours], Go_Dim_New_Monthly_HC_Report[Expected_Hrs]
+**DAX Measures:**
+```dax
+Utilization Rate = 
+DIVIDE(
+    SUM(Go_Agg_Resource_Utilization[approved_hours]),
+    SUM(Go_Dim_New_Monthly_HC_Report[Expected_Hrs]),
+    0
+)
+
+Utilization Target = 0.85
+```
+**Interactivity:** Date range slicer, Practice type filter, Market filter
+**Justification:** Gauge visuals effectively show performance against targets with color-coded indicators
+**Optimization Tips:** Use DIVIDE function to handle division by zero, pre-calculate target as measure for dynamic updates
+
+---
+
+**Data Element:** Total Gross Profit
+**Recommended Visual:** KPI Card with Trend
+**Data Fields:** Go_Dim_New_Monthly_HC_Report[GP], Go_Dim_New_Monthly_HC_Report[YYMM]
+**DAX Measures:**
+```dax
+Total Gross Profit = SUM(Go_Dim_New_Monthly_HC_Report[GP])
+
+GP Previous Month = 
+CALCULATE(
+    [Total Gross Profit],
+    DATEADD('Date'[Date], -1, MONTH)
+)
+
+GP Growth % = 
+DIVIDE(
+    [Total Gross Profit] - [GP Previous Month],
+    [GP Previous Month],
+    0
+)
+```
+**Interactivity:** Date slicer, Client filter, Project filter
+**Justification:** KPI cards with trend indicators show both current value and directional performance
+**Optimization Tips:** Use time intelligence functions for period comparisons, avoid complex CALCULATE chains
+
+### 1.2 WORKFORCE ANALYTICS
+
+**Data Element:** Headcount by Department/Practice
+**Recommended Visual:** Clustered Column Chart
+**Data Fields:** Go_Dim_New_Monthly_HC_Report[Practice_type], Go_Dim_New_Monthly_HC_Report[gci_id], Go_Dim_New_Monthly_HC_Report[YYMM]
+**DAX Measures:**
+```dax
+Headcount by Practice = 
+CALCULATE(
+    DISTINCTCOUNT(Go_Dim_New_Monthly_HC_Report[gci_id]),
+    Go_Dim_New_Monthly_HC_Report[Emp_Status] = "Active"
+)
+```
+**Interactivity:** Date slicer, drill-down to job titles, tooltip showing average salary
+**Justification:** Column charts effectively compare categorical data with clear visual hierarchy
+**Optimization Tips:** Use DISTINCTCOUNT for unique counting, filter active employees to reduce data volume
+
+---
+
+**Data Element:** New Hires vs Terminations Trend
+**Recommended Visual:** Line + Clustered Column Chart
+**Data Fields:** Go_Dim_New_Monthly_HC_Report[start_date], Go_Dim_New_Monthly_HC_Report[termdate], Go_Dim_New_Monthly_HC_Report[YYMM]
+**DAX Measures:**
+```dax
+New Hires = 
+CALCULATE(
+    DISTINCTCOUNT(Go_Dim_New_Monthly_HC_Report[gci_id]),
+    NOT(ISBLANK(Go_Dim_New_Monthly_HC_Report[start_date]))
+)
+
+Terminations = 
+CALCULATE(
+    DISTINCTCOUNT(Go_Dim_New_Monthly_HC_Report[gci_id]),
+    NOT(ISBLANK(Go_Dim_New_Monthly_HC_Report[termdate]))
+)
+
+Net Headcount Change = [New Hires] - [Terminations]
+```
+**Interactivity:** Date range slicer, drill-through to employee details, practice filter
+**Justification:** Dual-axis chart shows both volume (columns) and net change (line) effectively
+**Optimization Tips:** Use NOT(ISBLANK()) instead of complex date filters, separate measures for clarity
+
+### 1.3 TIMESHEET & UTILIZATION ANALYTICS
+
+**Data Element:** Billable vs Non-Billable Hours Distribution
+**Recommended Visual:** Donut Chart
+**Data Fields:** Go_Fact_vw_billing_timesheet_daywise_ne[billable], Go_Fact_vw_billing_timesheet_daywise_ne[approved_hours_st]
+**DAX Measures:**
+```dax
+Billable Hours = 
+CALCULATE(
+    SUM(Go_Fact_vw_billing_timesheet_daywise_ne[approved_hours_st]),
+    Go_Fact_vw_billing_timesheet_daywise_ne[billable] = "Yes"
+)
+
+Non-Billable Hours = 
+CALCULATE(
+    SUM(Go_Fact_vw_billing_timesheet_daywise_ne[approved_hours_st]),
+    Go_Fact_vw_billing_timesheet_daywise_ne[billable] = "No"
+)
+
+Billable Percentage = 
+DIVIDE(
+    [Billable Hours],
+    [Billable Hours] + [Non-Billable Hours],
+    0
+)
+```
+**Interactivity:** Date slicer, employee filter, project filter, tooltip with detailed breakdown
+**Justification:** Donut charts effectively show part-to-whole relationships with clear percentage display
+**Optimization Tips:** Use explicit filter conditions in CALCULATE, avoid complex IF statements in measures
+
+---
+
+**Data Element:** Daily Timesheet Hours Breakdown
+**Recommended Visual:** Stacked Column Chart
+**Data Fields:** Go_Fact_Timesheet[pe_date], Go_Fact_Timesheet[ST], Go_Fact_Timesheet[OT], Go_Fact_Timesheet[DT], Go_Fact_Timesheet[TIME_OFF]
+**DAX Measures:**
+```dax
+Standard Hours = SUM(Go_Fact_Timesheet[ST])
+Overtime Hours = SUM(Go_Fact_Timesheet[OT])
+Double Time Hours = SUM(Go_Fact_Timesheet[DT])
+Time Off Hours = SUM(Go_Fact_Timesheet[TIME_OFF])
+Total Hours = [Standard Hours] + [Overtime Hours] + [Double Time Hours]
+```
+**Interactivity:** Date range slicer, employee multi-select, drill-down to individual days
+**Justification:** Stacked columns show composition of total hours with clear visual breakdown
+**Optimization Tips:** Use simple SUM aggregations, create separate measures for each hour type
+
+### 1.4 FINANCIAL PERFORMANCE
+
+**Data Element:** Revenue by Client Analysis
+**Recommended Visual:** Treemap
+**Data Fields:** Go_Dim_New_Monthly_HC_Report[client_code], Go_Dim_New_Monthly_HC_Report[GP], Go_Dim_New_Monthly_HC_Report[NBR]
+**DAX Measures:**
+```dax
+Revenue by Client = 
+SUMX(
+    VALUES(Go_Dim_New_Monthly_HC_Report[client_code]),
+    [Total Gross Profit]
+)
+
+Avg Bill Rate by Client = 
+AVERAGEX(
+    VALUES(Go_Dim_New_Monthly_HC_Report[client_code]),
+    AVERAGE(Go_Dim_New_Monthly_HC_Report[NBR])
+)
+```
+**Interactivity:** Client filter, date slicer, drill-through to project details, tooltip with metrics
+**Justification:** Treemap effectively shows hierarchical data with size representing revenue contribution
+**Optimization Tips:** Use SUMX and AVERAGEX for proper aggregation across clients, avoid nested CALCULATE
+
+---
+
+**Data Element:** Profit Margin Trend Analysis
+**Recommended Visual:** Line Chart with Markers
+**Data Fields:** Go_Dim_New_Monthly_HC_Report[YYMM], Go_Dim_New_Monthly_HC_Report[GP], Go_Dim_report_392_all[salary]
+**DAX Measures:**
+```dax
+Total Salary Cost = SUM(Go_Dim_report_392_all[salary])
+
+Profit Margin % = 
+DIVIDE(
+    [Total Gross Profit] - [Total Salary Cost],
+    [Total Gross Profit],
+    0
+)
+
+Profit Margin Target = 0.25
+```
+**Interactivity:** Date range slicer, practice filter, market filter, reference line for target
+**Justification:** Line charts excel at showing trends over time with clear directional indicators
+**Optimization Tips:** Calculate margin at measure level, use reference lines for targets
+
+### 1.5 PROJECT & RESOURCE MANAGEMENT
+
+**Data Element:** Project Utilization Heatmap
+**Recommended Visual:** Matrix with Conditional Formatting
+**Data Fields:** Go_Agg_Resource_Utilization[ITSSProjectName], Go_Agg_Resource_Utilization[YYMM], Go_Agg_Resource_Utilization[project_utilization]
+**DAX Measures:**
+```dax
+Project Utilization = 
+AVERAGE(Go_Agg_Resource_Utilization[project_utilization])
+
+Utilization Status = 
+SWITCH(
+    TRUE(),
+    [Project Utilization] >= 0.9, "Excellent",
+    [Project Utilization] >= 0.8, "Good",
+    [Project Utilization] >= 0.7, "Average",
+    "Below Target"
+)
+```
+**Interactivity:** Project filter, date slicer, drill-through to resource details, conditional formatting
+**Justification:** Matrix with heatmap provides dense information display with intuitive color coding
+**Optimization Tips:** Use AVERAGE for utilization rates, SWITCH for performance categorization
+
+---
+
+**Data Element:** Resource Allocation by Skills/Practice
+**Recommended Visual:** Clustered Bar Chart
+**Data Fields:** Go_Dim_New_Monthly_HC_Report[Practice_type], Go_Dim_New_Monthly_HC_Report[vertical], Go_Agg_Resource_Utilization[total_fte]
+**DAX Measures:**
+```dax
+Allocated FTE = SUM(Go_Agg_Resource_Utilization[billed_fte])
+Total Available FTE = SUM(Go_Agg_Resource_Utilization[total_fte])
+Allocation Rate = DIVIDE([Allocated FTE], [Total Available FTE], 0)
+```
+**Interactivity:** Practice filter, skill filter, drill-down hierarchy, tooltip with allocation details
+**Justification:** Horizontal bars work well for categorical comparisons with long category names
+**Optimization Tips:** Use pre-aggregated FTE fields, simple DIVIDE for rate calculations
+
+### 1.6 OPERATIONAL DASHBOARDS
+
+**Data Element:** Timesheet Submission Compliance
+**Recommended Visual:** Gauge Chart
+**Data Fields:** Go_Fact_Timesheet[gci_id], Go_Fact_Timesheet[pe_date], Go_Dim_New_Monthly_HC_Report[Expected_Hrs]
+**DAX Measures:**
+```dax
+Expected Submissions = 
+COUNTROWS(
+    CROSSJOIN(
+        VALUES(Go_Dim_New_Monthly_HC_Report[gci_id]),
+        VALUES('Date'[Date])
+    )
+)
+
+Actual Submissions = 
+COUNTROWS(Go_Fact_Timesheet)
+
+Submission Compliance = 
+DIVIDE([Actual Submissions], [Expected Submissions], 0)
+```
+**Interactivity:** Date range slicer, department filter, employee status filter
+**Justification:** Gauge shows compliance rate against target with clear visual indicators
+**Optimization Tips:** Use CROSSJOIN for expected combinations, COUNTROWS for actual submissions
+
+---
+
+**Data Element:** Employee Performance Scorecard
+**Recommended Visual:** Table with Data Bars
+**Data Fields:** Go_Dim_New_Monthly_HC_Report[merged_name], Multiple KPI measures
+**DAX Measures:**
+```dax
+Employee Utilization = 
+DIVIDE(
+    SUM(Go_Agg_Resource_Utilization[approved_hours]),
+    SUM(Go_Dim_New_Monthly_HC_Report[Expected_Hrs]),
+    0
+)
+
+Employee Revenue = SUM(Go_Dim_New_Monthly_HC_Report[GP])
+
+Performance Score = 
+([Employee Utilization] * 0.6) + 
+(MIN([Employee Revenue] / 10000, 1) * 0.4)
+```
+**Interactivity:** Employee search, sort by metrics, drill-through to detailed view, conditional formatting
+**Justification:** Tables provide detailed drill-down capability with data bars for quick visual comparison
+**Optimization Tips:** Weight performance metrics appropriately, use MIN to cap revenue impact
+
+## 2. OVERALL DASHBOARD DESIGN
+
+### Layout Suggestions:
+
+**Executive Dashboard (Page 1):**
+- **Header**: Company logo, dashboard title, last refresh timestamp
+- **Top Row**: 4 KPI cards (Headcount, Utilization, Revenue, Profit Margin)
+- **Middle Section**: 
+  - Left: Headcount trend (line chart)
+  - Right: Utilization by practice (column chart)
+- **Bottom Section**: 
+  - Left: Revenue by client (treemap)
+  - Right: Key metrics table
+- **Filter Panel**: Date range, practice type, market
+
+**Operational Dashboard (Page 2):**
+- **Header**: Navigation buttons, filter sync indicators
+- **Left Panel**: Timesheet compliance gauge, submission trends
+- **Center Panel**: Daily hours breakdown (stacked column)
+- **Right Panel**: Billable vs non-billable (donut), utilization heatmap
+- **Bottom**: Employee performance table with drill-through
+
+**Financial Dashboard (Page 3):**
+- **Top Section**: Financial KPIs (cards with trends)
+- **Middle Left**: Profit margin trend (line chart)
+- **Middle Right**: Revenue by project (bar chart)
+- **Bottom**: Detailed financial matrix with conditional formatting
+
+### Performance Optimization:
+
+**Data Model Optimization:**
+- Implement proper Star Schema with Go_Dim_New_Monthly_HC_Report as primary dimension
+- Create date dimension table for proper time intelligence
+- Use single-direction relationships (avoid bi-directional unless necessary)
+- Remove unused columns and create calculated columns only when necessary
+- Implement aggregation tables for large fact tables
+
+**DAX Optimization:**
+- Use CALCULATE sparingly and avoid nested CALCULATE statements
+- Prefer SUMX/AVERAGEX over complex iterators
+- Use variables in complex measures to improve performance
+- Implement proper time intelligence with DATEADD, SAMEPERIODLASTYEAR
+- Use DIVIDE function instead of division operator for error handling
+
+**Relationship Configuration:**
+- Set cardinality correctly (1:* for dimension to fact relationships)
+- Use gci_id as primary relationship key
+- Create role-playing dimensions for different date fields
+- Avoid many-to-many relationships where possible
+
+**Import vs DirectQuery Strategy:**
+- Use Import mode for dimension tables (< 1M rows)
+- Consider DirectQuery for large fact tables (> 10M rows)
+- Implement incremental refresh for timesheet facts
+- Use aggregation tables for real-time DirectQuery scenarios
+
+### Color Scheme:
+- **Primary Colors**: Corporate blue (#0078D4), white (#FFFFFF)
+- **Secondary Colors**: Light gray (#F3F2F1), dark gray (#323130)
+- **Status Colors**: Green (#107C10) for positive, Red (#D13438) for negative, Orange (#FF8C00) for warning
+- **Accessibility**: Ensure 4.5:1 contrast ratio, avoid red-green combinations
+
+### Typography:
+- **Primary Font**: Segoe UI (Power BI default)
+- **Headers**: 14-16pt, Bold
+- **Body Text**: 10-12pt, Regular
+- **KPI Values**: 18-24pt, Bold
+
+### Interactive Elements:
+
+**Filter Panel Configuration:**
+- **Global Filters**: Date range (relative date slicer), Employee status
+- **Page-Level Filters**: Practice type, Market, Client code
+- **Visual-Level Filters**: Individual employee, Project name
+- **Sync Slicers**: Date range across all pages
+
+**Drillthrough Pages:**
+- **Employee Details**: From any employee-level visual
+- **Project Deep Dive**: From project-related visuals
+- **Client Analysis**: From client-related visuals
+
+**Bookmarks and Navigation:**
+- **View Bookmarks**: Summary view, Detailed view, Trend view
+- **Filter Bookmarks**: Current month, Quarter, Year-to-date
+- **Navigation**: Page tabs, back buttons, home button
+
+**Tooltips Configuration:**
+- **Employee Tooltip**: Photo, key metrics, utilization trend
+- **Project Tooltip**: Project details, team size, duration
+- **Financial Tooltip**: Breakdown of revenue components
+
+**Hierarchy Navigation:**
+- **Organizational Hierarchy**: Market > Practice > Team > Employee
+- **Time Hierarchy**: Year > Quarter > Month > Week > Day
+- **Project Hierarchy**: Client > Opportunity > Project > Task
+
+## 3. INTERACTIVE ELEMENTS TABLE
+
+| Visual Type | Filter/Slicer | Drillthrough | Tooltip | Hierarchy | Bookmark |
+|-------------|---------------|--------------|---------|-----------|----------|
+| KPI Cards | Date, Status | Employee Details | Trend sparkline | N/A | Current Period |
+| Utilization Gauge | Date, Practice | Resource Details | Target vs Actual | N/A | Target View |
+| Headcount Column | Date, Department | Employee List | Avg Salary | Org Hierarchy | Department View |
+| Revenue Treemap | Date, Client | Client Analysis | Revenue breakdown | Client>Project | Top Clients |
+| Hours Stacked Column | Date, Employee | Daily Details | Hours breakdown | Time Hierarchy | Weekly View |
+| Utilization Matrix | Date, Project | Project Details | Team composition | Project Hierarchy | Project View |
+| Performance Table | All filters | Employee Profile | Performance trend | N/A | Top Performers |
+| Profit Line Chart | Date, Market | Financial Details | Margin components | Time Hierarchy | Trend Analysis |
+
+## 4. COMMON PITFALLS TO AVOID
+
+### Data Modeling Issues:
+- **Incorrect Cardinality**: Ensure 1:* relationships between dimensions and facts
+- **Mismatched Grain**: Align fact table grain with business requirements
+- **Circular Relationships**: Avoid creating circular reference paths
+- **Unused Relationships**: Remove inactive relationships that cause confusion
+
+### DAX Performance Issues:
+- **Overuse of Calculated Columns**: Prefer measures over calculated columns
+- **Complex CALCULATE Chains**: Break down complex logic into multiple measures
+- **Inefficient Iterators**: Use SUMX/AVERAGEX judiciously
+- **Missing Context Transition**: Understand row context vs filter context
+
+### Visualization Problems:
+- **Overcrowded Visuals**: Limit categories in charts (max 10-12)
+- **Inappropriate Chart Types**: Match chart type to data story
+- **Poor Color Choices**: Maintain consistency and accessibility
+- **Missing Context**: Always provide reference points and targets
+
+### Performance Issues:
+- **Large Cardinality Relationships**: Optimize high-cardinality joins
+- **Unnecessary Data Loading**: Import only required columns and rows
+- **Missing Aggregations**: Create aggregation tables for large datasets
+- **Inefficient Refresh**: Implement incremental refresh strategies
+
+## 5. ADVANCED FEATURES RECOMMENDATIONS
+
+### Time Intelligence Implementation:
+```dax
+-- Create proper date table
+Date = CALENDAR(DATE(2020,1,1), DATE(2025,12,31))
+
+-- Year-over-year comparisons
+Revenue YoY = 
+VAR CurrentRevenue = [Total Gross Profit]
+VAR PreviousYearRevenue = 
+    CALCULATE(
+        [Total Gross Profit],
+        SAMEPERIODLASTYEAR('Date'[Date])
+    )
+RETURN
+    DIVIDE(CurrentRevenue - PreviousYearRevenue, PreviousYearRevenue, 0)
+
+-- Moving averages
+3 Month Moving Avg Utilization = 
+AVERAGEX(
+    DATESINPERIOD('Date'[Date], LASTDATE('Date'[Date]), -3, MONTH),
+    [Utilization Rate]
+)
+```
+
+### Dynamic Formatting:
+```dax
+-- Conditional formatting for utilization
+Utilization Color = 
+SWITCH(
+    TRUE(),
+    [Utilization Rate] >= 0.9, "#107C10",
+    [Utilization Rate] >= 0.8, "#FF8C00",
+    "#D13438"
+)
+```
+
+### Advanced Analytics:
+- **Forecasting**: Use built-in forecasting for utilization trends
+- **Clustering**: Implement employee performance clustering
+- **Anomaly Detection**: Identify unusual timesheet patterns
+- **What-If Parameters**: Create scenarios for utilization targets
+
+## 6. DEPLOYMENT AND GOVERNANCE
+
+### Security Implementation:
+- **Row-Level Security**: Filter by employee manager hierarchy
+- **Object-Level Security**: Restrict access to financial data
+- **Column-Level Security**: Hide sensitive employee information
+
+### Refresh Strategy:
+- **Incremental Refresh**: Configure for timesheet facts (daily)
+- **Full Refresh**: Weekly for dimension tables
+- **Real-time**: DirectQuery for critical operational metrics
+
+### Documentation Requirements:
+- **Data Dictionary**: Document all measures and calculations
+- **User Guide**: Create navigation and feature documentation
+- **Business Rules**: Document all business logic and assumptions
+
+### Monitoring and Maintenance:
+- **Performance Monitoring**: Track query performance and user adoption
+- **Data Quality**: Implement data validation and error reporting
+- **Version Control**: Maintain dashboard versioning and change logs
+
+---
+
+**End of Power BI Dashboard Visuals Recommender**
+
+**Total Estimated Development Time**: 4-6 weeks
+**Recommended Team Size**: 1 Power BI Developer, 1 Data Analyst, 1 Business Analyst
+**Success Metrics**: User adoption >80%, Query performance <3 seconds, Data accuracy >99%
