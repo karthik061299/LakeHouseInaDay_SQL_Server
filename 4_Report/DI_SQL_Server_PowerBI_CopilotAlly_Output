@@ -1,0 +1,13 @@
+Create a clustered column chart showing Total FTE by Project Name and Calendar Month. Use 'Project_Name' and 'Calendar_Date' from Gold.Go_Agg_Resource_Utilization, and 'Total_FTE' as the value. Aggregate FTE by month, and format the chart with distinct colors for each project, axis labels, and a descriptive title 'Monthly FTE by Project'.
+
+Add a card visual to display the overall Utilization Rate. Calculate Utilization Rate as the sum of 'Actual_Hours' divided by the sum of 'Available_Hours' from Gold.Go_Agg_Resource_Utilization. Format the card with a percentage display and title 'Overall Utilization Rate'.
+
+Add a stacked bar chart showing Billed FTE vs Total FTE by Business Area. Use 'Business_Area' from Gold.Go_Dim_Resource, and 'Billed_FTE' and 'Total_FTE' from Gold.Go_Agg_Resource_Utilization. Stack Billed FTE and Total FTE for each business area, with contrasting colors and clear legends, and title 'Billed vs Total FTE by Business Area'.
+
+Add a matrix visual to break down Submitted Hours and Approved Hours by Resource and Project. Use 'First_Name', 'Last_Name' from Gold.Go_Dim_Resource, 'Project_Name' from Gold.Go_Agg_Resource_Utilization, and 'Submitted_Hours', 'Approved_Hours' from Gold.Go_Agg_Resource_Utilization. Format the matrix with row and column subtotals and title 'Submitted vs Approved Hours by Resource and Project'.
+
+Add a pie chart to show the distribution of resources by Employee Category. Use 'Employee_Category' from Gold.Go_Dim_Resource and count of 'Resource_Code'. Format the pie chart with distinct colors for each category, data labels, and title 'Resource Distribution by Category'.
+
+Add a line chart to visualize trends in Actual Hours over time. Use 'Calendar_Date' from Gold.Go_Agg_Resource_Utilization and sum of 'Actual_Hours'. Format the line chart with a time axis, markers for each month, and title 'Actual Hours Trend'.
+
+Add a slicer for filtering visuals by Portfolio Leader. Use 'Portfolio_Leader' from Gold.Go_Dim_Resource. Format the slicer for easy selection and label it 'Filter by Portfolio Leader'.
