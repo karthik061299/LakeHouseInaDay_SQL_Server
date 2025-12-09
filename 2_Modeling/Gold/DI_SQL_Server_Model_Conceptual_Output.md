@@ -1,205 +1,247 @@
 ------------------------------------------------------------------------
 Author: AAVA
-Date: 2024-06-10
+Date: 2024-06-11
 Description: Conceptual Data Model for UTL Reporting System
 ------------------------------------------------------------------------
 
 1. Domain Overview
-The reporting system focuses on workforce utilization, timesheet management, billing categorization, project allocation, and holiday management across multiple geographies (India, US, Canada, Mexico, LATAM, NA, Others). The primary business domains are Resource Management, Project Billing, Timesheet Tracking, and Holiday/Calendar Management.
+------------------
+The reporting requirements focus on workforce utilization, timesheet management, billing categorization, project allocation, and holiday management across multiple geographies (India, US, Canada, Mexico, LATAM). The primary business domains are:
+- Workforce Management
+- Timesheet & Utilization Tracking
+- Project & Billing Categorization
+- Holiday & Calendar Management
 
-2. List of Entity Name with Description
+2. Entity List with Description
+------------------------------
+2.1. New_Monthly_HC_Report
+   - Description: Captures monthly headcount and workforce details, including business area, client, project, and employment status.
+2.2. Timesheet_New
+   - Description: Stores timesheet entries for resources, including hours worked, type of hours, and associated dates.
+2.3. vw_billing_timesheet_daywise_ne
+   - Description: Provides day-wise approved timesheet hours for resources, categorized by billing type.
+2.4. vw_consultant_timesheet_daywise
+   - Description: Provides day-wise consultant timesheet hours for resources, categorized by billing type.
+2.5. report_392_all
+   - Description: Contains comprehensive resource, project, and billing information for reporting and categorization.
+2.6. SchTask
+   - Description: Workflow and task management for resource allocation and project assignment.
+2.7. DimDate
+   - Description: Calendar dimension table for date, day, month, year, and working day/weekend identification.
+2.8. holidays, holidays_India, holidays_Canada, holidays_Mexico
+   - Description: Holiday details for respective locations, used for calculating working days and available hours.
 
-2.1 source_layer.New_Monthly_HC_Report
-- Description: Captures monthly headcount and resource allocation details, including business area, SOW status, vertical, client, and project information.
+3. Attributes for Each Entity (Business Name & Description)
+----------------------------------------------------------
+3.1. New_Monthly_HC_Report
+   - First Name: Resource's first name
+   - Last Name: Resource's last name
+   - Job Title: Resource's job designation
+   - HR Business Type: Type of employment (Contract/Direct Hire/Project NBL)
+   - Client Code: Unique code for client
+   - Start Date: Resource's start date
+   - Termination Date: Resource's termination date
+   - Final End Date: Final date of employment
+   - Merged Name: Merged client/project name
+   - Super Merged Name: Parent client name
+   - Market: Market segment
+   - IS SOW: Indicates if client is SOW
+   - GP: Gross profit
+   - Emp Status: Employment status
+   - Employee Category: Category of employee (FTE/Consultant)
+   - ITSS Project Name: Project name in ITSS system
+   - IS Offshore: Indicates if resource is offshore
+   - Subtier: Subtier company name
+   - Practice Type: Practice area
+   - Vertical: Industry vertical
+   - CL Group: Client group
+   - Sales Rep: Sales representative
+   - Recruiter: Recruiter name
+   - PO End: Purchase order end date
+   - Expected Hrs: Expected hours per month
+   - Expected Total Hrs: Total expected hours
+   - Portfolio Leader: Portfolio lead for filtering
+   - Status: Billing status (Billed/Unbilled/SGA)
+   - Community: Community name
+   - Circle: Circle name
+   - Market Leader: Market leader name
+   - Client Partner: Client partner name
+   - Project Type: Type of project
+   - Standard Job Title Horizon: Standardized job title
+   - Experience Level Title: Experience level
+   - User Name: Resource user name
+   - Vertical Name: Industry name
+   - New Business Type: Business type
+   - Rec Region: Requirement region
 
-2.2 source_layer.SchTask
-- Description: Represents workflow tasks related to resource management, including candidate details, process information, and status.
+3.2. Timesheet_New
+   - GCI ID: Resource code
+   - PE Date: Period end date
+   - Task ID: Task identifier
+   - C Date: Calendar date
+   - ST: Standard hours worked
+   - OT: Overtime hours worked
+   - TIME OFF: Time off hours
+   - HO: Holiday hours
+   - DT: Double time hours
+   - NON ST: Non-standard hours
+   - NON OT: Non-overtime hours
+   - Sick Time: Sick leave hours
+   - NON Sick Time: Non-sick leave hours
+   - NON DT: Non-double time hours
 
-2.3 source_layer.Hiring_Initiator_Project_Info
-- Description: Stores candidate and project information for hiring and onboarding processes.
+3.3. vw_billing_timesheet_daywise_ne
+   - GCI ID: Resource code
+   - PE Date: Period end date
+   - Week Date: Week date
+   - Billable: Billing type indicator
+   - Approved Hours (ST): Approved standard hours
+   - Approved Hours (Non ST): Approved non-standard hours
+   - Approved Hours (OT): Approved overtime hours
+   - Approved Hours (Non OT): Approved non-overtime hours
+   - Approved Hours (DT): Approved double time hours
+   - Approved Hours (Non DT): Approved non-double time hours
+   - Approved Hours (Sick Time): Approved sick leave hours
+   - Approved Hours (Non Sick Time): Approved non-sick leave hours
 
-2.4 source_layer.Timesheet_New
-- Description: Contains timesheet entries for resources, including hours worked by type and associated dates.
+3.4. vw_consultant_timesheet_daywise
+   - GCI ID: Resource code
+   - PE Date: Period end date
+   - Week Date: Week date
+   - Billable: Billing type indicator
+   - Consultant Hours (ST): Consultant standard hours
+   - Consultant Hours (OT): Consultant overtime hours
+   - Consultant Hours (DT): Consultant double time hours
 
-2.5 source_layer.report_392_all
-- Description: Aggregates resource, client, billing, and project information for reporting and categorization.
+3.5. report_392_all
+   - First Name: Resource's first name
+   - Last Name: Resource's last name
+   - Employee Type: FTE/Consultant
+   - Recruiting Manager: Manager responsible for recruitment
+   - Resource Manager: Resource manager name
+   - Sales Rep: Sales representative
+   - Recruiter: Recruiter name
+   - Client Code: Unique client code
+   - Client Name: Client name
+   - Job Title: Resource job title
+   - Bill ST: Billable standard hours
+   - Visa Type: Visa type
+   - Salary: Resource salary
+   - Start Date: Resource start date
+   - End Date: Resource end date
+   - Project City: Project location city
+   - Project State: Project location state
+   - HR Business Type: Employment type
+   - Status: Billing status
+   - Termination Reason: Reason for termination
+   - HCU: HCU code
+   - HSU: HSU code
+   - Billing Type: Billable/Non-Billable
+   - ITSS Project Name: Project name in ITSS system
+   - Subtier: Subtier company name
+   - Vertical Name: Industry name
+   - Super Merged Name: Parent client name
+   - New Business Type: Business type
+   - Rec Region: Requirement region
+   - Circle: Circle name
+   - Community: Community name
+   - Portfolio Leader: Portfolio lead
+   - Client Partner: Client partner name
+   - Project Type: Type of project
+   - Standard Job Title: Standardized job title
+   - Experience Level Title: Experience level
+   - User Name: Resource user name
 
-2.6 source_layer.vw_billing_timesheet_daywise_ne
-- Description: Provides day-wise approved timesheet hours for resources, categorized by billing type.
+3.6. SchTask
+   - SSN: Resource social security number
+   - GCI ID: Resource code
+   - FName: Resource first name
+   - LName: Resource last name
+   - Process ID: Workflow process identifier
+   - Level ID: Workflow level identifier
+   - Initiator: Task initiator
+   - Status: Task status
+   - Comments: Workflow comments
+   - Date Created: Task creation date
+   - Track ID: Tracking identifier
+   - Date Completed: Task completion date
+   - Existing Resource: Indicates if resource is existing
+   - Legal Entity: Legal entity name
 
-2.7 source_layer.vw_consultant_timesheet_daywise
-- Description: Provides day-wise consultant timesheet hours for resources, categorized by billing type.
+3.7. DimDate
+   - Date: Calendar date
+   - Day Of Month: Day number in month
+   - Day Name: Name of the day
+   - Week Of Year: Week number in year
+   - Month: Month number
+   - Month Name: Name of the month
+   - Quarter: Quarter number
+   - Quarter Name: Name of the quarter
+   - Year: Year
+   - Month Year: Month and year
+   - Days In Month: Number of days in month
+   - MM-YYYY: Month and year (formatted)
+   - YYYYMM: Year and month (formatted)
 
-2.8 source_layer.DimDate
-- Description: Calendar dimension table for date-based reporting, including weekends and working days.
-
-2.9 source_layer.holidays_Mexico, source_layer.holidays_Canada, source_layer.holidays_India, source_layer.holidays
-- Description: Holiday tables for respective geographies, used to exclude holidays from working day calculations.
-
-3. List of Attributes for Each Entity with Business Description
-
-3.1 source_layer.New_Monthly_HC_Report
-- Business area: Region of business operation (e.g., NA, LATAM, India)
-- SOW: Indicates if client is Statement of Work or not
-- VerticalName: Industry name
-- Super Merged Name: Parent client name
-- New_business_type: Contract/Direct Hire/Project NBL
-- Rec Region: Requirement region name
-- ITSSProjectName: Project name
-- IS_Offshore: Indicates if resource is offshore
-- Practice_type: Practice area of resource
-- PortfolioLeader: Portfolio lead for filtering in reports
-- Status: Resource status (Billed, Unbilled, SGA, Bench, AVA)
-- Expected_Hrs: Expected hours per day (hardcoded as 8)
-- Expected_Total_Hrs: Expected total hours for the month
-- ClientPartner: Client partner name
-- Market_Leader: Market leader name
-- Emp_Status: Employee status
-- employee_category: Employee category
-- Termination_reason: Reason for termination
-- Start date: Resource start date
-- End date: Resource end date
-- Derived_Rev: Derived revenue
-- Derived_GP: Derived gross profit
-
-3.2 source_layer.SchTask
-- Candidate Name: Consultant/FTE name
-- GCI_ID: Employee code
-- Type: OnSite/Offshore indicator
-- Tower: DTCUChoice1 logic for resource grouping
-- Status: Task status
-- DateCreated: Task creation date
-- DateCompleted: Task completion date
-
-3.3 source_layer.Hiring_Initiator_Project_Info
-- Candidate_LName: Candidate last name
-- Candidate_FName: Candidate first name
-- HR_Candidate_JobTitle: Candidate job title
-- HR_Candidate_Employee_Type: Employee type
-- HR_Project_Referred_By: Referral source
-- HR_Project_Referral_Fees: Referral fees
-- HR_Project_StartDate: Project start date
-- HR_Project_EndDate: Project end date
-- HR_Project_Location_City: Project location city
-- HR_Project_Location_State: Project location state
-- HR_Project_Location_Country: Project location country
-- HR_Business_Type: Business type
-- Project_Name: Project name
-
-3.4 source_layer.Timesheet_New
-- gci_id: Resource code
-- pe_date: Period end date
-- c_date: Calendar date
-- ST: Standard hours worked
-- OT: Overtime hours worked
-- DT: Double time hours worked
-- TIME_OFF: Time off hours
-- HO: Holiday hours
-- NON_ST: Non-standard hours
-- NON_OT: Non-overtime hours
-- Sick_Time: Sick time hours
-- NON_Sick_Time: Non-sick time hours
-- NON_DT: Non-double time hours
-
-3.5 source_layer.report_392_all
-- first name: Resource first name
-- last name: Resource last name
-- employee type: Employee type (FTE/Consultant)
-- client code: Client code
-- client name: Client name
-- job title: Job title
-- bill st: Billable status
-- start date: Resource start date
-- end date: Resource end date
-- ITSSProjectName: Project name
-- Billing_Type: Billable/Non-Billable indicator
-- Category: Billing category (India Billing, Client-NBL, Project-NBL, Billable, etc.)
-- Status: Billed/Unbilled/SGA/Bench/AVA
-- Market_Leader: Market leader name
-- PortfolioLeader: Portfolio lead name
-- Super Merged Name: Parent client name
-- New_business_type: Contract/Direct Hire/Project NBL
-
-3.6 source_layer.vw_billing_timesheet_daywise_ne
-- GCI_ID: Resource code
-- PE_DATE: Period end date
-- BILLABLE: Billable indicator
-- Approved_hours(ST): Approved standard hours
-- Approved_hours(Non_ST): Approved non-standard hours
-- Approved_hours(OT): Approved overtime hours
-- Approved_hours(Non_OT): Approved non-overtime hours
-- Approved_hours(DT): Approved double time hours
-- Approved_hours(Non_DT): Approved non-double time hours
-- Approved_hours(Sick_Time): Approved sick time hours
-- Approved_hours(Non_Sick_Time): Approved non-sick time hours
-
-3.7 source_layer.vw_consultant_timesheet_daywise
-- GCI_ID: Resource code
-- PE_DATE: Period end date
-- BILLABLE: Billable indicator
-- Consultant_hours(ST): Consultant standard hours
-- Consultant_hours(OT): Consultant overtime hours
-- Consultant_hours(DT): Consultant double time hours
-
-3.8 source_layer.DimDate
-- DateKey: Unique date key
-- Date: Calendar date
-- DayOfMonth: Day of the month
-- DayName: Name of the day
-- WeekOfYear: Week number in year
-- Month: Month number
-- MonthName: Month name
-- Quarter: Quarter number
-- Year: Year
-- DaysInMonth: Number of days in month
-- MMYYYY: Month and year
-- YYYYMM: Year and month
-
-3.9 source_layer.holidays_Mexico / holidays_Canada / holidays_India / holidays
-- Holiday_Date: Holiday date
-- Description: Holiday description
-- Location: Location name
-- Source_type: Source type of holiday
+3.8. holidays, holidays_India, holidays_Canada, holidays_Mexico
+   - Holiday Date: Date of holiday
+   - Description: Holiday description
+   - Location: Location of holiday
+   - Source Type: Source of holiday data
 
 4. KPI List
-- Total Hours: Number of working days × respective location hours (9 for offshore, 8 for onshore)
-- Submitted Hours: Timesheet hours submitted by resource
-- Approved Hours: Timesheet hours approved by manager
-- Total FTE: Submitted Hours / Total Hours
-- Billed FTE: Approved TS hours / Total Hours (or Submitted Hours if Approved is unavailable)
-- Project Utilization (Proj UTL): Billed Hours / Available Hours
-- Total Available Hours: Monthly Expected Hours
-- Total Billed Hours / Actual Hours: Actual hours worked
-- Onsite Hours: Actual hours for onsite type
-- Offsite Hours: Actual hours for offshore type
+-----------
+4.1. Total Hours: Number of working days × respective location hours (8 or 9)
+4.2. Submitted Hours: Timesheet hours submitted by resource
+4.3. Approved Hours: Timesheet hours approved by manager
+4.4. Total FTE: Submitted Hours / Total Hours
+4.5. Billed FTE: Approved TS hours / Total Hours
+4.6. Project Utilization: Billed Hours / Available Hours
+4.7. Available Hours: Monthly Hours × Total FTE
+4.8. Actual Hours: Actual hours worked
+4.9. Onsite Hours: Actual onsite hours
+4.10. Offsite Hours: Actual offshore hours
 
-5. Conceptual Data Model Diagram (Tabular Form)
-
-| Table Name                        | Related Table(s)                | Relationship Key Field(s)         |
-|-----------------------------------|----------------------------------|-----------------------------------|
-| source_layer.New_Monthly_HC_Report| source_layer.report_392_all      | [gci id], ITSSProjectName         |
-| source_layer.report_392_all       | source_layer.Timesheet_New       | [gci id], ITSSProjectName         |
-| source_layer.Timesheet_New        | source_layer.vw_billing_timesheet_daywise_ne | gci_id, pe_date           |
-| source_layer.Timesheet_New        | source_layer.vw_consultant_timesheet_daywise | gci_id, pe_date           |
-| source_layer.Timesheet_New        | source_layer.DimDate             | c_date = Date                     |
-| source_layer.DimDate              | source_layer.holidays_Mexico      | Date = Holiday_Date               |
-| source_layer.DimDate              | source_layer.holidays_Canada      | Date = Holiday_Date               |
-| source_layer.DimDate              | source_layer.holidays_India       | Date = Holiday_Date               |
-| source_layer.DimDate              | source_layer.holidays             | Date = Holiday_Date               |
-| source_layer.SchTask              | source_layer.New_Monthly_HC_Report| GCI_ID = [gci id]                 |
-| source_layer.Hiring_Initiator_Project_Info | source_layer.New_Monthly_HC_Report | Candidate_FName/LastName = [first name]/[last name] |
+5. Conceptual Data Model Diagram (Tabular Relationship)
+------------------------------------------------------
+| Source Table                 | Related Table(s)                | Relationship Key Field(s)         |
+|------------------------------|----------------------------------|-----------------------------------|
+| New_Monthly_HC_Report        | report_392_all                   | gci id, ITSSProjectName           |
+| Timesheet_New                | vw_billing_timesheet_daywise_ne  | gci_id, pe_date                   |
+| Timesheet_New                | vw_consultant_timesheet_daywise  | gci_id, pe_date                   |
+| Timesheet_New                | DimDate                          | c_date = Date                     |
+| Timesheet_New                | SchTask                          | gci_id                            |
+| DimDate                      | holidays, holidays_India,        | Date = Holiday_Date               |
+|                              | holidays_Canada, holidays_Mexico |                                   |
+| report_392_all               | New_Monthly_HC_Report            | gci id, ITSSProjectName           |
+| SchTask                      | New_Monthly_HC_Report            | gci id                            |
 
 6. Common Data Elements in Report Requirements
-- gci id / GCI_ID: Resource/employee code (referenced in multiple tables)
-- ITSSProjectName: Project name (referenced in multiple tables)
-- Approved_hours, Consultant_hours: Timesheet hour fields (referenced in timesheet and reporting tables)
-- Status: Resource/project status (used in multiple reports)
-- Category: Billing category (used in multiple reports)
-- PortfolioLeader: Portfolio lead (used for filtering)
-- Market_Leader: Market leader (used for reporting)
-- Super Merged Name: Parent client name (used in multiple reports)
-- New_business_type: Business type (used in multiple reports)
-- Date / c_date / pe_date: Date fields (used for joining calendar and holiday tables)
+----------------------------------------------
+- GCI ID (Resource code)
+- ITSS Project Name
+- Client Code
+- First Name
+- Last Name
+- Job Title
+- HR Business Type
+- Start Date
+- End Date
+- Status
+- Portfolio Leader
+- Circle
+- Community
+- Vertical Name
+- New Business Type
+- Rec Region
+- Approved Hours
+- Submitted Hours
+- Actual Hours
+- Available Hours
+- Billed Hours
+- Category
+- Billing Type
 
 7. API Cost Calculation
-– Cost for this Call: $0.06
+-----------------------
+– Cost for this Call: $0.08
