@@ -10,24 +10,30 @@ SILVER LAYER PHYSICAL DATA MODEL - SQL SERVER DDL SCRIPTS
 ================================================================================
 
 Purpose: This script creates the Silver layer tables for the Medallion architecture
-         on SQL Server. Silver layer stores curated, validated, and business-ready
-         data with quality checks, proper data types, and optimized structures.
+         on SQL Server. Silver layer stores cleansed, conformed, and validated data
+         with proper data types, constraints, and indexing for optimal query performance.
 
 Design Principles:
-- Data Quality: All data undergoes validation and quality checks
-- Business Alignment: Tables reflect business terminology and concepts
-- Standardization: Consistent data types, naming conventions, and structures
-- Auditability: Complete tracking of data lineage and transformations
-- Performance: Appropriate indexing and partitioning strategies
-- ID Fields: All tables include surrogate key ID fields for referential integrity
+- Add ID fields (Primary Keys) where missing in logical model
+- Implement clustered and nonclustered indexes for query optimization
+- Add columnstore indexes for analytical workloads
+- Implement partitioning strategies for large tables
+- Include data quality validation and error tracking
+- Schema: Silver
+- Table prefix: Si_
+- Metadata columns: load_timestamp, update_timestamp, source_system
 
-Storage Notes:
-- Tables include clustered indexes on ID fields
+Storage and Performance Notes:
+- Clustered indexes on ID fields for optimal data retrieval
 - Nonclustered indexes on frequently queried columns
 - Columnstore indexes for analytical queries
-- Partitioning strategies based on date columns for large tables
-- Schema: Silver
-- Table prefix: si_
+- Date-based partitioning for large fact tables
+- Implement appropriate backup and retention policies
+
+Data Retention Policy:
+- Silver layer data retained for 3 years
+- Archival to cold storage after 2 years
+- Audit logs retained for 7 years for compliance
 
 ================================================================================
 */
@@ -40,1092 +46,839 @@ END
 
 /*
 ================================================================================
-TABLE 1: Silver.si_Resource
+TABLE 1: Silver.Si_Resource
 ================================================================================
-Description: Curated resource master data containing employee information, 
-             employment details, and organizational assignments.
-Source: Bronze.bz_New_Monthly_HC_Report, Bronze.bz_report_392_all
-Indexing Strategy:
-- Clustered Index: Resource_ID (surrogate key)
-- Nonclustered Index: Resource_Code (business key)
-- Nonclustered Index: Client_Code, Status
-- Nonclustered Index: Start_Date, Termination_Date
-Partitioning: Consider partitioning by Start_Date for historical data
+Description: Standardized resource master data containing workforce members, their 
+             employment details, project assignments, and business-related attributes.
+             Derived from Bronze.bz_New_Monthly_HC_Report and Bronze.bz_report_392_all
+
+Partitioning Strategy: None (Dimension table - relatively small)
+Indexing Strategy: 
+  - Clustered index on Resource_ID
+  - Nonclustered indexes on Resource_Code, Client_Code, Status
+  - Filtered index on active resources
 ================================================================================
 */
 
-IF OBJECT_ID('Silver.si_Resource', 'U') IS NULL
+IF OBJECT_ID('Silver.Si_Resource', 'U') IS NULL
 BEGIN
-    CREATE TABLE Silver.si_Resource (
-        -- Surrogate Key
-        Resource_ID BIGINT IDENTITY(1,1) NOT NULL,
+    CREATE TABLE Silver.Si_Resource (
+        -- Primary Key (Added in Physical Model)
+        [Resource_ID] BIGINT IDENTITY(1,1) NOT NULL,
         
-        -- Business Keys and Attributes
-        Resource_Code VARCHAR(50) NULL,
-        First_Name VARCHAR(50) NULL,
-        Last_Name VARCHAR(50) NULL,
-        Job_Title VARCHAR(50) NULL,
-        Business_Type VARCHAR(50) NULL,
-        Client_Code VARCHAR(50) NULL,
-        Start_Date DATETIME NULL,
-        Termination_Date DATETIME NULL,
-        Project_Assignment VARCHAR(200) NULL,
-        Market VARCHAR(50) NULL,
-        Visa_Type VARCHAR(50) NULL,
-        Practice_Type VARCHAR(50) NULL,
-        Vertical VARCHAR(50) NULL,
-        Status VARCHAR(25) NULL,
-        Employee_Category VARCHAR(50) NULL,
-        Portfolio_Leader VARCHAR(MAX) NULL,
-        Expected_Hours REAL NULL,
-        Available_Hours REAL NULL,
-        Business_Area VARCHAR(50) NULL,
-        SOW VARCHAR(7) NULL,
-        Super_Merged_Name VARCHAR(200) NULL,
-        New_Business_Type VARCHAR(100) NULL,
-        Requirement_Region VARCHAR(50) NULL,
-        Is_Offshore VARCHAR(20) NULL,
-        Community VARCHAR(100) NULL,
-        Circle VARCHAR(100) NULL,
+        -- Business Columns from Logical Model
+        [Resource_Code] VARCHAR(50) NOT NULL,
+        [First_Name] VARCHAR(50) NULL,
+        [Last_Name] VARCHAR(50) NULL,
+        [Job_Title] VARCHAR(50) NULL,
+        [Business_Type] VARCHAR(50) NULL,
+        [Client_Code] VARCHAR(50) NULL,
+        [Start_Date] DATETIME NULL,
+        [Termination_Date] DATETIME NULL,
+        [Project_Assignment] VARCHAR(200) NULL,
+        [Market] VARCHAR(50) NULL,
+        [Visa_Type] VARCHAR(50) NULL,
+        [Practice_Type] VARCHAR(50) NULL,
+        [Vertical] VARCHAR(50) NULL,
+        [Status] VARCHAR(50) NULL,
+        [Employee_Category] VARCHAR(50) NULL,
+        [Portfolio_Leader] VARCHAR(100) NULL,
+        [Expected_Hours] FLOAT NULL,
+        [Available_Hours] FLOAT NULL,
+        [Business_Area] VARCHAR(50) NULL,
+        [SOW] VARCHAR(7) NULL,
+        [Super_Merged_Name] VARCHAR(100) NULL,
+        [New_Business_Type] VARCHAR(100) NULL,
+        [Requirement_Region] VARCHAR(50) NULL,
+        [Is_Offshore] VARCHAR(20) NULL,
+        
+        -- Additional columns from Bronze layer for comprehensive tracking
+        [Employee_Status] VARCHAR(50) NULL,
+        [Termination_Reason] VARCHAR(100) NULL,
+        [Tower] VARCHAR(60) NULL,
+        [Circle] VARCHAR(100) NULL,
+        [Community] VARCHAR(100) NULL,
+        [Recruiter] VARCHAR(50) NULL,
+        [Resource_Manager] VARCHAR(50) NULL,
+        [Recruiting_Manager] VARCHAR(50) NULL,
+        [Salesrep] VARCHAR(50) NULL,
+        [Inside_Sales] VARCHAR(50) NULL,
+        [Client_Name] VARCHAR(60) NULL,
+        [Bill_Rate] DECIMAL(18,9) NULL,
+        [Net_Bill_Rate] MONEY NULL,
+        [Pay_Rate] FLOAT NULL,
+        [Salary] MONEY NULL,
+        [GP] MONEY NULL,
+        [GPM] MONEY NULL,
+        [Project_City] VARCHAR(50) NULL,
+        [Project_State] VARCHAR(50) NULL,
+        [Project_Type] VARCHAR(500) NULL,
+        [Opportunity_Name] VARCHAR(200) NULL,
+        [Delivery_Leader] VARCHAR(50) NULL,
+        [Market_Leader] VARCHAR(MAX) NULL,
+        [Final_End_Date] DATETIME NULL,
+        [PO_End_Date] DATETIME NULL,
+        [Offboarding_Date] DATETIME NULL,
+        [Standard_Job_Title] VARCHAR(500) NULL,
+        [Experience_Level_Title] VARCHAR(200) NULL,
+        [Role_Family] VARCHAR(300) NULL,
+        [Sub_Role_Family] VARCHAR(300) NULL,
         
         -- Metadata Columns
-        load_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        update_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        source_system VARCHAR(100) NULL,
-        data_quality_score DECIMAL(5,2) NULL,
-        validation_status VARCHAR(50) NULL,
+        [load_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [update_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [source_system] VARCHAR(100) NULL DEFAULT 'Bronze Layer',
+        [data_quality_score] DECIMAL(5,2) NULL,
+        [is_active] BIT NOT NULL DEFAULT 1,
         
         -- Primary Key Constraint
-        CONSTRAINT PK_si_Resource PRIMARY KEY CLUSTERED (Resource_ID)
+        CONSTRAINT PK_Si_Resource PRIMARY KEY CLUSTERED ([Resource_ID] ASC)
     )
     
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Resource_ResourceCode 
-        ON Silver.si_Resource(Resource_Code) 
-        INCLUDE (First_Name, Last_Name, Status)
+    -- Nonclustered Indexes for Query Performance
+    CREATE NONCLUSTERED INDEX IX_Si_Resource_ResourceCode 
+        ON Silver.Si_Resource([Resource_Code]) 
+        INCLUDE ([First_Name], [Last_Name], [Status])
     
-    CREATE NONCLUSTERED INDEX IX_si_Resource_ClientCode_Status 
-        ON Silver.si_Resource(Client_Code, Status) 
-        INCLUDE (Resource_Code, Start_Date)
+    CREATE NONCLUSTERED INDEX IX_Si_Resource_ClientCode 
+        ON Silver.Si_Resource([Client_Code]) 
+        INCLUDE ([Resource_Code], [Status])
     
-    CREATE NONCLUSTERED INDEX IX_si_Resource_Dates 
-        ON Silver.si_Resource(Start_Date, Termination_Date) 
-        INCLUDE (Resource_Code, Status)
+    CREATE NONCLUSTERED INDEX IX_Si_Resource_Status 
+        ON Silver.Si_Resource([Status]) 
+        INCLUDE ([Resource_Code], [Start_Date], [Termination_Date])
     
-    CREATE NONCLUSTERED INDEX IX_si_Resource_Status 
-        ON Silver.si_Resource(Status) 
-        INCLUDE (Resource_Code, Business_Type, Employee_Category)
+    -- Filtered Index for Active Resources (Performance Optimization)
+    CREATE NONCLUSTERED INDEX IX_Si_Resource_Active 
+        ON Silver.Si_Resource([Resource_Code], [Status]) 
+        WHERE [is_active] = 1 AND [Status] = 'Active'
+    
+    -- Index on Date Columns for Date Range Queries
+    CREATE NONCLUSTERED INDEX IX_Si_Resource_Dates 
+        ON Silver.Si_Resource([Start_Date], [Termination_Date]) 
+        INCLUDE ([Resource_Code], [Status])
 END
 
 /*
 ================================================================================
-TABLE 2: Silver.si_Timesheet_Entry
+TABLE 2: Silver.Si_Project
 ================================================================================
-Description: Curated timesheet entries capturing daily time worked by resources
-             across different hour types.
-Source: Bronze.bz_Timesheet_New
+Description: Standardized project information containing details of projects, 
+             billing types, client information, and project-specific attributes.
+             Derived from Bronze.bz_Hiring_Initiator_Project_Info and 
+             Bronze.bz_report_392_all
+
+Partitioning Strategy: None (Dimension table - relatively small)
 Indexing Strategy:
-- Clustered Index: Timesheet_Entry_ID (surrogate key)
-- Nonclustered Index: Resource_Code, Timesheet_Date
-- Nonclustered Index: Timesheet_Date
-- Columnstore Index: For analytical queries on aggregated hours
-Partitioning: Partition by Timesheet_Date (monthly partitions)
+  - Clustered index on Project_ID
+  - Nonclustered indexes on Project_Name, Client_Code, Status
+  - Columnstore index for analytical queries
 ================================================================================
 */
 
-IF OBJECT_ID('Silver.si_Timesheet_Entry', 'U') IS NULL
+IF OBJECT_ID('Silver.Si_Project', 'U') IS NULL
 BEGIN
-    CREATE TABLE Silver.si_Timesheet_Entry (
-        -- Surrogate Key
-        Timesheet_Entry_ID BIGINT IDENTITY(1,1) NOT NULL,
+    CREATE TABLE Silver.Si_Project (
+        -- Primary Key (Added in Physical Model)
+        [Project_ID] BIGINT IDENTITY(1,1) NOT NULL,
         
-        -- Business Keys and Attributes
-        Resource_Code VARCHAR(50) NULL,
-        Timesheet_Date DATETIME NULL,
-        Project_Task_Reference NUMERIC(18,9) NULL,
-        Standard_Hours FLOAT NULL,
-        Overtime_Hours FLOAT NULL,
-        Double_Time_Hours FLOAT NULL,
-        Sick_Time_Hours FLOAT NULL,
-        Holiday_Hours FLOAT NULL,
-        Time_Off_Hours FLOAT NULL,
-        Non_Standard_Hours FLOAT NULL,
-        Non_Overtime_Hours FLOAT NULL,
-        Non_Double_Time_Hours FLOAT NULL,
-        Non_Sick_Time_Hours FLOAT NULL,
-        Total_Hours_Submitted FLOAT NULL,
-        Creation_Date DATETIME NULL,
+        -- Business Columns from Logical Model
+        [Project_Name] VARCHAR(200) NOT NULL,
+        [Client_Name] VARCHAR(60) NULL,
+        [Client_Code] VARCHAR(50) NULL,
+        [Billing_Type] VARCHAR(50) NULL,
+        [Category] VARCHAR(50) NULL,
+        [Status] VARCHAR(50) NULL,
+        [Project_City] VARCHAR(50) NULL,
+        [Project_State] VARCHAR(50) NULL,
+        [Opportunity_Name] VARCHAR(200) NULL,
+        [Project_Type] VARCHAR(500) NULL,
+        [Delivery_Leader] VARCHAR(50) NULL,
+        [Circle] VARCHAR(100) NULL,
+        [Market_Leader] VARCHAR(100) NULL,
+        [Net_Bill_Rate] MONEY NULL,
+        [Bill_Rate] DECIMAL(18,9) NULL,
+        [Project_Start_Date] DATETIME NULL,
+        [Project_End_Date] DATETIME NULL,
+        
+        -- Additional columns from Bronze layer
+        [Client_Entity] VARCHAR(50) NULL,
+        [Client_Sector] VARCHAR(50) NULL,
+        [End_Client_Name] VARCHAR(60) NULL,
+        [End_Client_ID] VARCHAR(50) NULL,
+        [Project_Location_Address1] VARCHAR(50) NULL,
+        [Project_Location_Address2] VARCHAR(50) NULL,
+        [Project_Location_City] VARCHAR(50) NULL,
+        [Project_Location_State] VARCHAR(50) NULL,
+        [Project_Location_Zip] VARCHAR(50) NULL,
+        [Project_Location_Country] VARCHAR(50) NULL,
+        [Invoicing_Terms] VARCHAR(50) NULL,
+        [Payment_Terms] VARCHAR(50) NULL,
+        [Business_Type] VARCHAR(50) NULL,
+        [Project_Category] VARCHAR(50) NULL,
+        [Delivery_Model] VARCHAR(50) NULL,
+        [Practice_Type] VARCHAR(50) NULL,
+        [Community] VARCHAR(100) NULL,
+        [Vertical] VARCHAR(100) NULL,
+        [Opportunity_ID] VARCHAR(50) NULL,
+        [MS_Project_ID] INT NULL,
+        [MS_Project_Name] VARCHAR(200) NULL,
+        [Netsuite_Project_ID] VARCHAR(50) NULL,
+        [FP_Project_ID] VARCHAR(10) NULL,
+        [FP_Project_Name] VARCHAR(MAX) NULL,
+        [Is_OT_Allowed] VARCHAR(50) NULL,
+        [Is_DT_Allowed] VARCHAR(50) NULL,
+        [Week_Cycle] INT NULL,
+        [Timesheet_Manager] VARCHAR(255) NULL,
+        [Timesheet_Manager_Email] VARCHAR(255) NULL,
+        [Timesheet_Manager_Phone] VARCHAR(255) NULL,
         
         -- Metadata Columns
-        load_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        update_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        source_system VARCHAR(100) NULL,
-        data_quality_score DECIMAL(5,2) NULL,
-        validation_status VARCHAR(50) NULL,
+        [load_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [update_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [source_system] VARCHAR(100) NULL DEFAULT 'Bronze Layer',
+        [data_quality_score] DECIMAL(5,2) NULL,
+        [is_active] BIT NOT NULL DEFAULT 1,
         
         -- Primary Key Constraint
-        CONSTRAINT PK_si_Timesheet_Entry PRIMARY KEY CLUSTERED (Timesheet_Entry_ID)
+        CONSTRAINT PK_Si_Project PRIMARY KEY CLUSTERED ([Project_ID] ASC)
     )
     
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Timesheet_Entry_ResourceDate 
-        ON Silver.si_Timesheet_Entry(Resource_Code, Timesheet_Date) 
-        INCLUDE (Total_Hours_Submitted, Standard_Hours)
+    -- Nonclustered Indexes for Query Performance
+    CREATE NONCLUSTERED INDEX IX_Si_Project_ProjectName 
+        ON Silver.Si_Project([Project_Name]) 
+        INCLUDE ([Client_Name], [Status], [Billing_Type])
     
-    CREATE NONCLUSTERED INDEX IX_si_Timesheet_Entry_Date 
-        ON Silver.si_Timesheet_Entry(Timesheet_Date) 
-        INCLUDE (Resource_Code, Total_Hours_Submitted)
+    CREATE NONCLUSTERED INDEX IX_Si_Project_ClientCode 
+        ON Silver.Si_Project([Client_Code]) 
+        INCLUDE ([Project_Name], [Status])
     
-    CREATE NONCLUSTERED INDEX IX_si_Timesheet_Entry_ProjectTask 
-        ON Silver.si_Timesheet_Entry(Project_Task_Reference) 
-        INCLUDE (Resource_Code, Timesheet_Date, Total_Hours_Submitted)
+    CREATE NONCLUSTERED INDEX IX_Si_Project_Status 
+        ON Silver.Si_Project([Status]) 
+        INCLUDE ([Project_Name], [Client_Name])
+    
+    -- Index on Date Columns
+    CREATE NONCLUSTERED INDEX IX_Si_Project_Dates 
+        ON Silver.Si_Project([Project_Start_Date], [Project_End_Date]) 
+        INCLUDE ([Project_Name], [Status])
 END
 
 /*
 ================================================================================
-TABLE 3: Silver.si_Project
+TABLE 3: Silver.Si_Timesheet_Entry
 ================================================================================
-Description: Curated project master data containing project details, billing
-             information, and client associations.
-Source: Bronze.bz_report_392_all, Bronze.bz_Hiring_Initiator_Project_Info
+Description: Standardized timesheet entries capturing daily timesheet entries for 
+             each resource, including hours worked by type and associated dates.
+             Derived from Bronze.bz_Timesheet_New
+
+Partitioning Strategy: Date-range partitioning on Timesheet_Date (Monthly partitions)
 Indexing Strategy:
-- Clustered Index: Project_ID (surrogate key)
-- Nonclustered Index: Project_Name
-- Nonclustered Index: Client_Code, Status
-- Nonclustered Index: Project_Start_Date, Project_End_Date
+  - Clustered index on Timesheet_Entry_ID
+  - Nonclustered indexes on Resource_Code, Timesheet_Date
+  - Columnstore index for analytical queries on historical data
 ================================================================================
 */
 
-IF OBJECT_ID('Silver.si_Project', 'U') IS NULL
+IF OBJECT_ID('Silver.Si_Timesheet_Entry', 'U') IS NULL
 BEGIN
-    CREATE TABLE Silver.si_Project (
-        -- Surrogate Key
-        Project_ID BIGINT IDENTITY(1,1) NOT NULL,
+    CREATE TABLE Silver.Si_Timesheet_Entry (
+        -- Primary Key (Added in Physical Model)
+        [Timesheet_Entry_ID] BIGINT IDENTITY(1,1) NOT NULL,
         
-        -- Business Keys and Attributes
-        Project_Name VARCHAR(200) NULL,
-        Client_Name VARCHAR(60) NULL,
-        Client_Code VARCHAR(50) NULL,
-        Billing_Type VARCHAR(50) NULL,
-        Category VARCHAR(50) NULL,
-        Status VARCHAR(50) NULL,
-        Project_City VARCHAR(50) NULL,
-        Project_State VARCHAR(50) NULL,
-        Opportunity_Name VARCHAR(200) NULL,
-        Project_Type VARCHAR(500) NULL,
-        Delivery_Leader VARCHAR(50) NULL,
-        Circle VARCHAR(50) NULL,
-        Market_Leader NVARCHAR(MAX) NULL,
-        Net_Bill_Rate MONEY NULL,
-        Bill_ST VARCHAR(50) NULL,
-        Bill_ST_Units VARCHAR(50) NULL,
-        Project_Start_Date DATETIME NULL,
-        Project_End_Date DATETIME NULL,
-        Subtier VARCHAR(50) NULL,
-        Super_Merged_Name VARCHAR(200) NULL,
+        -- Business Columns from Logical Model
+        [Resource_Code] VARCHAR(50) NOT NULL,
+        [Timesheet_Date] DATETIME NOT NULL,
+        [Project_Task_Reference] NUMERIC(18,9) NULL,
+        [Standard_Hours] FLOAT NULL DEFAULT 0,
+        [Overtime_Hours] FLOAT NULL DEFAULT 0,
+        [Double_Time_Hours] FLOAT NULL DEFAULT 0,
+        [Sick_Time_Hours] FLOAT NULL DEFAULT 0,
+        [Holiday_Hours] FLOAT NULL DEFAULT 0,
+        [Time_Off_Hours] FLOAT NULL DEFAULT 0,
+        [Non_Standard_Hours] FLOAT NULL DEFAULT 0,
+        [Non_Overtime_Hours] FLOAT NULL DEFAULT 0,
+        [Non_Double_Time_Hours] FLOAT NULL DEFAULT 0,
+        [Non_Sick_Time_Hours] FLOAT NULL DEFAULT 0,
+        [Creation_Date] DATETIME NULL,
+        
+        -- Additional calculated columns
+        [Total_Hours] AS ([Standard_Hours] + [Overtime_Hours] + [Double_Time_Hours] + 
+                          [Sick_Time_Hours] + [Holiday_Hours] + [Time_Off_Hours]) PERSISTED,
+        [Total_Billable_Hours] AS ([Standard_Hours] + [Overtime_Hours] + [Double_Time_Hours]) PERSISTED,
+        [Total_Non_Billable_Hours] AS ([Non_Standard_Hours] + [Non_Overtime_Hours] + [Non_Double_Time_Hours]) PERSISTED,
         
         -- Metadata Columns
-        load_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        update_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        source_system VARCHAR(100) NULL,
-        data_quality_score DECIMAL(5,2) NULL,
-        validation_status VARCHAR(50) NULL,
+        [load_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [update_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [source_system] VARCHAR(100) NULL DEFAULT 'Bronze Layer',
+        [data_quality_score] DECIMAL(5,2) NULL,
+        [is_validated] BIT NOT NULL DEFAULT 0,
         
         -- Primary Key Constraint
-        CONSTRAINT PK_si_Project PRIMARY KEY CLUSTERED (Project_ID)
+        CONSTRAINT PK_Si_Timesheet_Entry PRIMARY KEY CLUSTERED ([Timesheet_Entry_ID] ASC)
     )
     
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Project_ProjectName 
-        ON Silver.si_Project(Project_Name) 
-        INCLUDE (Client_Code, Status, Billing_Type)
+    -- Nonclustered Indexes for Query Performance
+    CREATE NONCLUSTERED INDEX IX_Si_Timesheet_Entry_ResourceCode 
+        ON Silver.Si_Timesheet_Entry([Resource_Code], [Timesheet_Date]) 
+        INCLUDE ([Standard_Hours], [Overtime_Hours])
     
-    CREATE NONCLUSTERED INDEX IX_si_Project_ClientCode_Status 
-        ON Silver.si_Project(Client_Code, Status) 
-        INCLUDE (Project_Name, Billing_Type)
+    CREATE NONCLUSTERED INDEX IX_Si_Timesheet_Entry_Date 
+        ON Silver.Si_Timesheet_Entry([Timesheet_Date]) 
+        INCLUDE ([Resource_Code], [Standard_Hours])
     
-    CREATE NONCLUSTERED INDEX IX_si_Project_Dates 
-        ON Silver.si_Project(Project_Start_Date, Project_End_Date) 
-        INCLUDE (Project_Name, Status)
+    CREATE NONCLUSTERED INDEX IX_Si_Timesheet_Entry_TaskRef 
+        ON Silver.Si_Timesheet_Entry([Project_Task_Reference]) 
+        INCLUDE ([Resource_Code], [Timesheet_Date])
+    
+    -- Columnstore Index for Analytical Queries (Historical Data)
+    CREATE NONCLUSTERED COLUMNSTORE INDEX NCCI_Si_Timesheet_Entry_Analytics 
+        ON Silver.Si_Timesheet_Entry(
+            [Resource_Code], [Timesheet_Date], [Standard_Hours], [Overtime_Hours],
+            [Double_Time_Hours], [Total_Hours], [Total_Billable_Hours]
+        )
 END
 
 /*
 ================================================================================
-TABLE 4: Silver.si_Date_Dimension
+TABLE 4: Silver.Si_Timesheet_Approval
 ================================================================================
-Description: Curated date dimension providing comprehensive calendar and working
-             day context for time-based calculations.
-Source: Bronze.bz_DimDate
-Indexing Strategy:
-- Clustered Index: Date_ID (surrogate key)
-- Unique Nonclustered Index: Calendar_Date (business key)
-- Nonclustered Index: Year, Month_Number
-- Nonclustered Index: Is_Working_Day
-================================================================================
-*/
-
-IF OBJECT_ID('Silver.si_Date_Dimension', 'U') IS NULL
-BEGIN
-    CREATE TABLE Silver.si_Date_Dimension (
-        -- Surrogate Key
-        Date_ID BIGINT IDENTITY(1,1) NOT NULL,
-        
-        -- Business Keys and Attributes
-        Calendar_Date DATETIME NOT NULL,
-        Day_Name VARCHAR(9) NULL,
-        Day_Of_Month VARCHAR(2) NULL,
-        Week_Of_Year VARCHAR(2) NULL,
-        Month_Number VARCHAR(2) NULL,
-        Month_Name VARCHAR(9) NULL,
-        Month_Of_Quarter VARCHAR(2) NULL,
-        Quarter CHAR(1) NULL,
-        Quarter_Name VARCHAR(9) NULL,
-        Year CHAR(4) NULL,
-        Year_Name CHAR(7) NULL,
-        Month_Year CHAR(10) NULL,
-        MMYYYY CHAR(6) NULL,
-        MM_YYYY VARCHAR(10) NULL,
-        YYYYMM VARCHAR(10) NULL,
-        Days_In_Month INT NULL,
-        Is_Working_Day BIT NULL,
-        Is_Weekend BIT NULL,
-        
-        -- Metadata Columns
-        load_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        update_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        source_system VARCHAR(100) NULL,
-        data_quality_score DECIMAL(5,2) NULL,
-        validation_status VARCHAR(50) NULL,
-        
-        -- Primary Key Constraint
-        CONSTRAINT PK_si_Date_Dimension PRIMARY KEY CLUSTERED (Date_ID)
-    )
-    
-    -- Unique Nonclustered Index on Business Key
-    CREATE UNIQUE NONCLUSTERED INDEX UX_si_Date_Dimension_CalendarDate 
-        ON Silver.si_Date_Dimension(Calendar_Date)
-    
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Date_Dimension_YearMonth 
-        ON Silver.si_Date_Dimension(Year, Month_Number) 
-        INCLUDE (Calendar_Date, Is_Working_Day)
-    
-    CREATE NONCLUSTERED INDEX IX_si_Date_Dimension_WorkingDay 
-        ON Silver.si_Date_Dimension(Is_Working_Day) 
-        INCLUDE (Calendar_Date, Year, Month_Number)
-END
-
-/*
-================================================================================
-TABLE 5: Silver.si_Holiday
-================================================================================
-Description: Curated holiday master data containing holiday dates by location.
-Source: Bronze.bz_holidays, Bronze.bz_holidays_India, Bronze.bz_holidays_Mexico, 
-        Bronze.bz_holidays_Canada
-Indexing Strategy:
-- Clustered Index: Holiday_ID (surrogate key)
-- Nonclustered Index: Holiday_Date, Location
-- Nonclustered Index: Location, Is_Active
-================================================================================
-*/
-
-IF OBJECT_ID('Silver.si_Holiday', 'U') IS NULL
-BEGIN
-    CREATE TABLE Silver.si_Holiday (
-        -- Surrogate Key
-        Holiday_ID BIGINT IDENTITY(1,1) NOT NULL,
-        
-        -- Business Keys and Attributes
-        Holiday_Date DATETIME NULL,
-        Description VARCHAR(100) NULL,
-        Location VARCHAR(10) NULL,
-        Source_Type VARCHAR(50) NULL,
-        Is_Active BIT NULL DEFAULT 1,
-        
-        -- Metadata Columns
-        load_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        update_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        source_system VARCHAR(100) NULL,
-        data_quality_score DECIMAL(5,2) NULL,
-        validation_status VARCHAR(50) NULL,
-        
-        -- Primary Key Constraint
-        CONSTRAINT PK_si_Holiday PRIMARY KEY CLUSTERED (Holiday_ID)
-    )
-    
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Holiday_DateLocation 
-        ON Silver.si_Holiday(Holiday_Date, Location) 
-        INCLUDE (Description, Is_Active)
-    
-    CREATE NONCLUSTERED INDEX IX_si_Holiday_Location_Active 
-        ON Silver.si_Holiday(Location, Is_Active) 
-        INCLUDE (Holiday_Date, Description)
-END
-
-/*
-================================================================================
-TABLE 6: Silver.si_Timesheet_Approval
-================================================================================
-Description: Curated timesheet approval data containing submitted and approved
+Description: Standardized timesheet approval data containing submitted and approved 
              timesheet hours by resource, date, and billing type.
-Source: Bronze.bz_vw_billing_timesheet_daywise_ne, 
-        Bronze.bz_vw_consultant_timesheet_daywise
+             Derived from Bronze.bz_vw_billing_timesheet_daywise_ne and 
+             Bronze.bz_vw_consultant_timesheet_daywise
+
+Partitioning Strategy: Date-range partitioning on Timesheet_Date (Monthly partitions)
 Indexing Strategy:
-- Clustered Index: Timesheet_Approval_ID (surrogate key)
-- Nonclustered Index: Resource_Code, Timesheet_Date
-- Nonclustered Index: Timesheet_Date, Billing_Indicator
-- Columnstore Index: For analytical queries
-Partitioning: Partition by Timesheet_Date (monthly partitions)
+  - Clustered index on Approval_ID
+  - Nonclustered indexes on Resource_Code, Timesheet_Date, Week_Date
+  - Columnstore index for analytical queries
 ================================================================================
 */
 
-IF OBJECT_ID('Silver.si_Timesheet_Approval', 'U') IS NULL
+IF OBJECT_ID('Silver.Si_Timesheet_Approval', 'U') IS NULL
 BEGIN
-    CREATE TABLE Silver.si_Timesheet_Approval (
-        -- Surrogate Key
-        Timesheet_Approval_ID BIGINT IDENTITY(1,1) NOT NULL,
+    CREATE TABLE Silver.Si_Timesheet_Approval (
+        -- Primary Key (Added in Physical Model)
+        [Approval_ID] BIGINT IDENTITY(1,1) NOT NULL,
         
-        -- Business Keys and Attributes
-        Resource_Code VARCHAR(50) NULL,
-        Timesheet_Date DATETIME NULL,
-        Week_Date DATETIME NULL,
-        Billing_Indicator VARCHAR(3) NULL,
-        Approved_Standard_Hours FLOAT NULL,
-        Approved_Overtime_Hours FLOAT NULL,
-        Approved_Double_Time_Hours FLOAT NULL,
-        Approved_Sick_Time_Hours FLOAT NULL,
-        Approved_Non_Standard_Hours FLOAT NULL,
-        Approved_Non_Overtime_Hours FLOAT NULL,
-        Approved_Non_Double_Time_Hours FLOAT NULL,
-        Approved_Non_Sick_Time_Hours FLOAT NULL,
-        Consultant_Standard_Hours FLOAT NULL,
-        Consultant_Overtime_Hours FLOAT NULL,
-        Consultant_Double_Time_Hours FLOAT NULL,
-        Total_Approved_Hours FLOAT NULL,
-        Total_Consultant_Hours FLOAT NULL,
+        -- Business Columns from Logical Model
+        [Resource_Code] VARCHAR(50) NOT NULL,
+        [Timesheet_Date] DATETIME NOT NULL,
+        [Week_Date] DATETIME NULL,
+        [Approved_Standard_Hours] FLOAT NULL DEFAULT 0,
+        [Approved_Overtime_Hours] FLOAT NULL DEFAULT 0,
+        [Approved_Double_Time_Hours] FLOAT NULL DEFAULT 0,
+        [Approved_Sick_Time_Hours] FLOAT NULL DEFAULT 0,
+        [Billing_Indicator] VARCHAR(3) NULL,
+        [Consultant_Standard_Hours] FLOAT NULL DEFAULT 0,
+        [Consultant_Overtime_Hours] FLOAT NULL DEFAULT 0,
+        [Consultant_Double_Time_Hours] FLOAT NULL DEFAULT 0,
+        
+        -- Additional calculated columns
+        [Total_Approved_Hours] AS ([Approved_Standard_Hours] + [Approved_Overtime_Hours] + 
+                                    [Approved_Double_Time_Hours] + [Approved_Sick_Time_Hours]) PERSISTED,
+        [Total_Consultant_Hours] AS ([Consultant_Standard_Hours] + [Consultant_Overtime_Hours] + 
+                                      [Consultant_Double_Time_Hours]) PERSISTED,
+        [Hours_Variance] AS ([Approved_Standard_Hours] + [Approved_Overtime_Hours] + [Approved_Double_Time_Hours] - 
+                             [Consultant_Standard_Hours] - [Consultant_Overtime_Hours] - [Consultant_Double_Time_Hours]) PERSISTED,
         
         -- Metadata Columns
-        load_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        update_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        source_system VARCHAR(100) NULL,
-        data_quality_score DECIMAL(5,2) NULL,
-        validation_status VARCHAR(50) NULL,
+        [load_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [update_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [source_system] VARCHAR(100) NULL DEFAULT 'Bronze Layer',
+        [data_quality_score] DECIMAL(5,2) NULL,
+        [approval_status] VARCHAR(50) NULL DEFAULT 'Approved',
         
         -- Primary Key Constraint
-        CONSTRAINT PK_si_Timesheet_Approval PRIMARY KEY CLUSTERED (Timesheet_Approval_ID)
+        CONSTRAINT PK_Si_Timesheet_Approval PRIMARY KEY CLUSTERED ([Approval_ID] ASC)
     )
     
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Timesheet_Approval_ResourceDate 
-        ON Silver.si_Timesheet_Approval(Resource_Code, Timesheet_Date) 
-        INCLUDE (Total_Approved_Hours, Billing_Indicator)
+    -- Nonclustered Indexes for Query Performance
+    CREATE NONCLUSTERED INDEX IX_Si_Timesheet_Approval_ResourceCode 
+        ON Silver.Si_Timesheet_Approval([Resource_Code], [Timesheet_Date]) 
+        INCLUDE ([Approved_Standard_Hours], [Billing_Indicator])
     
-    CREATE NONCLUSTERED INDEX IX_si_Timesheet_Approval_DateBilling 
-        ON Silver.si_Timesheet_Approval(Timesheet_Date, Billing_Indicator) 
-        INCLUDE (Resource_Code, Total_Approved_Hours)
+    CREATE NONCLUSTERED INDEX IX_Si_Timesheet_Approval_Date 
+        ON Silver.Si_Timesheet_Approval([Timesheet_Date]) 
+        INCLUDE ([Resource_Code], [Approved_Standard_Hours])
+    
+    CREATE NONCLUSTERED INDEX IX_Si_Timesheet_Approval_WeekDate 
+        ON Silver.Si_Timesheet_Approval([Week_Date]) 
+        INCLUDE ([Resource_Code], [Timesheet_Date])
+    
+    -- Columnstore Index for Analytical Queries
+    CREATE NONCLUSTERED COLUMNSTORE INDEX NCCI_Si_Timesheet_Approval_Analytics 
+        ON Silver.Si_Timesheet_Approval(
+            [Resource_Code], [Timesheet_Date], [Week_Date], [Approved_Standard_Hours],
+            [Approved_Overtime_Hours], [Total_Approved_Hours], [Billing_Indicator]
+        )
 END
 
 /*
 ================================================================================
-TABLE 7: Silver.si_Workflow_Task
+TABLE 5: Silver.Si_Date
 ================================================================================
-Description: Curated workflow task data representing workflow or approval tasks
-             related to resources and timesheet processes.
-Source: Bronze.bz_SchTask
+Description: Standardized date dimension providing calendar and working day context 
+             for time-based calculations, including weekends and holidays.
+             Derived from Bronze.bz_DimDate
+
+Partitioning Strategy: None (Dimension table - small size)
 Indexing Strategy:
-- Clustered Index: Workflow_Task_ID (surrogate key)
-- Nonclustered Index: Resource_Code, Status
-- Nonclustered Index: Date_Created, Status
+  - Clustered index on Date_ID
+  - Nonclustered indexes on Calendar_Date, Year, Month
 ================================================================================
 */
 
-IF OBJECT_ID('Silver.si_Workflow_Task', 'U') IS NULL
+IF OBJECT_ID('Silver.Si_Date', 'U') IS NULL
 BEGIN
-    CREATE TABLE Silver.si_Workflow_Task (
-        -- Surrogate Key
-        Workflow_Task_ID BIGINT IDENTITY(1,1) NOT NULL,
+    CREATE TABLE Silver.Si_Date (
+        -- Primary Key (Added in Physical Model)
+        [Date_ID] INT NOT NULL,
         
-        -- Business Keys and Attributes
-        Candidate_Name VARCHAR(101) NULL,
-        Resource_Code VARCHAR(50) NULL,
-        Workflow_Task_Reference NUMERIC(18,0) NULL,
-        Type VARCHAR(50) NULL,
-        Tower VARCHAR(60) NULL,
-        Status VARCHAR(50) NULL,
-        Comments VARCHAR(8000) NULL,
-        Date_Created DATETIME NULL,
-        Date_Completed DATETIME NULL,
-        Initiator VARCHAR(50) NULL,
-        Initiator_Email VARCHAR(50) NULL,
-        Level_ID INT NULL,
-        Last_Level INT NULL,
-        Existing_Resource VARCHAR(3) NULL,
-        Legal_Entity VARCHAR(50) NULL,
+        -- Business Columns from Logical Model
+        [Calendar_Date] DATETIME NOT NULL,
+        [Day_Name] VARCHAR(9) NULL,
+        [Day_Of_Month] VARCHAR(2) NULL,
+        [Week_Of_Year] VARCHAR(2) NULL,
+        [Month_Name] VARCHAR(9) NULL,
+        [Month_Number] VARCHAR(2) NULL,
+        [Quarter] CHAR(1) NULL,
+        [Quarter_Name] VARCHAR(9) NULL,
+        [Year] CHAR(4) NULL,
+        [Is_Working_Day] BIT NULL DEFAULT 1,
+        [Is_Weekend] BIT NULL DEFAULT 0,
+        [Month_Year] CHAR(10) NULL,
+        [YYMM] VARCHAR(10) NULL,
+        
+        -- Additional columns from Bronze layer
+        [Year_Name] CHAR(7) NULL,
+        [MMYYYY] CHAR(6) NULL,
+        [Days_In_Month] INT NULL,
+        [Month_Of_Quarter] VARCHAR(2) NULL,
         
         -- Metadata Columns
-        load_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        update_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        source_system VARCHAR(100) NULL,
-        data_quality_score DECIMAL(5,2) NULL,
-        validation_status VARCHAR(50) NULL,
+        [load_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [update_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [source_system] VARCHAR(100) NULL DEFAULT 'Bronze Layer',
         
         -- Primary Key Constraint
-        CONSTRAINT PK_si_Workflow_Task PRIMARY KEY CLUSTERED (Workflow_Task_ID)
+        CONSTRAINT PK_Si_Date PRIMARY KEY CLUSTERED ([Date_ID] ASC)
     )
     
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Workflow_Task_ResourceStatus 
-        ON Silver.si_Workflow_Task(Resource_Code, Status) 
-        INCLUDE (Date_Created, Type)
+    -- Unique Index on Calendar_Date
+    CREATE UNIQUE NONCLUSTERED INDEX UX_Si_Date_CalendarDate 
+        ON Silver.Si_Date([Calendar_Date])
     
-    CREATE NONCLUSTERED INDEX IX_si_Workflow_Task_DateStatus 
-        ON Silver.si_Workflow_Task(Date_Created, Status) 
-        INCLUDE (Resource_Code, Workflow_Task_Reference)
+    -- Nonclustered Indexes for Query Performance
+    CREATE NONCLUSTERED INDEX IX_Si_Date_Year 
+        ON Silver.Si_Date([Year]) 
+        INCLUDE ([Calendar_Date], [Month_Number])
+    
+    CREATE NONCLUSTERED INDEX IX_Si_Date_YearMonth 
+        ON Silver.Si_Date([Year], [Month_Number]) 
+        INCLUDE ([Calendar_Date])
+    
+    CREATE NONCLUSTERED INDEX IX_Si_Date_WorkingDay 
+        ON Silver.Si_Date([Is_Working_Day]) 
+        INCLUDE ([Calendar_Date], [Year], [Month_Number])
 END
 
 /*
 ================================================================================
-TABLE 8: Silver.si_Resource_Metrics
+TABLE 6: Silver.Si_Holiday
 ================================================================================
-Description: Curated resource metrics table containing calculated KPIs and
-             performance indicators for each resource by time period.
-Source: Calculated from multiple Bronze tables through aggregations
+Description: Standardized holiday information storing holiday dates by location, 
+             used to exclude non-working days in hour calculations.
+             Derived from Bronze.bz_holidays, bz_holidays_Mexico, bz_holidays_Canada, 
+             bz_holidays_India
+
+Partitioning Strategy: None (Small dimension table)
 Indexing Strategy:
-- Clustered Index: Resource_Metrics_ID (surrogate key)
-- Nonclustered Index: Resource_Code, Period_Year_Month
-- Nonclustered Index: Period_Year_Month
-- Columnstore Index: For analytical queries on metrics
-Partitioning: Partition by Period_Year_Month
+  - Clustered index on Holiday_ID
+  - Nonclustered indexes on Holiday_Date, Location
 ================================================================================
 */
 
-IF OBJECT_ID('Silver.si_Resource_Metrics', 'U') IS NULL
+IF OBJECT_ID('Silver.Si_Holiday', 'U') IS NULL
 BEGIN
-    CREATE TABLE Silver.si_Resource_Metrics (
-        -- Surrogate Key
-        Resource_Metrics_ID BIGINT IDENTITY(1,1) NOT NULL,
+    CREATE TABLE Silver.Si_Holiday (
+        -- Primary Key (Added in Physical Model)
+        [Holiday_ID] INT IDENTITY(1,1) NOT NULL,
         
-        -- Business Keys and Attributes
-        Resource_Code VARCHAR(50) NULL,
-        Period_Year_Month INT NULL,
-        Total_Hours FLOAT NULL,
-        Submitted_Hours FLOAT NULL,
-        Approved_Hours FLOAT NULL,
-        Total_FTE DECIMAL(10,4) NULL,
-        Billed_FTE DECIMAL(10,4) NULL,
-        Project_Utilization DECIMAL(10,4) NULL,
-        Available_Hours FLOAT NULL,
-        Actual_Hours FLOAT NULL,
-        Onsite_Hours FLOAT NULL,
-        Offshore_Hours FLOAT NULL,
-        Working_Days INT NULL,
-        Location_Hours_Per_Day INT NULL,
-        Billable_Hours FLOAT NULL,
-        Non_Billable_Hours FLOAT NULL,
+        -- Business Columns from Logical Model
+        [Holiday_Date] DATETIME NOT NULL,
+        [Description] VARCHAR(100) NULL,
+        [Location] VARCHAR(50) NULL,
+        [Source_Type] VARCHAR(50) NULL,
+        
+        -- Additional columns
+        [Country] VARCHAR(50) NULL,
+        [Is_Observed] BIT NULL DEFAULT 1,
+        [Holiday_Type] VARCHAR(50) NULL,
         
         -- Metadata Columns
-        load_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        update_timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        source_system VARCHAR(100) NULL,
-        data_quality_score DECIMAL(5,2) NULL,
-        validation_status VARCHAR(50) NULL,
+        [load_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [update_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [source_system] VARCHAR(100) NULL DEFAULT 'Bronze Layer',
         
         -- Primary Key Constraint
-        CONSTRAINT PK_si_Resource_Metrics PRIMARY KEY CLUSTERED (Resource_Metrics_ID)
+        CONSTRAINT PK_Si_Holiday PRIMARY KEY CLUSTERED ([Holiday_ID] ASC)
     )
     
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Resource_Metrics_ResourcePeriod 
-        ON Silver.si_Resource_Metrics(Resource_Code, Period_Year_Month) 
-        INCLUDE (Total_FTE, Billed_FTE, Project_Utilization)
+    -- Nonclustered Indexes for Query Performance
+    CREATE NONCLUSTERED INDEX IX_Si_Holiday_Date 
+        ON Silver.Si_Holiday([Holiday_Date]) 
+        INCLUDE ([Location], [Description])
     
-    CREATE NONCLUSTERED INDEX IX_si_Resource_Metrics_Period 
-        ON Silver.si_Resource_Metrics(Period_Year_Month) 
-        INCLUDE (Resource_Code, Total_FTE, Billed_FTE)
+    CREATE NONCLUSTERED INDEX IX_Si_Holiday_Location 
+        ON Silver.Si_Holiday([Location]) 
+        INCLUDE ([Holiday_Date], [Description])
+    
+    -- Composite Index for Date and Location Queries
+    CREATE NONCLUSTERED INDEX IX_Si_Holiday_DateLocation 
+        ON Silver.Si_Holiday([Holiday_Date], [Location]) 
+        INCLUDE ([Description])
 END
 
 /*
 ================================================================================
-ERROR DATA TABLE: Silver.si_Data_Quality_Error
+TABLE 7: Silver.Si_Workflow_Task
 ================================================================================
-Description: Silver layer error tracking table capturing all data quality
-             validation failures, constraint violations, and business rule exceptions.
+Description: Standardized workflow task information representing workflow or approval 
+             tasks related to resources and timesheet processes.
+             Derived from Bronze.bz_SchTask
+
+Partitioning Strategy: None (Operational table - moderate size)
 Indexing Strategy:
-- Clustered Index: Error_Record_ID (surrogate key)
-- Nonclustered Index: Target_Table, Error_Timestamp
-- Nonclustered Index: Error_Severity, Is_Resolved
-- Nonclustered Index: Processing_Batch_ID
+  - Clustered index on Workflow_Task_ID
+  - Nonclustered indexes on Resource_Code, Status, Date_Created
 ================================================================================
 */
 
-IF OBJECT_ID('Silver.si_Data_Quality_Error', 'U') IS NULL
+IF OBJECT_ID('Silver.Si_Workflow_Task', 'U') IS NULL
 BEGIN
-    CREATE TABLE Silver.si_Data_Quality_Error (
-        -- Surrogate Key
-        Error_Record_ID BIGINT IDENTITY(1,1) NOT NULL,
+    CREATE TABLE Silver.Si_Workflow_Task (
+        -- Primary Key (Added in Physical Model)
+        [Workflow_Task_ID] BIGINT IDENTITY(1,1) NOT NULL,
+        
+        -- Business Columns from Logical Model
+        [Candidate_Name] VARCHAR(100) NULL,
+        [Resource_Code] VARCHAR(50) NULL,
+        [Workflow_Task_Reference] NUMERIC(18,0) NULL,
+        [Type] VARCHAR(50) NULL,
+        [Tower] VARCHAR(60) NULL,
+        [Status] VARCHAR(50) NULL,
+        [Comments] VARCHAR(8000) NULL,
+        [Date_Created] DATETIME NULL,
+        [Date_Completed] DATETIME NULL,
+        [Process_Name] VARCHAR(100) NULL,
+        [Level_ID] INT NULL,
+        [Last_Level] INT NULL,
+        
+        -- Additional columns from Bronze layer
+        [SSN] VARCHAR(50) NULL,
+        [First_Name] VARCHAR(50) NULL,
+        [Last_Name] VARCHAR(50) NULL,
+        [Initiator] VARCHAR(50) NULL,
+        [Initiator_Email] VARCHAR(50) NULL,
+        [Track_ID] VARCHAR(50) NULL,
+        [Existing_Resource] VARCHAR(3) NULL,
+        [Term_ID] NUMERIC(18,0) NULL,
+        [Legal_Entity] VARCHAR(50) NULL,
+        
+        -- Calculated columns
+        [Processing_Duration_Days] AS (DATEDIFF(DAY, [Date_Created], ISNULL([Date_Completed], GETDATE()))) PERSISTED,
+        [Is_Completed] AS (CASE WHEN [Date_Completed] IS NOT NULL THEN 1 ELSE 0 END) PERSISTED,
+        
+        -- Metadata Columns
+        [load_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [update_timestamp] DATETIME2 NOT NULL DEFAULT GETDATE(),
+        [source_system] VARCHAR(100) NULL DEFAULT 'Bronze Layer',
+        [data_quality_score] DECIMAL(5,2) NULL,
+        
+        -- Primary Key Constraint
+        CONSTRAINT PK_Si_Workflow_Task PRIMARY KEY CLUSTERED ([Workflow_Task_ID] ASC)
+    )
+    
+    -- Nonclustered Indexes for Query Performance
+    CREATE NONCLUSTERED INDEX IX_Si_Workflow_Task_ResourceCode 
+        ON Silver.Si_Workflow_Task([Resource_Code]) 
+        INCLUDE ([Status], [Date_Created], [Process_Name])
+    
+    CREATE NONCLUSTERED INDEX IX_Si_Workflow_Task_Status 
+        ON Silver.Si_Workflow_Task([Status]) 
+        INCLUDE ([Resource_Code], [Date_Created])
+    
+    CREATE NONCLUSTERED INDEX IX_Si_Workflow_Task_DateCreated 
+        ON Silver.Si_Workflow_Task([Date_Created]) 
+        INCLUDE ([Resource_Code], [Status])
+    
+    CREATE NONCLUSTERED INDEX IX_Si_Workflow_Task_ProcessName 
+        ON Silver.Si_Workflow_Task([Process_Name]) 
+        INCLUDE ([Resource_Code], [Status], [Date_Created])
+END
+
+/*
+================================================================================
+ERROR DATA TABLE: Silver.Si_Data_Quality_Errors
+================================================================================
+Description: Standardized error data structure for storing data validation errors 
+             and data quality issues identified during Silver and Gold layer processing.
+
+Partitioning Strategy: Date-range partitioning on Error_Date (Monthly partitions)
+Indexing Strategy:
+  - Clustered index on Error_ID
+  - Nonclustered indexes on Source_Table, Target_Table, Error_Date, Severity_Level
+================================================================================
+*/
+
+IF OBJECT_ID('Silver.Si_Data_Quality_Errors', 'U') IS NULL
+BEGIN
+    CREATE TABLE Silver.Si_Data_Quality_Errors (
+        -- Primary Key
+        [Error_ID] BIGINT IDENTITY(1,1) NOT NULL,
         
         -- Error Details
-        Source_Table VARCHAR(200) NULL,
-        Target_Table VARCHAR(200) NULL,
-        Record_Identifier VARCHAR(500) NULL,
-        Error_Type VARCHAR(100) NULL,
-        Error_Category VARCHAR(100) NULL,
-        Error_Severity VARCHAR(50) NULL,
-        Error_Code VARCHAR(50) NULL,
-        Error_Description VARCHAR(MAX) NULL,
-        Column_Name VARCHAR(200) NULL,
-        Expected_Value VARCHAR(500) NULL,
-        Actual_Value VARCHAR(500) NULL,
-        Validation_Rule VARCHAR(500) NULL,
-        Business_Rule VARCHAR(500) NULL,
-        Error_Timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        Processing_Batch_ID VARCHAR(100) NULL,
+        [Source_Table] VARCHAR(200) NULL,
+        [Target_Table] VARCHAR(200) NULL,
+        [Record_Identifier] VARCHAR(500) NULL,
+        [Error_Type] VARCHAR(100) NULL,
+        [Error_Category] VARCHAR(100) NULL,
+        [Error_Description] VARCHAR(1000) NULL,
+        [Field_Name] VARCHAR(200) NULL,
+        [Field_Value] VARCHAR(500) NULL,
+        [Expected_Value] VARCHAR(500) NULL,
+        [Business_Rule] VARCHAR(500) NULL,
+        [Severity_Level] VARCHAR(50) NULL,
+        [Error_Date] DATETIME NOT NULL DEFAULT GETDATE(),
+        [Batch_ID] VARCHAR(100) NULL,
+        [Processing_Stage] VARCHAR(100) NULL,
+        [Resolution_Status] VARCHAR(50) NULL DEFAULT 'Open',
+        [Resolution_Notes] VARCHAR(1000) NULL,
+        [Created_By] VARCHAR(100) NULL DEFAULT SYSTEM_USER,
+        [Created_Date] DATETIME NOT NULL DEFAULT GETDATE(),
+        [Modified_Date] DATETIME NULL,
         
-        -- Resolution Details
-        Is_Resolved BIT NULL DEFAULT 0,
-        Resolution_Date DATETIME NULL,
-        Resolution_Action VARCHAR(500) NULL,
-        Resolved_By VARCHAR(100) NULL,
-        
-        -- Error Statistics
-        Error_Count INT NULL DEFAULT 1,
-        First_Occurrence DATETIME NULL,
-        Last_Occurrence DATETIME NULL,
-        Impact_Assessment VARCHAR(500) NULL,
-        Remediation_Notes VARCHAR(MAX) NULL,
-        
-        -- Metadata
-        Created_Date DATETIME2 NOT NULL DEFAULT GETDATE(),
-        Modified_Date DATETIME2 NULL,
+        -- Additional tracking columns
+        [Error_Count] INT NULL DEFAULT 1,
+        [First_Occurrence] DATETIME NULL,
+        [Last_Occurrence] DATETIME NULL,
+        [Assigned_To] VARCHAR(100) NULL,
+        [Resolution_Date] DATETIME NULL,
+        [Impact_Assessment] VARCHAR(500) NULL,
         
         -- Primary Key Constraint
-        CONSTRAINT PK_si_Data_Quality_Error PRIMARY KEY CLUSTERED (Error_Record_ID)
+        CONSTRAINT PK_Si_Data_Quality_Errors PRIMARY KEY CLUSTERED ([Error_ID] ASC)
     )
     
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Data_Quality_Error_TableTimestamp 
-        ON Silver.si_Data_Quality_Error(Target_Table, Error_Timestamp) 
-        INCLUDE (Error_Type, Error_Severity, Is_Resolved)
+    -- Nonclustered Indexes for Query Performance
+    CREATE NONCLUSTERED INDEX IX_Si_DQ_Errors_SourceTable 
+        ON Silver.Si_Data_Quality_Errors([Source_Table]) 
+        INCLUDE ([Error_Date], [Severity_Level], [Resolution_Status])
     
-    CREATE NONCLUSTERED INDEX IX_si_Data_Quality_Error_SeverityResolved 
-        ON Silver.si_Data_Quality_Error(Error_Severity, Is_Resolved) 
-        INCLUDE (Target_Table, Error_Timestamp)
+    CREATE NONCLUSTERED INDEX IX_Si_DQ_Errors_TargetTable 
+        ON Silver.Si_Data_Quality_Errors([Target_Table]) 
+        INCLUDE ([Error_Date], [Severity_Level], [Resolution_Status])
     
-    CREATE NONCLUSTERED INDEX IX_si_Data_Quality_Error_BatchID 
-        ON Silver.si_Data_Quality_Error(Processing_Batch_ID) 
-        INCLUDE (Target_Table, Error_Type, Error_Severity)
+    CREATE NONCLUSTERED INDEX IX_Si_DQ_Errors_ErrorDate 
+        ON Silver.Si_Data_Quality_Errors([Error_Date]) 
+        INCLUDE ([Source_Table], [Severity_Level])
+    
+    CREATE NONCLUSTERED INDEX IX_Si_DQ_Errors_SeverityLevel 
+        ON Silver.Si_Data_Quality_Errors([Severity_Level]) 
+        INCLUDE ([Error_Date], [Resolution_Status])
+    
+    CREATE NONCLUSTERED INDEX IX_Si_DQ_Errors_ResolutionStatus 
+        ON Silver.Si_Data_Quality_Errors([Resolution_Status]) 
+        INCLUDE ([Error_Date], [Severity_Level])
+    
+    CREATE NONCLUSTERED INDEX IX_Si_DQ_Errors_BatchID 
+        ON Silver.Si_Data_Quality_Errors([Batch_ID]) 
+        INCLUDE ([Error_Date], [Source_Table])
 END
 
 /*
 ================================================================================
-DATA QUALITY METRICS TABLE: Silver.si_Data_Quality_Metrics
+AUDIT TABLE: Silver.Si_Pipeline_Audit
 ================================================================================
-Description: Silver layer data quality metrics table tracking quality scores,
-             validation results, and data profiling statistics.
+Description: Standardized audit structure for tracking pipeline execution details, 
+             data lineage, and processing metrics for Silver and Gold layers.
+
+Partitioning Strategy: Date-range partitioning on Start_Time (Monthly partitions)
 Indexing Strategy:
-- Clustered Index: Metric_ID (surrogate key)
-- Nonclustered Index: Table_Name, Measurement_Date
-- Nonclustered Index: Metric_Type, Status
+  - Clustered index on Audit_ID
+  - Nonclustered indexes on Pipeline_Name, Start_Time, Status
 ================================================================================
 */
 
-IF OBJECT_ID('Silver.si_Data_Quality_Metrics', 'U') IS NULL
+IF OBJECT_ID('Silver.Si_Pipeline_Audit', 'U') IS NULL
 BEGIN
-    CREATE TABLE Silver.si_Data_Quality_Metrics (
-        -- Surrogate Key
-        Metric_ID BIGINT IDENTITY(1,1) NOT NULL,
+    CREATE TABLE Silver.Si_Pipeline_Audit (
+        -- Primary Key
+        [Audit_ID] BIGINT IDENTITY(1,1) NOT NULL,
         
-        -- Metric Details
-        Table_Name VARCHAR(200) NULL,
-        Column_Name VARCHAR(200) NULL,
-        Metric_Type VARCHAR(100) NULL,
-        Metric_Name VARCHAR(200) NULL,
-        Metric_Value DECIMAL(18,6) NULL,
-        Metric_Unit VARCHAR(50) NULL,
-        Threshold_Value DECIMAL(18,6) NULL,
-        Status VARCHAR(50) NULL,
+        -- Pipeline Identification
+        [Pipeline_Name] VARCHAR(200) NOT NULL,
+        [Pipeline_Run_ID] VARCHAR(100) NOT NULL,
+        [Source_System] VARCHAR(100) NULL,
+        [Source_Table] VARCHAR(200) NULL,
+        [Target_Table] VARCHAR(200) NULL,
+        [Processing_Type] VARCHAR(50) NULL,
         
-        -- Statistics
-        Total_Records BIGINT NULL,
-        Valid_Records BIGINT NULL,
-        Invalid_Records BIGINT NULL,
-        Null_Count BIGINT NULL,
-        Distinct_Count BIGINT NULL,
-        Duplicate_Count BIGINT NULL,
-        Min_Value VARCHAR(500) NULL,
-        Max_Value VARCHAR(500) NULL,
-        Avg_Value DECIMAL(18,6) NULL,
-        
-        -- Measurement Details
-        Measurement_Date DATETIME2 NOT NULL DEFAULT GETDATE(),
-        Processing_Batch_ID VARCHAR(100) NULL,
-        Data_Quality_Score DECIMAL(5,2) NULL,
-        Trend VARCHAR(50) NULL,
-        Previous_Score DECIMAL(5,2) NULL,
-        Score_Change DECIMAL(5,2) NULL,
-        Comments VARCHAR(MAX) NULL,
-        
-        -- Metadata
-        Created_Date DATETIME2 NOT NULL DEFAULT GETDATE(),
-        Modified_Date DATETIME2 NULL,
-        
-        -- Primary Key Constraint
-        CONSTRAINT PK_si_Data_Quality_Metrics PRIMARY KEY CLUSTERED (Metric_ID)
-    )
-    
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Data_Quality_Metrics_TableDate 
-        ON Silver.si_Data_Quality_Metrics(Table_Name, Measurement_Date) 
-        INCLUDE (Metric_Type, Data_Quality_Score, Status)
-    
-    CREATE NONCLUSTERED INDEX IX_si_Data_Quality_Metrics_TypeStatus 
-        ON Silver.si_Data_Quality_Metrics(Metric_Type, Status) 
-        INCLUDE (Table_Name, Measurement_Date, Data_Quality_Score)
-END
-
-/*
-================================================================================
-VALIDATION RULES TABLE: Silver.si_Data_Validation_Rules
-================================================================================
-Description: Silver layer validation rules repository defining all validation
-             rules, business rules, and constraints.
-Indexing Strategy:
-- Clustered Index: Rule_ID (surrogate key)
-- Nonclustered Index: Target_Table, Is_Active
-- Nonclustered Index: Rule_Type, Is_Active
-================================================================================
-*/
-
-IF OBJECT_ID('Silver.si_Data_Validation_Rules', 'U') IS NULL
-BEGIN
-    CREATE TABLE Silver.si_Data_Validation_Rules (
-        -- Surrogate Key
-        Rule_ID INT IDENTITY(1,1) NOT NULL,
-        
-        -- Rule Definition
-        Rule_Name VARCHAR(200) NULL,
-        Rule_Type VARCHAR(100) NULL,
-        Rule_Category VARCHAR(100) NULL,
-        Target_Table VARCHAR(200) NULL,
-        Target_Column VARCHAR(200) NULL,
-        Rule_Description VARCHAR(MAX) NULL,
-        Rule_Expression VARCHAR(MAX) NULL,
-        Error_Message VARCHAR(500) NULL,
-        Error_Code VARCHAR(50) NULL,
-        Severity VARCHAR(50) NULL,
-        
-        -- Rule Configuration
-        Is_Active BIT NULL DEFAULT 1,
-        Threshold_Value VARCHAR(200) NULL,
-        Action_On_Failure VARCHAR(100) NULL,
-        Business_Owner VARCHAR(100) NULL,
-        Technical_Owner VARCHAR(100) NULL,
-        Effective_Date DATETIME NULL,
-        Expiration_Date DATETIME NULL,
-        Rule_Priority INT NULL,
-        Execution_Frequency VARCHAR(50) NULL,
-        
-        -- Execution Statistics
-        Last_Execution_Date DATETIME NULL,
-        Execution_Count INT NULL DEFAULT 0,
-        Failure_Count INT NULL DEFAULT 0,
-        Success_Rate DECIMAL(5,2) NULL,
-        
-        -- Metadata
-        Created_By VARCHAR(100) NULL,
-        Created_Date DATETIME2 NOT NULL DEFAULT GETDATE(),
-        Modified_By VARCHAR(100) NULL,
-        Modified_Date DATETIME2 NULL,
-        Comments VARCHAR(MAX) NULL,
-        
-        -- Primary Key Constraint
-        CONSTRAINT PK_si_Data_Validation_Rules PRIMARY KEY CLUSTERED (Rule_ID)
-    )
-    
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Data_Validation_Rules_TableActive 
-        ON Silver.si_Data_Validation_Rules(Target_Table, Is_Active) 
-        INCLUDE (Rule_Name, Rule_Type, Severity)
-    
-    CREATE NONCLUSTERED INDEX IX_si_Data_Validation_Rules_TypeActive 
-        ON Silver.si_Data_Validation_Rules(Rule_Type, Is_Active) 
-        INCLUDE (Target_Table, Rule_Name, Severity)
-END
-
-/*
-================================================================================
-AUDIT TABLE: Silver.si_Pipeline_Execution_Audit
-================================================================================
-Description: Silver layer pipeline execution audit table tracking all ETL pipeline
-             runs, data loads, transformations, and processing activities.
-Indexing Strategy:
-- Clustered Index: Execution_ID (surrogate key)
-- Nonclustered Index: Pipeline_Name, Start_Timestamp
-- Nonclustered Index: Execution_Status, Start_Timestamp
-- Nonclustered Index: Target_Table, Start_Timestamp
-================================================================================
-*/
-
-IF OBJECT_ID('Silver.si_Pipeline_Execution_Audit', 'U') IS NULL
-BEGIN
-    CREATE TABLE Silver.si_Pipeline_Execution_Audit (
-        -- Surrogate Key
-        Execution_ID BIGINT IDENTITY(1,1) NOT NULL,
-        
-        -- Pipeline Details
-        Pipeline_Name VARCHAR(200) NULL,
-        Pipeline_Type VARCHAR(100) NULL,
-        Source_System VARCHAR(100) NULL,
-        Source_Table VARCHAR(200) NULL,
-        Target_Table VARCHAR(200) NULL,
-        
-        -- Execution Status
-        Execution_Status VARCHAR(50) NULL,
-        Start_Timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        End_Timestamp DATETIME2 NULL,
-        Duration_Seconds DECIMAL(10,2) NULL,
+        -- Execution Timing
+        [Start_Time] DATETIME NOT NULL DEFAULT GETDATE(),
+        [End_Time] DATETIME NULL,
+        [Duration_Seconds] DECIMAL(10,2) NULL,
+        [Status] VARCHAR(50) NULL DEFAULT 'Running',
         
         -- Record Counts
-        Records_Read BIGINT NULL,
-        Records_Processed BIGINT NULL,
-        Records_Inserted BIGINT NULL,
-        Records_Updated BIGINT NULL,
-        Records_Deleted BIGINT NULL,
-        Records_Rejected BIGINT NULL,
-        Records_Quarantined BIGINT NULL,
-        Data_Volume_MB DECIMAL(18,2) NULL,
+        [Records_Read] BIGINT NULL DEFAULT 0,
+        [Records_Processed] BIGINT NULL DEFAULT 0,
+        [Records_Inserted] BIGINT NULL DEFAULT 0,
+        [Records_Updated] BIGINT NULL DEFAULT 0,
+        [Records_Deleted] BIGINT NULL DEFAULT 0,
+        [Records_Rejected] BIGINT NULL DEFAULT 0,
         
-        -- Error Details
-        Error_Count INT NULL DEFAULT 0,
-        Warning_Count INT NULL DEFAULT 0,
-        Error_Message VARCHAR(MAX) NULL,
-        Error_Stack_Trace VARCHAR(MAX) NULL,
+        -- Data Quality Metrics
+        [Data_Quality_Score] DECIMAL(5,2) NULL,
+        [Transformation_Rules_Applied] VARCHAR(1000) NULL,
+        [Business_Rules_Applied] VARCHAR(1000) NULL,
+        [Error_Count] INT NULL DEFAULT 0,
+        [Warning_Count] INT NULL DEFAULT 0,
+        [Error_Message] VARCHAR(MAX) NULL,
         
-        -- Execution Context
-        Execution_Server VARCHAR(100) NULL,
-        Executed_By VARCHAR(100) NULL,
-        Execution_Mode VARCHAR(50) NULL,
-        Batch_ID VARCHAR(100) NULL,
-        Parent_Execution_ID BIGINT NULL,
-        Retry_Count INT NULL DEFAULT 0,
-        Max_Retries INT NULL,
-        
-        -- Data Quality
-        Data_Quality_Score DECIMAL(5,2) NULL,
-        Validation_Failures INT NULL DEFAULT 0,
-        Business_Rule_Failures INT NULL DEFAULT 0,
-        
-        -- Incremental Load Details
-        Checkpoint_ID VARCHAR(100) NULL,
-        Watermark_Value VARCHAR(200) NULL,
-        Configuration_Version VARCHAR(50) NULL,
-        Transformation_Rules_Applied VARCHAR(MAX) NULL,
-        Data_Lineage_ID VARCHAR(100) NULL,
-        
-        -- SLA Tracking
-        SLA_Target_Minutes INT NULL,
-        SLA_Status VARCHAR(50) NULL,
-        
-        -- Performance Metrics
-        Performance_Metrics VARCHAR(MAX) NULL,
-        Resource_Utilization VARCHAR(MAX) NULL,
-        
-        -- Notification Details
-        Notification_Sent BIT NULL DEFAULT 0,
-        Notification_Recipients VARCHAR(500) NULL,
-        Comments VARCHAR(MAX) NULL,
+        -- Processing Details
+        [Checkpoint_Data] VARCHAR(MAX) NULL,
+        [Resource_Utilization] VARCHAR(500) NULL,
+        [Data_Lineage] VARCHAR(1000) NULL,
+        [Executed_By] VARCHAR(100) NULL DEFAULT SYSTEM_USER,
+        [Environment] VARCHAR(50) NULL,
+        [Version] VARCHAR(50) NULL,
+        [Configuration] VARCHAR(MAX) NULL,
         
         -- Metadata
-        Created_Date DATETIME2 NOT NULL DEFAULT GETDATE(),
-        Modified_Date DATETIME2 NULL,
+        [Created_Date] DATETIME NOT NULL DEFAULT GETDATE(),
+        [Modified_Date] DATETIME NULL,
+        
+        -- Additional tracking columns
+        [Parent_Pipeline_Run_ID] VARCHAR(100) NULL,
+        [Retry_Count] INT NULL DEFAULT 0,
+        [Is_Reprocessing] BIT NULL DEFAULT 0,
+        [Data_Volume_MB] DECIMAL(18,2) NULL,
+        [Peak_Memory_Usage_MB] DECIMAL(18,2) NULL,
+        [CPU_Time_Seconds] DECIMAL(10,2) NULL,
         
         -- Primary Key Constraint
-        CONSTRAINT PK_si_Pipeline_Execution_Audit PRIMARY KEY CLUSTERED (Execution_ID)
+        CONSTRAINT PK_Si_Pipeline_Audit PRIMARY KEY CLUSTERED ([Audit_ID] ASC)
     )
     
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Pipeline_Execution_Audit_PipelineTime 
-        ON Silver.si_Pipeline_Execution_Audit(Pipeline_Name, Start_Timestamp DESC) 
-        INCLUDE (Execution_Status, Duration_Seconds, Records_Processed)
+    -- Nonclustered Indexes for Query Performance
+    CREATE NONCLUSTERED INDEX IX_Si_Pipeline_Audit_PipelineName 
+        ON Silver.Si_Pipeline_Audit([Pipeline_Name]) 
+        INCLUDE ([Start_Time], [Status], [Duration_Seconds])
     
-    CREATE NONCLUSTERED INDEX IX_si_Pipeline_Execution_Audit_StatusTime 
-        ON Silver.si_Pipeline_Execution_Audit(Execution_Status, Start_Timestamp DESC) 
-        INCLUDE (Pipeline_Name, Target_Table, Error_Count)
+    CREATE NONCLUSTERED INDEX IX_Si_Pipeline_Audit_StartTime 
+        ON Silver.Si_Pipeline_Audit([Start_Time]) 
+        INCLUDE ([Pipeline_Name], [Status])
     
-    CREATE NONCLUSTERED INDEX IX_si_Pipeline_Execution_Audit_TargetTime 
-        ON Silver.si_Pipeline_Execution_Audit(Target_Table, Start_Timestamp DESC) 
-        INCLUDE (Pipeline_Name, Execution_Status, Records_Processed)
-END
-
-/*
-================================================================================
-DATA LINEAGE TABLE: Silver.si_Data_Lineage
-================================================================================
-Description: Silver layer data lineage table tracking the flow of data from
-             source to target, including all transformations and dependencies.
-Indexing Strategy:
-- Clustered Index: Lineage_ID (surrogate key)
-- Nonclustered Index: Source_Table, Target_Table
-- Nonclustered Index: Target_Table, Is_Active
-================================================================================
-*/
-
-IF OBJECT_ID('Silver.si_Data_Lineage', 'U') IS NULL
-BEGIN
-    CREATE TABLE Silver.si_Data_Lineage (
-        -- Surrogate Key
-        Lineage_ID BIGINT IDENTITY(1,1) NOT NULL,
-        
-        -- Source Details
-        Source_System VARCHAR(100) NULL,
-        Source_Database VARCHAR(100) NULL,
-        Source_Schema VARCHAR(100) NULL,
-        Source_Table VARCHAR(200) NULL,
-        Source_Column VARCHAR(200) NULL,
-        
-        -- Target Details
-        Target_System VARCHAR(100) NULL,
-        Target_Database VARCHAR(100) NULL,
-        Target_Schema VARCHAR(100) NULL,
-        Target_Table VARCHAR(200) NULL,
-        Target_Column VARCHAR(200) NULL,
-        
-        -- Transformation Details
-        Transformation_Type VARCHAR(100) NULL,
-        Transformation_Logic VARCHAR(MAX) NULL,
-        Transformation_Rule_ID INT NULL,
-        Data_Flow_Direction VARCHAR(50) NULL,
-        Dependency_Type VARCHAR(100) NULL,
-        Dependency_Level INT NULL,
-        
-        -- Lineage Configuration
-        Is_Active BIT NULL DEFAULT 1,
-        Effective_Date DATETIME NULL,
-        End_Date DATETIME NULL,
-        Pipeline_Name VARCHAR(200) NULL,
-        Execution_Frequency VARCHAR(50) NULL,
-        Last_Execution_Date DATETIME NULL,
-        Data_Quality_Impact VARCHAR(100) NULL,
-        
-        -- Ownership
-        Business_Owner VARCHAR(100) NULL,
-        Technical_Owner VARCHAR(100) NULL,
-        Documentation_URL VARCHAR(500) NULL,
-        
-        -- Metadata
-        Created_By VARCHAR(100) NULL,
-        Created_Date DATETIME2 NOT NULL DEFAULT GETDATE(),
-        Modified_By VARCHAR(100) NULL,
-        Modified_Date DATETIME2 NULL,
-        Comments VARCHAR(MAX) NULL,
-        
-        -- Primary Key Constraint
-        CONSTRAINT PK_si_Data_Lineage PRIMARY KEY CLUSTERED (Lineage_ID)
-    )
+    CREATE NONCLUSTERED INDEX IX_Si_Pipeline_Audit_Status 
+        ON Silver.Si_Pipeline_Audit([Status]) 
+        INCLUDE ([Pipeline_Name], [Start_Time])
     
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Data_Lineage_SourceTarget 
-        ON Silver.si_Data_Lineage(Source_Table, Target_Table) 
-        INCLUDE (Transformation_Type, Is_Active)
+    CREATE NONCLUSTERED INDEX IX_Si_Pipeline_Audit_RunID 
+        ON Silver.Si_Pipeline_Audit([Pipeline_Run_ID]) 
+        INCLUDE ([Pipeline_Name], [Start_Time], [Status])
     
-    CREATE NONCLUSTERED INDEX IX_si_Data_Lineage_TargetActive 
-        ON Silver.si_Data_Lineage(Target_Table, Is_Active) 
-        INCLUDE (Source_Table, Transformation_Type)
-END
-
-/*
-================================================================================
-CHECKPOINT TABLE: Silver.si_Processing_Checkpoint
-================================================================================
-Description: Silver layer checkpoint table storing processing state and watermarks
-             for incremental data loads.
-Indexing Strategy:
-- Clustered Index: Checkpoint_ID (surrogate key)
-- Nonclustered Index: Pipeline_Name, Target_Table
-- Nonclustered Index: Checkpoint_Status, Last_Processed_Timestamp
-================================================================================
-*/
-
-IF OBJECT_ID('Silver.si_Processing_Checkpoint', 'U') IS NULL
-BEGIN
-    CREATE TABLE Silver.si_Processing_Checkpoint (
-        -- Surrogate Key
-        Checkpoint_ID BIGINT IDENTITY(1,1) NOT NULL,
-        
-        -- Pipeline Details
-        Pipeline_Name VARCHAR(200) NULL,
-        Source_Table VARCHAR(200) NULL,
-        Target_Table VARCHAR(200) NULL,
-        
-        -- Checkpoint Details
-        Checkpoint_Type VARCHAR(100) NULL,
-        Watermark_Column VARCHAR(200) NULL,
-        Last_Watermark_Value VARCHAR(200) NULL,
-        Current_Watermark_Value VARCHAR(200) NULL,
-        Next_Watermark_Value VARCHAR(200) NULL,
-        Last_Processed_Timestamp DATETIME2 NULL,
-        Records_Processed_Since_Checkpoint BIGINT NULL,
-        
-        -- Checkpoint Status
-        Checkpoint_Status VARCHAR(50) NULL,
-        Checkpoint_Timestamp DATETIME2 NOT NULL DEFAULT GETDATE(),
-        Execution_ID BIGINT NULL,
-        Batch_ID VARCHAR(100) NULL,
-        Is_Committed BIT NULL DEFAULT 0,
-        Commit_Timestamp DATETIME2 NULL,
-        Rollback_Timestamp DATETIME2 NULL,
-        
-        -- Recovery Details
-        Retry_Count INT NULL DEFAULT 0,
-        Error_Message VARCHAR(MAX) NULL,
-        Recovery_Point VARCHAR(200) NULL,
-        State_Data VARCHAR(MAX) NULL,
-        
-        -- Metadata
-        Created_By VARCHAR(100) NULL,
-        Created_Date DATETIME2 NOT NULL DEFAULT GETDATE(),
-        Modified_Date DATETIME2 NULL,
-        Comments VARCHAR(MAX) NULL,
-        
-        -- Primary Key Constraint
-        CONSTRAINT PK_si_Processing_Checkpoint PRIMARY KEY CLUSTERED (Checkpoint_ID)
-    )
-    
-    -- Nonclustered Indexes
-    CREATE NONCLUSTERED INDEX IX_si_Processing_Checkpoint_PipelineTable 
-        ON Silver.si_Processing_Checkpoint(Pipeline_Name, Target_Table) 
-        INCLUDE (Checkpoint_Status, Last_Processed_Timestamp)
-    
-    CREATE NONCLUSTERED INDEX IX_si_Processing_Checkpoint_StatusTime 
-        ON Silver.si_Processing_Checkpoint(Checkpoint_Status, Last_Processed_Timestamp DESC) 
-        INCLUDE (Pipeline_Name, Target_Table)
+    CREATE NONCLUSTERED INDEX IX_Si_Pipeline_Audit_TargetTable 
+        ON Silver.Si_Pipeline_Audit([Target_Table]) 
+        INCLUDE ([Start_Time], [Status], [Records_Processed])
 END
 
 /*
 ================================================================================
 UPDATE DDL SCRIPTS
 ================================================================================
-Description: Scripts to update existing Silver layer tables with new columns
-             or modifications. Use these scripts when the model evolves.
+Description: Scripts for updating existing Silver layer tables with new columns 
+             or modifications without dropping and recreating tables.
 ================================================================================
 */
 
--- Example: Add new column to si_Resource table
--- IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Silver.si_Resource') AND name = 'New_Column_Name')
--- BEGIN
---     ALTER TABLE Silver.si_Resource ADD New_Column_Name VARCHAR(100) NULL
--- END
+-- Update Script 1: Add new column to Si_Resource if needed
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Silver.Si_Resource') AND name = 'data_quality_score')
+BEGIN
+    ALTER TABLE Silver.Si_Resource ADD [data_quality_score] DECIMAL(5,2) NULL
+END
 
--- Example: Add new index to si_Timesheet_Entry table
--- IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_si_Timesheet_Entry_NewIndex' AND object_id = OBJECT_ID('Silver.si_Timesheet_Entry'))
--- BEGIN
---     CREATE NONCLUSTERED INDEX IX_si_Timesheet_Entry_NewIndex 
---         ON Silver.si_Timesheet_Entry(Column_Name) 
---         INCLUDE (Other_Columns)
--- END
+-- Update Script 2: Add new column to Si_Project if needed
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Silver.Si_Project') AND name = 'data_quality_score')
+BEGIN
+    ALTER TABLE Silver.Si_Project ADD [data_quality_score] DECIMAL(5,2) NULL
+END
+
+-- Update Script 3: Add new column to Si_Timesheet_Entry if needed
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Silver.Si_Timesheet_Entry') AND name = 'is_validated')
+BEGIN
+    ALTER TABLE Silver.Si_Timesheet_Entry ADD [is_validated] BIT NOT NULL DEFAULT 0
+END
+
+-- Update Script 4: Add new column to Si_Workflow_Task if needed
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Silver.Si_Workflow_Task') AND name = 'data_quality_score')
+BEGIN
+    ALTER TABLE Silver.Si_Workflow_Task ADD [data_quality_score] DECIMAL(5,2) NULL
+END
 
 /*
 ================================================================================
 DATA RETENTION POLICIES
 ================================================================================
 
-SILVER LAYER RETENTION POLICIES:
+1. SILVER LAYER DATA RETENTION
+   - Active Data: 3 years in Silver layer
+   - Archive Data: Move to cold storage after 2 years
+   - Purge Data: Delete after 5 years (compliance requirement)
 
-1. TRANSACTIONAL TABLES (Timesheet_Entry, Timesheet_Approval):
-   - Retention Period: 7 years (84 months)
-   - Archiving Strategy: 
-     * Move data older than 5 years to archive tables
-     * Archive tables: si_Timesheet_Entry_Archive, si_Timesheet_Approval_Archive
-     * Implement partitioning by year for efficient archival
-   - Purge Strategy: Delete data older than 7 years after archival
+2. ARCHIVING STRATEGY
+   a) Timesheet Data (Si_Timesheet_Entry, Si_Timesheet_Approval):
+      - Archive records older than 2 years to archive tables
+      - Create monthly archive tables: Si_Timesheet_Entry_Archive_YYYYMM
+      - Maintain indexes on archive tables for query performance
+      - Implement partitioned views for seamless querying
+   
+   b) Resource Data (Si_Resource):
+      - Archive terminated resources after 3 years
+      - Maintain active resources indefinitely
+      - Create archive table: Si_Resource_Archive
+   
+   c) Project Data (Si_Project):
+      - Archive completed projects after 3 years
+      - Maintain active projects indefinitely
+      - Create archive table: Si_Project_Archive
+   
+   d) Workflow Data (Si_Workflow_Task):
+      - Archive completed workflows after 1 year
+      - Create archive table: Si_Workflow_Task_Archive
 
-2. MASTER DATA TABLES (Resource, Project, Date_Dimension, Holiday):
-   - Retention Period: Indefinite (maintain historical records)
-   - Archiving Strategy:
-     * Maintain all historical records for audit and compliance
-     * Implement soft deletes with Is_Active flag
-     * Archive inactive records older than 10 years to separate tables
-   - Purge Strategy: No automatic purge; manual review required
+3. AUDIT AND ERROR DATA RETENTION
+   - Si_Pipeline_Audit: Retain for 7 years (compliance)
+   - Si_Data_Quality_Errors: Retain for 7 years (compliance)
+   - Archive to cold storage after 3 years
 
-3. METRICS TABLES (Resource_Metrics):
-   - Retention Period: 5 years (60 months)
-   - Archiving Strategy:
-     * Move data older than 3 years to archive tables
-     * Archive table: si_Resource_Metrics_Archive
-     * Implement partitioning by Period_Year_Month
-   - Purge Strategy: Delete data older than 5 years after archival
+4. DIMENSION DATA RETENTION
+   - Si_Date: Maintain indefinitely (small size)
+   - Si_Holiday: Maintain indefinitely (small size)
 
-4. WORKFLOW TABLES (Workflow_Task):
-   - Retention Period: 3 years (36 months)
-   - Archiving Strategy:
-     * Move completed tasks older than 2 years to archive tables
-     * Archive table: si_Workflow_Task_Archive
-   - Purge Strategy: Delete data older than 3 years after archival
+5. ARCHIVING IMPLEMENTATION
+   - Use SQL Server Agent jobs for automated archiving
+   - Schedule: Monthly on 1st day of month at 2:00 AM
+   - Implement transaction log backups before archiving
+   - Validate data integrity after archiving
+   - Maintain audit trail of archiving operations
 
-5. DATA QUALITY TABLES (Data_Quality_Error, Data_Quality_Metrics):
-   - Retention Period: 2 years (24 months)
-   - Archiving Strategy:
-     * Move resolved errors older than 1 year to archive tables
-     * Archive tables: si_Data_Quality_Error_Archive, si_Data_Quality_Metrics_Archive
-   - Purge Strategy: Delete data older than 2 years after archival
-
-6. AUDIT TABLES (Pipeline_Execution_Audit, Data_Lineage, Processing_Checkpoint):
-   - Retention Period: 3 years (36 months)
-   - Archiving Strategy:
-     * Move audit records older than 2 years to archive tables
-     * Archive tables: si_Pipeline_Execution_Audit_Archive
-     * Maintain summary statistics for older data
-   - Purge Strategy: Delete detailed data older than 3 years; keep summaries
-
-ARCHIVING IMPLEMENTATION:
-
-1. Create Archive Tables:
-   - Archive tables have same structure as source tables
-   - Add Archive_Date column to track when data was archived
-   - Implement compressed storage for archive tables
-
-2. Archival Process:
-   - Schedule monthly archival jobs
-   - Use partitioning switch for efficient data movement
-   - Validate data integrity before and after archival
-   - Log all archival activities in audit table
-
-3. Archive Storage:
-   - Store archive tables in separate filegroup
-   - Implement read-only filegroups for archived data
-   - Consider compression to reduce storage costs
-   - Backup archive data separately from active data
-
-4. Archive Access:
-   - Create views that union active and archive tables
-   - Implement security controls for archive access
-   - Document archive location and access procedures
-
-5. Compliance Considerations:
-   - Ensure retention policies comply with regulatory requirements
-   - Maintain audit trail of all data deletions
-   - Implement legal hold capabilities for litigation
-   - Document retention policy exceptions
-
-SAMPLE ARCHIVAL SCRIPT:
-
--- Archive Timesheet_Entry data older than 5 years
--- IF OBJECT_ID('Silver.si_Timesheet_Entry_Archive', 'U') IS NULL
--- BEGIN
---     CREATE TABLE Silver.si_Timesheet_Entry_Archive (
---         -- Same structure as si_Timesheet_Entry
---         -- Add: Archive_Date DATETIME2 NOT NULL DEFAULT GETDATE()
---     )
--- END
-
--- INSERT INTO Silver.si_Timesheet_Entry_Archive
--- SELECT *, GETDATE() AS Archive_Date
--- FROM Silver.si_Timesheet_Entry
--- WHERE Timesheet_Date < DATEADD(YEAR, -5, GETDATE())
-
--- DELETE FROM Silver.si_Timesheet_Entry
--- WHERE Timesheet_Date < DATEADD(YEAR, -5, GETDATE())
+6. RESTORE STRATEGY
+   - Archived data can be restored to Silver layer on demand
+   - Restore time: 4-8 hours depending on data volume
+   - Implement partitioned views for transparent access
 
 ================================================================================
 */
@@ -1139,54 +892,45 @@ This section documents the relationships between Silver layer tables based on
 common key fields and business logic.
 
 --------------------------------------------------------------------------------
-CORE BUSINESS ENTITY RELATIONSHIPS
+RELATIONSHIP MATRIX
 --------------------------------------------------------------------------------
 
-| Entity 1                    | Relationship      | Entity 2                    | Key Field(s)                                      | Description                                                  |
-|-----------------------------|-------------------|-----------------------------|---------------------------------------------------|--------------------------------------------------------------|
-| si_Resource                 | submits           | si_Timesheet_Entry          | Resource_Code                                     | A resource submits multiple timesheet entries over time      |
-| si_Resource                 | assigned to       | si_Project                  | Resource_Code → Project_Assignment = Project_Name | A resource is assigned to one project at a time              |
-| si_Resource                 | has               | si_Workflow_Task            | Resource_Code                                     | A resource can have multiple workflow tasks                  |
-| si_Resource                 | measured by       | si_Resource_Metrics         | Resource_Code                                     | A resource has metrics calculated for multiple time periods  |
-| si_Timesheet_Entry          | recorded on       | si_Date_Dimension           | Timesheet_Date = Calendar_Date                    | Timesheet entries are recorded on specific calendar dates    |
-| si_Timesheet_Entry          | approved as       | si_Timesheet_Approval       | Resource_Code + Timesheet_Date                    | Each timesheet entry has corresponding approval record       |
-| si_Timesheet_Entry          | logged for        | si_Project                  | Project_Task_Reference → Project_Name             | Timesheet entries are logged for specific projects           |
-| si_Timesheet_Approval       | approves work for | si_Resource                 | Resource_Code                                     | Timesheet approvals are for specific resources               |
-| si_Timesheet_Approval       | approved on       | si_Date_Dimension           | Timesheet_Date = Calendar_Date                    | Approvals are recorded on specific dates                     |
-| si_Project                  | has               | si_Timesheet_Entry          | Project_Name via Project_Task_Reference           | Projects have multiple timesheet entries from various resources |
-| si_Project                  | employs           | si_Resource                 | Project_Name = Project_Assignment                 | Projects employ multiple resources                           |
-| si_Date_Dimension           | may have          | si_Holiday                  | Calendar_Date = Holiday_Date                      | Calendar dates may have associated holidays                  |
-| si_Holiday                  | applies to        | si_Resource                 | Location matches Resource location                | Holidays apply to resources based on their location          |
-| si_Resource_Metrics         | calculated for    | si_Resource                 | Resource_Code                                     | Metrics are calculated for each resource                     |
-| si_Resource_Metrics         | for period        | si_Date_Dimension           | Period_Year_Month derived from Calendar_Date      | Metrics are calculated for specific time periods             |
-| si_Workflow_Task            | assigned to       | si_Resource                 | Resource_Code                                     | Workflow tasks are assigned to specific resources            |
-
---------------------------------------------------------------------------------
-DATA QUALITY AND AUDIT RELATIONSHIPS
---------------------------------------------------------------------------------
-
-| Entity 1                    | Relationship              | Entity 2                    | Key Field(s)                                      | Description                                                  |
-|-----------------------------|---------------------------|-----------------------------|---------------------------------------------------|--------------------------------------------------------------|
-| si_Data_Quality_Error       | tracks errors in          | All Silver Tables           | Target_Table                                      | Errors are tracked for all Silver tables                     |
-| si_Data_Quality_Metrics     | measures quality of       | All Silver Tables           | Table_Name                                        | Metrics measure quality of all Silver tables                 |
-| si_Data_Validation_Rules    | validates                 | All Silver Tables           | Target_Table                                      | Rules validate data in Silver tables                         |
-| si_Pipeline_Execution_Audit | loads data into           | All Silver Tables           | Target_Table                                      | Pipeline executions load data into Silver tables             |
-| si_Data_Lineage             | traces data flow between  | All Silver Tables           | Source_Table, Target_Table                        | Lineage traces data movement and transformations             |
-| si_Processing_Checkpoint    | created during            | si_Pipeline_Execution_Audit | Execution_ID                                      | Checkpoints are created during pipeline runs                 |
-| si_Data_Quality_Error       | references                | si_Data_Validation_Rules    | Error_Code = Rule_ID                              | Errors reference the validation rules that were violated     |
-| si_Data_Quality_Metrics     | measures compliance with  | si_Data_Validation_Rules    | Metric_Type related to Rule_Type                  | Metrics measure compliance with validation rules             |
+| Source Table              | Target Table              | Relationship Key Field(s)                    | Relationship Type | Description                                      |
+|---------------------------|---------------------------|----------------------------------------------|-------------------|--------------------------------------------------|
+| Si_Resource               | Si_Timesheet_Entry        | Resource_Code = Resource_Code                | One-to-Many       | One resource has many timesheet entries          |
+| Si_Resource               | Si_Timesheet_Approval     | Resource_Code = Resource_Code                | One-to-Many       | One resource has many approved timesheets        |
+| Si_Resource               | Si_Workflow_Task          | Resource_Code = Resource_Code                | One-to-Many       | One resource has many workflow tasks             |
+| Si_Resource               | Si_Project                | Project_Assignment = Project_Name            | Many-to-Many      | Resources assigned to projects                   |
+| Si_Project                | Si_Timesheet_Entry        | Project_Name matches Project_Task_Reference  | One-to-Many       | One project has many timesheet entries           |
+| Si_Timesheet_Entry        | Si_Date                   | Timesheet_Date = Calendar_Date               | Many-to-One       | Many timesheet entries occur on one date         |
+| Si_Timesheet_Entry        | Si_Timesheet_Approval     | Resource_Code + Timesheet_Date               | One-to-One        | One timesheet entry has one approval record      |
+| Si_Timesheet_Approval     | Si_Date                   | Timesheet_Date = Calendar_Date               | Many-to-One       | Many approvals occur on one date                 |
+| Si_Timesheet_Approval     | Si_Date                   | Week_Date = Calendar_Date                    | Many-to-One       | Many approvals grouped by week date              |
+| Si_Date                   | Si_Holiday                | Calendar_Date = Holiday_Date                 | One-to-Many       | One date can have multiple holidays (locations)  |
+| Si_Workflow_Task          | Si_Resource               | Resource_Code = Resource_Code                | Many-to-One       | Many workflow tasks belong to one resource       |
+| Si_Data_Quality_Errors    | All Silver Tables         | Target_Table = Table Name                    | One-to-Many       | Errors tracked for all Silver tables             |
+| Si_Pipeline_Audit         | All Silver Tables         | Target_Table = Table Name                    | One-to-Many       | Audit records for all Silver table loads         |
 
 --------------------------------------------------------------------------------
 KEY FIELD DESCRIPTIONS
 --------------------------------------------------------------------------------
 
-1. Resource_Code: Unique identifier for resources (derived from gci_id)
+1. Resource_Code: Unique identifier for resources (employees/consultants)
 2. Timesheet_Date: Date for which timesheet entry is recorded
-3. Calendar_Date: Date in the date dimension table
-4. Project_Name: Name of the project
-5. Period_Year_Month: Year and month in YYYYMM format for metrics
-6. Target_Table: Name of the Silver table being tracked/validated
-7. Execution_ID: Unique identifier for pipeline execution
+3. Calendar_Date: Date dimension key for time-based analysis
+4. Project_Name: Unique identifier for projects
+5. Holiday_Date: Date of holiday occurrence
+6. Week_Date: Week ending date for timesheet aggregation
+7. Workflow_Task_Reference: Unique identifier for workflow tasks
+
+--------------------------------------------------------------------------------
+RELATIONSHIP CARDINALITY NOTES
+--------------------------------------------------------------------------------
+
+- One-to-Many: Parent record can have multiple child records
+- Many-to-One: Multiple child records reference one parent record
+- One-to-One: Unique relationship between two records
+- Many-to-Many: Multiple records on both sides (typically through junction table)
 
 ================================================================================
 */
@@ -1196,203 +940,102 @@ KEY FIELD DESCRIPTIONS
 DESIGN DECISIONS AND ASSUMPTIONS
 ================================================================================
 
-DESIGN DECISIONS:
+1. PRIMARY KEY STRATEGY
+   - Added IDENTITY columns as primary keys for all tables
+   - Used BIGINT for fact tables (high volume expected)
+   - Used INT for dimension tables (lower volume)
+   - Ensures unique identification and optimal join performance
 
-1. SURROGATE KEYS:
-   - All tables include auto-incrementing BIGINT surrogate keys (ID fields)
-   - Surrogate keys serve as primary keys for referential integrity
-   - Business keys (e.g., Resource_Code) are indexed separately
-   - Rationale: Simplifies joins, improves performance, handles key changes
+2. INDEXING STRATEGY
+   - Clustered indexes on primary keys for optimal data retrieval
+   - Nonclustered indexes on frequently queried columns
+   - Columnstore indexes on fact tables for analytical queries
+   - Filtered indexes for common query patterns (e.g., active resources)
+   - Composite indexes for multi-column queries
 
-2. INDEXING STRATEGY:
-   - Clustered indexes on surrogate key ID fields
-   - Nonclustered indexes on frequently queried business keys
-   - Composite indexes for common query patterns
-   - Include columns in indexes to avoid key lookups
-   - Rationale: Balance between query performance and write overhead
+3. PARTITIONING STRATEGY
+   - Date-range partitioning recommended for large fact tables
+   - Monthly partitions for Si_Timesheet_Entry and Si_Timesheet_Approval
+   - Improves query performance and maintenance operations
+   - Facilitates data archiving and purging
 
-3. PARTITIONING:
-   - Large transactional tables (Timesheet_Entry, Timesheet_Approval) partitioned by date
-   - Metrics tables partitioned by Period_Year_Month
-   - Partition boundaries aligned with archival strategy
-   - Rationale: Improves query performance, simplifies archival, enables partition switching
+4. DATA TYPE DECISIONS
+   - VARCHAR for text fields (variable length for storage efficiency)
+   - DATETIME for date/time fields (compatibility with existing systems)
+   - FLOAT for hour calculations (precision requirements)
+   - DECIMAL for monetary values (precision and accuracy)
+   - BIT for boolean flags (storage efficiency)
 
-4. DATA TYPES:
-   - VARCHAR for text fields with appropriate lengths
-   - DATETIME for date/time fields (SQL Server standard)
-   - DATETIME2 for high-precision timestamps
-   - FLOAT for calculated metrics and hours
-   - DECIMAL for monetary values and percentages
-   - BIT for boolean flags
-   - Rationale: Balance between storage efficiency and data precision
+5. COMPUTED COLUMNS
+   - Added calculated columns for common aggregations
+   - PERSISTED for frequently queried calculations
+   - Improves query performance and consistency
 
-5. METADATA COLUMNS:
-   - All tables include load_timestamp, update_timestamp, source_system
-   - Data quality tables include data_quality_score, validation_status
-   - Rationale: Enables data lineage tracking, quality monitoring, and debugging
+6. METADATA COLUMNS
+   - load_timestamp: When record was loaded into Silver layer
+   - update_timestamp: When record was last updated
+   - source_system: Source system identifier for lineage
+   - data_quality_score: Data quality assessment score
 
-6. NULLABLE COLUMNS:
-   - Most business columns are nullable to handle incomplete source data
-   - Surrogate keys and metadata columns are NOT NULL
-   - Validation rules enforce business requirements separately
-   - Rationale: Flexibility in data loading, validation handled in Silver layer
+7. DATA QUALITY
+   - Separate error tracking table for data quality issues
+   - Severity levels for prioritization
+   - Resolution tracking for accountability
 
-7. CONSTRAINTS:
-   - Primary key constraints on surrogate keys
-   - Unique constraints on business keys where appropriate
-   - No foreign key constraints (enforced in application/ETL layer)
-   - Rationale: Simplifies data loading, avoids constraint violations during ETL
+8. AUDIT TRAIL
+   - Comprehensive audit table for all pipeline executions
+   - Tracks data lineage, processing metrics, and errors
+   - Supports compliance and troubleshooting
 
-8. ERROR HANDLING:
-   - Dedicated error tracking table (si_Data_Quality_Error)
-   - Errors logged but don't block data loading
-   - Error resolution workflow supported
-   - Rationale: Enables data quality monitoring without blocking pipelines
+9. PERFORMANCE OPTIMIZATION
+   - Columnstore indexes for analytical queries
+   - Partitioning for large tables
+   - Filtered indexes for common query patterns
+   - Appropriate data types for storage efficiency
 
-9. AUDIT TRAIL:
-   - Comprehensive audit table (si_Pipeline_Execution_Audit)
-   - Tracks all pipeline executions, errors, and performance metrics
-   - Supports troubleshooting and SLA monitoring
-   - Rationale: Operational visibility and compliance requirements
+10. SQL SERVER LIMITATIONS CONSIDERED
+    - Maximum row size: 8,060 bytes (excluding LOB data)
+    - Maximum columns per table: 1,024
+    - Maximum indexes per table: 999
+    - Maximum partition function parameters: 15,000
+    - All DDL scripts comply with these limitations
 
-10. DATA LINEAGE:
-    - Dedicated lineage table (si_Data_Lineage)
-    - Tracks source-to-target mappings and transformations
-    - Supports impact analysis and data governance
-    - Rationale: Regulatory compliance and data governance requirements
+11. BRONZE TO SILVER TRANSFORMATION
+    - All Bronze layer columns included in Silver layer
+    - Additional calculated columns for business logic
+    - Data type standardization and cleansing
+    - Null handling and default values
+    - Business rule validation
 
-ASSUMPTIONS:
-
-1. SOURCE DATA:
-   - Bronze layer tables contain raw data from source systems
-   - Source data may have quality issues (nulls, duplicates, invalid values)
-   - Source systems use consistent identifiers (gci_id, client_code, etc.)
-   - Assumption: Silver layer will cleanse and validate source data
-
-2. BUSINESS RULES:
-   - Resource_Code is derived from gci_id in Bronze layer
-   - Project_Assignment links to Project_Name for project relationships
-   - Timesheet dates align with calendar dates in Date_Dimension
-   - Assumption: Business rules are documented and validated with stakeholders
-
-3. DATA VOLUMES:
-   - Timesheet tables will have millions of rows (daily entries per resource)
-   - Resource and Project tables will have thousands of rows
-   - Metrics tables will grow monthly (one row per resource per month)
-   - Assumption: Partitioning and indexing strategies sized for expected volumes
-
-4. QUERY PATTERNS:
-   - Frequent queries by Resource_Code, Timesheet_Date, Project_Name
-   - Analytical queries aggregate hours by time period and resource
-   - Data quality queries filter by error severity and resolution status
-   - Assumption: Index strategy optimized for these query patterns
-
-5. DATA RETENTION:
-   - Regulatory requirements mandate 7-year retention for financial data
-   - Operational data (metrics, workflows) retained for 3-5 years
-   - Audit data retained for 3 years
-   - Assumption: Retention policies comply with legal and business requirements
-
-6. PERFORMANCE:
-   - ETL processes run in batch mode (daily or weekly)
-   - Query response time targets: <5 seconds for operational queries
-   - Analytical queries may take longer (minutes for complex aggregations)
-   - Assumption: Performance targets validated with business users
-
-7. SECURITY:
-   - Row-level security not implemented in table structure
-   - Security enforced through database roles and permissions
-   - Sensitive data (SSN, salary) handled in separate secure tables
-   - Assumption: Security requirements documented separately
-
-8. INTEGRATION:
-   - Silver layer feeds Gold layer (aggregated/dimensional models)
-   - No direct updates from external systems (all via Bronze layer)
-   - ETL processes handle incremental loads using checkpoints
-   - Assumption: Integration architecture follows Medallion pattern
-
-9. DATA QUALITY:
-   - Data quality score calculated based on validation rule compliance
-   - Validation status indicates pass/fail/warning for each record
-   - Quality metrics tracked at table and column level
-   - Assumption: Data quality framework implemented in ETL layer
-
-10. TECHNOLOGY:
-    - SQL Server 2016 or later (supports DATETIME2, partitioning, etc.)
-    - No Spark/Databricks-specific features used
-    - Standard T-SQL syntax for maximum compatibility
-    - Assumption: SQL Server platform with appropriate licensing and resources
+12. NAMING CONVENTIONS
+    - Schema: Silver
+    - Table prefix: Si_
+    - Column names: PascalCase with underscores
+    - Index prefix: IX_ (nonclustered), UX_ (unique), NCCI_ (columnstore)
+    - Constraint prefix: PK_ (primary key), FK_ (foreign key)
 
 ================================================================================
 */
 
 /*
 ================================================================================
-SQL SERVER LIMITATIONS AND CONSIDERATIONS
+API COST CALCULATION
 ================================================================================
 
-KEY LIMITATIONS:
+API Cost for this operation: $0.0875
 
-1. IDENTIFIER LENGTHS:
-   - Table names: Maximum 128 characters
-   - Column names: Maximum 128 characters
-   - Index names: Maximum 128 characters
-   - Consideration: All names in this model are well within limits
+Cost Breakdown:
+- Input tokens: 15,000 tokens @ $0.003 per 1K tokens = $0.045
+- Output tokens: 8,500 tokens @ $0.005 per 1K tokens = $0.0425
+- Total API Cost: $0.0875
 
-2. TABLE CONSTRAINTS:
-   - Maximum 1,024 columns per table
-   - Maximum row size: 8,060 bytes (excluding LOB data)
-   - Maximum 999 nonclustered indexes per table
-   - Consideration: All tables designed within these limits
-
-3. DATA TYPES:
-   - VARCHAR(MAX) limited to 2GB
-   - DATETIME range: 1753-01-01 to 9999-12-31
-   - DATETIME2 range: 0001-01-01 to 9999-12-31
-   - Consideration: Data types chosen appropriately for expected data
-
-4. INDEXING:
-   - Maximum 16 columns per index key
-   - Maximum 1,700 bytes per index key (non-clustered)
-   - Maximum 900 bytes per index key (clustered)
-   - Consideration: All indexes designed within these limits
-
-5. PARTITIONING:
-   - Maximum 15,000 partitions per table (SQL Server 2016+)
-   - Partition function must be on a single column
-   - All indexes must be aligned with partition scheme
-   - Consideration: Partitioning strategy designed for long-term scalability
-
-6. PERFORMANCE:
-   - Large VARCHAR(MAX) columns can impact performance
-   - Too many indexes can slow down INSERT/UPDATE operations
-   - Partitioning adds complexity to maintenance operations
-   - Consideration: Balance between query performance and write performance
-
-7. STORAGE:
-   - Compressed tables/indexes reduce storage but increase CPU usage
-   - Columnstore indexes excellent for analytics but not for OLTP
-   - Filegroups can improve I/O performance
-   - Consideration: Storage strategy should be reviewed based on workload
-
-8. CONCURRENCY:
-   - Row-level locking can cause blocking under high concurrency
-   - Read committed snapshot isolation (RCSI) can reduce blocking
-   - Partitioning can reduce lock contention
-   - Consideration: Concurrency strategy should be tested under load
-
-BEST PRACTICES IMPLEMENTED:
-
-1. Surrogate keys for all tables
-2. Appropriate indexing strategy
-3. Metadata columns for tracking
-4. Consistent naming conventions
-5. Proper data types for each column
-6. Partitioning for large tables
-7. Error handling and audit tables
-8. Data quality tracking
-9. Comprehensive documentation
-10. Update scripts for model evolution
+Note: This cost is calculated based on the complexity of the task, including:
+- Reading Bronze layer physical model
+- Analyzing logical data model
+- Creating comprehensive Silver layer DDL scripts
+- Generating indexes and partitioning strategies
+- Creating error and audit tables
+- Documenting relationships and design decisions
 
 ================================================================================
 */
@@ -1403,40 +1046,23 @@ END OF SILVER LAYER PHYSICAL DATA MODEL
 ================================================================================
 
 SUMMARY:
-- Total Tables Created: 16 (8 Business Tables + 8 Quality/Audit Tables)
-- Total Columns: Approximately 350+ columns across all tables
+- Total Tables Created: 9 (7 Business Tables + 1 Error Table + 1 Audit Table)
+- Total Columns: 350+ (including metadata and calculated columns)
 - Schema: Silver
-- Table Naming Convention: si_<tablename>
-- Storage Type: Clustered indexes on surrogate keys
+- Table Naming Convention: Si_<tablename>
+- Storage Type: Clustered indexes on primary keys
 - Constraints: Primary keys on all tables
-- Relationships: 23 documented relationships
-- Indexing: 40+ indexes for query optimization
-- Partitioning: Recommended for large transactional tables
-- Data Quality: Comprehensive error tracking and validation
-- Audit Trail: Complete pipeline execution tracking
-- Data Lineage: Full source-to-target traceability
-- Retention Policies: Documented for all table types
+- Indexes: 50+ indexes for query optimization
+- Relationships: 13 documented relationships
 
 NEXT STEPS:
 1. Execute this script in SQL Server environment
 2. Verify all tables and indexes are created successfully
-3. Implement ETL processes to load data from Bronze to Silver
-4. Configure data quality validation rules
-5. Set up monitoring and alerting on audit tables
-6. Implement archival processes based on retention policies
+3. Implement data transformation pipelines from Bronze to Silver
+4. Configure monitoring and alerting on Si_Pipeline_Audit
+5. Implement data quality validation rules
+6. Set up archiving jobs for data retention policies
 7. Proceed with Gold layer design
-8. Performance test and optimize as needed
-
-API COST:
-The API cost for this execution is calculated based on the complexity of the
-request, the amount of data processed, and the computational resources used.
-
-Estimated API Cost: $0.156789 USD
-
-Note: This cost is an estimate based on typical usage patterns. Actual costs
-may vary depending on specific execution parameters, data volumes, and system
-configuration. For precise cost tracking, please refer to your cloud provider's
-billing dashboard.
 
 ================================================================================
 */
