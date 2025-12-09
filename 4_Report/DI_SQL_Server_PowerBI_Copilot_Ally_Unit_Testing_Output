@@ -1,0 +1,226 @@
+====================================================
+Power BI Copilot Ally Unit Testing Output
+====================================================
+API Cost Consumed: 0.03 USD (Gold Model Read)
+
+---------------------------
+1. Test Case List
+---------------------------
+
+# 1. Clustered Column Chart: Total FTE by Project Name and Calendar Month
+
+- Test ID: TC01-Chart-Type
+  Test Description: Validate that the visual type is a clustered column chart.
+  Expected Output: Visual type is 'Clustered Column Chart'.
+
+- Test ID: TC02-Field-Existence
+  Test Description: Ensure 'Project_Name', 'Calendar_Date', and 'Total_FTE' fields exist in Gold.Go_Agg_Resource_Utilization.
+  Expected Output: All fields exist and are of correct data types.
+
+- Test ID: TC03-Aggregation-By-Month
+  Test Description: Validate aggregation of Total_FTE by Project_Name and Calendar Month.
+  Expected Output: Total_FTE is correctly summed per project per month.
+
+- Test ID: TC04-Active-Project-Filter
+  Test Description: Ensure only Active projects (from Gold.Go_Dim_Project.Status = 'Active') are included.
+  Expected Output: Only active projects appear in the chart.
+
+- Test ID: TC05-Null-Handling
+  Test Description: Handle null values in Total_FTE, Project_Name, or Calendar_Date.
+  Expected Output: Nulls are excluded or handled gracefully.
+
+# 2. Card Visual: Overall Utilization Rate
+
+- Test ID: TC06-Card-Type
+  Test Description: Validate that the visual is a card.
+  Expected Output: Visual type is 'Card'.
+
+- Test ID: TC07-Utilization-Calculation
+  Test Description: Check calculation: sum(Actual_Hours) / sum(Available_Hours).
+  Expected Output: Utilization Rate is accurate and formatted as a percentage.
+
+- Test ID: TC08-Edge-Divide-By-Zero
+  Test Description: Handle case when Available_Hours is zero.
+  Expected Output: Utilization Rate is null or handled gracefully.
+
+# 3. Stacked Bar Chart: Billed FTE vs Total FTE by Business Area
+
+- Test ID: TC09-Chart-Type
+  Test Description: Validate that the visual type is a stacked bar chart.
+  Expected Output: Visual type is 'Stacked Bar Chart'.
+
+- Test ID: TC10-Field-Existence
+  Test Description: Ensure 'Business_Area', 'Billed_FTE', 'Total_FTE' fields exist.
+  Expected Output: All fields exist and are of correct data types.
+
+- Test ID: TC11-Active-Resource-Filter
+  Test Description: Only include active resources (Gold.Go_Dim_Resource.Status = 'Active').
+  Expected Output: Only active resources are included in the chart.
+
+- Test ID: TC12-Null-Handling
+  Test Description: Handle null values in Billed_FTE or Total_FTE.
+  Expected Output: Nulls are excluded or handled gracefully.
+
+# 4. Matrix Visual: Submitted Hours and Approved Hours by Resource and Project
+
+- Test ID: TC13-Matrix-Type
+  Test Description: Validate that the visual is a matrix.
+  Expected Output: Visual type is 'Matrix'.
+
+- Test ID: TC14-Field-Existence
+  Test Description: Ensure 'First_Name', 'Last_Name', 'Project_Name', 'Submitted_Hours', 'Approved_Hours' fields exist.
+  Expected Output: All fields exist and are of correct data types.
+
+- Test ID: TC15-Null-Handling
+  Test Description: Handle null values in Submitted_Hours or Approved_Hours.
+  Expected Output: Nulls are excluded or handled gracefully.
+
+- Test ID: TC16-Subtotal-Accuracy
+  Test Description: Validate row and column subtotals.
+  Expected Output: Subtotals match the sum of underlying data.
+
+# 5. Pie Chart: Distribution of Resources by Employee Category
+
+- Test ID: TC17-Chart-Type
+  Test Description: Validate that the visual type is a pie chart.
+  Expected Output: Visual type is 'Pie Chart'.
+
+- Test ID: TC18-Field-Existence
+  Test Description: Ensure 'Employee_Category' and 'Resource_Code' fields exist.
+  Expected Output: All fields exist and are of correct data types.
+
+- Test ID: TC19-Null-Handling
+  Test Description: Handle null values in Employee_Category.
+  Expected Output: Nulls are excluded or handled gracefully.
+
+# 6. Line Chart: Trends in Actual Hours Over Time
+
+- Test ID: TC20-Chart-Type
+  Test Description: Validate that the visual type is a line chart.
+  Expected Output: Visual type is 'Line Chart'.
+
+- Test ID: TC21-Field-Existence
+  Test Description: Ensure 'Calendar_Date' and 'Actual_Hours' fields exist.
+  Expected Output: All fields exist and are of correct data types.
+
+- Test ID: TC22-Aggregation-By-Month
+  Test Description: Validate aggregation of Actual_Hours by Calendar Month.
+  Expected Output: Actual_Hours is correctly summed per month.
+
+# 7. Slicer: Filter by Portfolio Leader
+
+- Test ID: TC23-Slicer-Type
+  Test Description: Validate that the visual is a slicer.
+  Expected Output: Visual type is 'Slicer'.
+
+- Test ID: TC24-Field-Existence
+  Test Description: Ensure 'Portfolio_Leader' field exists.
+  Expected Output: Field exists and is of correct data type.
+
+# 8. Decomposition Tree: Utilization Rate by Resource, Project, Business Area
+
+- Test ID: TC25-Tree-Type
+  Test Description: Validate that the visual is a decomposition tree.
+  Expected Output: Visual type is 'Decomposition Tree'.
+
+- Test ID: TC26-Utilization-Calculation
+  Test Description: Check calculation: sum(Actual_Hours) / sum(Available_Hours) by breakdown.
+  Expected Output: Utilization Rate is accurate for each breakdown.
+
+# 9. KPI Visual: Monthly Change in Total FTE
+
+- Test ID: TC27-KPI-Type
+  Test Description: Validate that the visual is a KPI.
+  Expected Output: Visual type is 'KPI'.
+
+- Test ID: TC28-Calculation
+  Test Description: Validate calculation of current, previous, and % change in Total_FTE by month.
+  Expected Output: Values are accurate and formatted correctly.
+
+---------------------------
+2. SQL Queries to Validate Each Test Case
+---------------------------
+
+-- TC02, TC10, TC14, TC18, TC21, TC24: Field Existence
+SELECT COLUMN_NAME, DATA_TYPE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'Gold' AND TABLE_NAME IN ('Go_Agg_Resource_Utilization', 'Go_Dim_Resource')
+  AND COLUMN_NAME IN ('Project_Name', 'Calendar_Date', 'Total_FTE', 'Billed_FTE', 'Business_Area', 'First_Name', 'Last_Name', 'Submitted_Hours', 'Approved_Hours', 'Employee_Category', 'Resource_Code', 'Actual_Hours', 'Portfolio_Leader');
+
+-- TC03: Aggregation of Total_FTE by Project and Month
+SELECT aru.Project_Name, FORMAT(aru.Calendar_Date, 'yyyy-MM') AS Calendar_Month, SUM(aru.Total_FTE) AS Total_FTE
+FROM Gold.Go_Agg_Resource_Utilization aru
+JOIN Gold.Go_Dim_Project p ON aru.Project_Name = p.Project_Name
+WHERE p.Status = 'Active'
+GROUP BY aru.Project_Name, FORMAT(aru.Calendar_Date, 'yyyy-MM')
+ORDER BY aru.Project_Name, Calendar_Month;
+
+-- TC04: Active Project Filter
+SELECT DISTINCT aru.Project_Name
+FROM Gold.Go_Agg_Resource_Utilization aru
+JOIN Gold.Go_Dim_Project p ON aru.Project_Name = p.Project_Name
+WHERE p.Status = 'Active';
+
+-- TC05, TC12, TC15, TC19: Null Handling
+SELECT *
+FROM Gold.Go_Agg_Resource_Utilization
+WHERE Project_Name IS NULL OR Calendar_Date IS NULL OR Total_FTE IS NULL;
+
+-- TC07, TC08, TC26: Utilization Rate Calculation and Edge Case
+SELECT
+  CASE WHEN SUM(Available_Hours) = 0 THEN NULL ELSE SUM(Actual_Hours) * 1.0 / SUM(Available_Hours) END AS Utilization_Rate
+FROM Gold.Go_Agg_Resource_Utilization;
+
+-- TC11: Active Resource Filter
+SELECT DISTINCT dr.Business_Area
+FROM Gold.Go_Dim_Resource dr
+WHERE dr.Status = 'Active';
+
+-- TC13: Matrix Visual Data
+SELECT dr.First_Name, dr.Last_Name, aru.Project_Name, aru.Submitted_Hours, aru.Approved_Hours
+FROM Gold.Go_Dim_Resource dr
+JOIN Gold.Go_Agg_Resource_Utilization aru ON dr.Resource_Code = aru.Resource_Code;
+
+-- TC16: Matrix Subtotals
+SELECT dr.First_Name, dr.Last_Name, SUM(aru.Submitted_Hours) AS Total_Submitted, SUM(aru.Approved_Hours) AS Total_Approved
+FROM Gold.Go_Dim_Resource dr
+JOIN Gold.Go_Agg_Resource_Utilization aru ON dr.Resource_Code = aru.Resource_Code
+GROUP BY dr.First_Name, dr.Last_Name;
+
+-- TC17: Pie Chart Data
+SELECT Employee_Category, COUNT(Resource_Code) AS Resource_Count
+FROM Gold.Go_Dim_Resource
+GROUP BY Employee_Category;
+
+-- TC20, TC22: Actual Hours Trend by Month
+SELECT FORMAT(Calendar_Date, 'yyyy-MM') AS Calendar_Month, SUM(Actual_Hours) AS Total_Actual_Hours
+FROM Gold.Go_Agg_Resource_Utilization
+GROUP BY FORMAT(Calendar_Date, 'yyyy-MM')
+ORDER BY Calendar_Month;
+
+-- TC23: Slicer Data
+SELECT DISTINCT Portfolio_Leader
+FROM Gold.Go_Dim_Resource;
+
+-- TC25: Decomposition Tree Data
+SELECT dr.Resource_Code, aru.Project_Name, dr.Business_Area,
+  CASE WHEN SUM(aru.Available_Hours) = 0 THEN NULL ELSE SUM(aru.Actual_Hours) * 1.0 / SUM(aru.Available_Hours) END AS Utilization_Rate
+FROM Gold.Go_Agg_Resource_Utilization aru
+JOIN Gold.Go_Dim_Resource dr ON aru.Resource_Code = dr.Resource_Code
+GROUP BY dr.Resource_Code, aru.Project_Name, dr.Business_Area;
+
+-- TC27, TC28: Monthly Change in Total FTE (KPI)
+WITH MonthlyFTE AS (
+  SELECT FORMAT(Calendar_Date, 'yyyy-MM') AS Calendar_Month, SUM(Total_FTE) AS Total_FTE
+  FROM Gold.Go_Agg_Resource_Utilization
+  GROUP BY FORMAT(Calendar_Date, 'yyyy-MM')
+)
+SELECT a.Calendar_Month, a.Total_FTE AS Current_Month_FTE, b.Total_FTE AS Previous_Month_FTE,
+  CASE WHEN b.Total_FTE = 0 THEN NULL ELSE (a.Total_FTE - b.Total_FTE) * 1.0 / b.Total_FTE END AS Percent_Change
+FROM MonthlyFTE a
+LEFT JOIN MonthlyFTE b ON a.Calendar_Month = FORMAT(DATEADD(MONTH, 1, CAST(b.Calendar_Month + '-01' AS DATE)), 'yyyy-MM')
+ORDER BY a.Calendar_Month;
+
+====================================================
+END OF OUTPUT
+====================================================
