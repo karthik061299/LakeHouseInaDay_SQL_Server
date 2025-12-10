@@ -45,7 +45,7 @@ Execution Order:
 -- Audit Table: Gold.Go_Process_Audit
 -- ==================================================================================
 
-CREATE OR ALTER PROCEDURE usp_Load_Gold_Dim_Resource
+CREATE OR ALTER PROCEDURE gold.usp_Load_Gold_Dim_Resource
     @RunId UNIQUEIDENTIFIER = NULL,
     @SourceSystem NVARCHAR(100) = 'Silver.Si_Resource'
 AS
@@ -274,51 +274,60 @@ BEGIN
         
         -- Step 4: Insert valid records into Gold dimension table
         -- Check for existing records and update or insert
-        MERGE Gold.Go_Dim_Resource AS target
+                MERGE Gold.Go_Dim_Resource AS target
         USING (
-            SELECT 
-                Resource_Code,
-                First_Name,
-                Last_Name,
-                Job_Title,
-                Business_Type,
-                Client_Code,
-                Start_Date,
-                Termination_Date,
-                Project_Assignment,
-                Market,
-                Visa_Type,
-                Practice_Type,
-                Vertical,
-                Status,
-                Employee_Category,
-                Portfolio_Leader,
-                Expected_Hours,
-                Available_Hours,
-                Business_Area,
-                SOW,
-                Super_Merged_Name,
-                New_Business_Type,
-                Requirement_Region,
-                Is_Offshore,
-                Employee_Status,
-                Termination_Reason,
-                Tower,
-                Circle,
-                Community,
-                Bill_Rate,
-                Net_Bill_Rate,
-                GP,
-                GPM,
-                load_date,
-                update_date,
-                source_system,
-                data_quality_score,
-                is_active
-            FROM #Silver_Resource_Transformed
-            WHERE is_valid = 1
+            SELECT *
+            FROM (
+                SELECT 
+                    Resource_Code,
+                    First_Name,
+                    Last_Name,
+                    Job_Title,
+                    Business_Type,
+                    Client_Code,
+                    Start_Date,
+                    Termination_Date,
+                    Project_Assignment,
+                    Market,
+                    Visa_Type,
+                    Practice_Type,
+                    Vertical,
+                    Status,
+                    Employee_Category,
+                    Portfolio_Leader,
+                    Expected_Hours,
+                    Available_Hours,
+                    Business_Area,
+                    SOW,
+                    Super_Merged_Name,
+                    New_Business_Type,
+                    Requirement_Region,
+                    Is_Offshore,
+                    Employee_Status,
+                    Termination_Reason,
+                    Tower,
+                    Circle,
+                    Community,
+                    Bill_Rate,
+                    Net_Bill_Rate,
+                    GP,
+                    GPM,
+                    load_date,
+                    update_date,
+                    source_system,
+                    data_quality_score,
+                    is_active,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY Resource_Code 
+                        ORDER BY update_date DESC
+                    ) AS rn
+                FROM #Silver_Resource_Transformed
+                WHERE is_valid = 1
+            ) src
+            WHERE rn = 1
         ) AS source
         ON target.Resource_Code = source.Resource_Code
+
         WHEN MATCHED THEN
             UPDATE SET
                 First_Name = source.First_Name,
@@ -526,7 +535,7 @@ BEGIN
         THROW;
     END CATCH
 END;
-GO
+
 
 -- ==================================================================================
 -- STORED PROCEDURE 2: usp_Load_Gold_Dim_Project
@@ -538,7 +547,7 @@ GO
 -- Audit Table: Gold.Go_Process_Audit
 -- ==================================================================================
 
-CREATE OR ALTER PROCEDURE usp_Load_Gold_Dim_Project
+CREATE OR ALTER PROCEDURE gold.usp_Load_Gold_Dim_Project
     @RunId UNIQUEIDENTIFIER = NULL,
     @SourceSystem NVARCHAR(100) = 'Silver.Si_Project'
 AS
@@ -948,7 +957,6 @@ BEGIN
         THROW;
     END CATCH
 END;
-GO
 
 -- ==================================================================================
 -- STORED PROCEDURE 3: usp_Load_Gold_Dim_Date
@@ -960,7 +968,7 @@ GO
 -- Audit Table: Gold.Go_Process_Audit
 -- ==================================================================================
 
-CREATE OR ALTER PROCEDURE usp_Load_Gold_Dim_Date
+CREATE OR ALTER PROCEDURE gold.usp_Load_Gold_Dim_Date
     @RunId UNIQUEIDENTIFIER = NULL,
     @SourceSystem NVARCHAR(100) = 'Silver.Si_Date'
 AS
@@ -1287,7 +1295,7 @@ BEGIN
         THROW;
     END CATCH
 END;
-GO
+
 
 -- ==================================================================================
 -- STORED PROCEDURE 4: usp_Load_Gold_Dim_Holiday
@@ -1299,7 +1307,7 @@ GO
 -- Audit Table: Gold.Go_Process_Audit
 -- ==================================================================================
 
-CREATE OR ALTER PROCEDURE usp_Load_Gold_Dim_Holiday
+CREATE OR ALTER PROCEDURE gold.usp_Load_Gold_Dim_Holiday
     @RunId UNIQUEIDENTIFIER = NULL,
     @SourceSystem NVARCHAR(100) = 'Silver.Si_Holiday'
 AS
@@ -1572,7 +1580,7 @@ BEGIN
         THROW;
     END CATCH
 END;
-GO
+
 
 -- ==================================================================================
 -- STORED PROCEDURE 5: usp_Load_Gold_Dim_Workflow_Task
@@ -1583,8 +1591,7 @@ GO
 -- Error Table: Gold.Go_Error_Data
 -- Audit Table: Gold.Go_Process_Audit
 -- ==================================================================================
-
-CREATE OR ALTER PROCEDURE usp_Load_Gold_Dim_Workflow_Task
+CREATE OR ALTER PROCEDURE gold.usp_Load_Gold_Dim_Workflow_Task
     @RunId UNIQUEIDENTIFIER = NULL,
     @SourceSystem NVARCHAR(100) = 'Silver.Si_Workflow_Task'
 AS
@@ -1646,7 +1653,6 @@ BEGIN
         
         -- Step 2: Apply transformations and validations
         SELECT
-            -- Business Columns with Transformations
             ISNULL(Candidate_Name, 'Not Specified') AS Candidate_Name,
             UPPER(LTRIM(RTRIM(Resource_Code))) AS Resource_Code,
             Workflow_Task_Reference,
@@ -1669,11 +1675,9 @@ BEGIN
             ISNULL(Process_Name, 'Not Specified') AS Process_Name,
             Level_ID,
             Last_Level,
-            -- Metadata Columns
             CAST(GETDATE() AS DATE) AS load_date,
             CAST(GETDATE() AS DATE) AS update_date,
             'Silver.Si_Workflow_Task' AS source_system,
-            -- Data Quality Score Calculation
             (
                 (CASE WHEN Resource_Code IS NOT NULL THEN 20 ELSE 0 END) +
                 (CASE WHEN Date_Created IS NOT NULL THEN 20 ELSE 0 END) +
@@ -1681,79 +1685,54 @@ BEGIN
                 (CASE WHEN Status IS NOT NULL THEN 20 ELSE 0 END) +
                 (CASE WHEN Process_Name IS NOT NULL THEN 20 ELSE 0 END)
             ) AS data_quality_score,
-            -- Validation Flag
+
+            -- ★ CHANGE DONE HERE ★  
             CASE
                 WHEN Resource_Code IS NULL OR LTRIM(RTRIM(Resource_Code)) = '' THEN 0
-                WHEN Date_Created IS NOT NULL AND Date_Created > GETDATE() THEN 0
-                WHEN Date_Completed IS NOT NULL AND Date_Created IS NOT NULL AND Date_Completed < Date_Created THEN 0
-                WHEN Resource_Code IS NOT NULL AND NOT EXISTS (
-                    SELECT 1 FROM Gold.Go_Dim_Resource r WHERE r.Resource_Code = UPPER(LTRIM(RTRIM(#Silver_Workflow_Task_Staging.Resource_Code)))
-                ) THEN 0
                 ELSE 1
             END AS is_valid,
-            -- Error Description
+
+            -- ★ CHANGE DONE HERE ★  
             CASE
                 WHEN Resource_Code IS NULL OR LTRIM(RTRIM(Resource_Code)) = '' THEN 'Resource_Code is NULL or empty'
-                WHEN Date_Created IS NOT NULL AND Date_Created > GETDATE() THEN 'Date_Created is in the future'
-                WHEN Date_Completed IS NOT NULL AND Date_Created IS NOT NULL AND Date_Completed < Date_Created THEN 'Date_Completed is before Date_Created'
-                WHEN Resource_Code IS NOT NULL AND NOT EXISTS (
-                    SELECT 1 FROM Gold.Go_Dim_Resource r WHERE r.Resource_Code = UPPER(LTRIM(RTRIM(#Silver_Workflow_Task_Staging.Resource_Code)))
-                ) THEN 'Resource_Code does not exist in Go_Dim_Resource'
                 ELSE NULL
             END AS error_description,
-            -- Original Record for Error Logging
-            CAST((
-                SELECT * FROM #Silver_Workflow_Task_Staging s WHERE s.Workflow_Task_Reference = #Silver_Workflow_Task_Staging.Workflow_Task_Reference FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-            ) AS NVARCHAR(MAX)) AS original_record
+
+            CAST((SELECT * FROM #Silver_Workflow_Task_Staging s 
+                  WHERE s.Workflow_Task_Reference = #Silver_Workflow_Task_Staging.Workflow_Task_Reference 
+                  FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) AS NVARCHAR(MAX)) AS original_record
         INTO #Silver_Workflow_Task_Transformed
         FROM #Silver_Workflow_Task_Staging;
         
         SET @RecordsProcessed = @@ROWCOUNT;
         
-        -- Step 3: Separate valid and invalid records
-        -- Insert invalid records into error table
         INSERT INTO Gold.Go_Error_Data (
-            Source_Table,
-            Target_Table,
-            Record_Identifier,
-            Error_Type,
-            Error_Category,
-            Error_Description,
-            Field_Name,
-            Field_Value,
-            Business_Rule,
-            Severity_Level,
-            Error_Date,
-            Batch_ID,
-            Processing_Stage,
-            Resolution_Status,
-            Created_By,
-            Created_Date
+            Source_Table, Target_Table, Record_Identifier, Error_Type, Error_Category,
+            Error_Description, Field_Name, Field_Value, Business_Rule, Severity_Level,
+            Error_Date, Batch_ID, Processing_Stage, Resolution_Status, Created_By, Created_Date
         )
         SELECT
-            'Silver.Si_Workflow_Task' AS Source_Table,
-            'Gold.Go_Dim_Workflow_Task' AS Target_Table,
-            CAST(Workflow_Task_Reference AS VARCHAR(50)) AS Record_Identifier,
-            'Validation Error' AS Error_Type,
-            'Data Quality' AS Error_Category,
-            error_description AS Error_Description,
-            'Multiple' AS Field_Name,
-            original_record AS Field_Value,
-            'Workflow task validation rules' AS Business_Rule,
-            'High' AS Severity_Level,
-            CAST(GETDATE() AS DATE) AS Error_Date,
-            CAST(@RunId AS VARCHAR(100)) AS Batch_ID,
-            'Dimension Transformation' AS Processing_Stage,
-            'Open' AS Resolution_Status,
-            SYSTEM_USER AS Created_By,
-            CAST(GETDATE() AS DATE) AS Created_Date
+            'Silver.Si_Workflow_Task',
+            'Gold.Go_Dim_Workflow_Task',
+            CAST(Workflow_Task_Reference AS VARCHAR(50)),
+            'Validation Error',
+            'Data Quality',
+            error_description,
+            'Multiple',
+            original_record,
+            'Workflow task validation rules',
+            'High',
+            CAST(GETDATE() AS DATE),
+            CAST(@RunId AS VARCHAR(100)),
+            'Dimension Transformation',
+            'Open',
+            SYSTEM_USER,
+            CAST(GETDATE() AS DATE)
         FROM #Silver_Workflow_Task_Transformed
         WHERE is_valid = 0;
         
         SET @RecordsRejected = @@ROWCOUNT;
         
-        -- Step 4: Insert valid records into Gold dimension table
-        -- Check for existing records and update or insert
         MERGE Gold.Go_Dim_Workflow_Task AS target
         USING (
             SELECT 
@@ -1833,7 +1812,6 @@ BEGIN
         
         SET @RecordsInserted = @@ROWCOUNT;
         
-        -- Step 5: Update audit record with success
         SET @EndTime = GETDATE();
         SET @Status = 'Success';
         
@@ -1851,7 +1829,6 @@ BEGIN
             Modified_Date = CAST(GETDATE() AS DATE)
         WHERE Audit_ID = @AuditID;
         
-        -- Cleanup temp tables
         DROP TABLE IF EXISTS #Silver_Workflow_Task_Staging;
         DROP TABLE IF EXISTS #Silver_Workflow_Task_Transformed;
         
@@ -1861,12 +1838,10 @@ BEGIN
     BEGIN CATCH
         ROLLBACK TRANSACTION;
         
-        -- Capture error details
         SET @ErrorMessage = ERROR_MESSAGE();
         SET @Status = 'Failed';
         SET @EndTime = GETDATE();
         
-        -- Update audit record with failure
         UPDATE Gold.Go_Process_Audit
         SET
             End_Time = CAST(@EndTime AS DATE),
@@ -1880,20 +1855,10 @@ BEGIN
             Modified_Date = CAST(GETDATE() AS DATE)
         WHERE Audit_ID = @AuditID;
         
-        -- Log error to error table
         INSERT INTO Gold.Go_Error_Data (
-            Source_Table,
-            Target_Table,
-            Error_Type,
-            Error_Category,
-            Error_Description,
-            Severity_Level,
-            Error_Date,
-            Batch_ID,
-            Processing_Stage,
-            Resolution_Status,
-            Created_By,
-            Created_Date
+            Source_Table, Target_Table, Error_Type, Error_Category, Error_Description,
+            Severity_Level, Error_Date, Batch_ID, Processing_Stage, Resolution_Status,
+            Created_By, Created_Date
         )
         VALUES (
             'Silver.Si_Workflow_Task',
@@ -1910,15 +1875,13 @@ BEGIN
             CAST(GETDATE() AS DATE)
         );
         
-        -- Cleanup temp tables
         DROP TABLE IF EXISTS #Silver_Workflow_Task_Staging;
         DROP TABLE IF EXISTS #Silver_Workflow_Task_Transformed;
         
-        -- Re-throw error
         THROW;
     END CATCH
 END;
-GO
+
 
 -- ==================================================================================
 -- MASTER EXECUTION PROCEDURE
@@ -1926,7 +1889,7 @@ GO
 -- Purpose: Execute all dimension load procedures in the correct order
 -- ==================================================================================
 
-CREATE OR ALTER PROCEDURE usp_Load_All_Gold_Dimensions
+CREATE OR ALTER PROCEDURE gold.usp_Load_All_Gold_Dimensions
     @RunId UNIQUEIDENTIFIER = NULL
 AS
 BEGIN
@@ -1990,7 +1953,7 @@ BEGIN
         THROW;
     END CATCH
 END;
-GO
+
 
 -- ==================================================================================
 -- EXECUTION EXAMPLES
@@ -2006,7 +1969,7 @@ EXEC usp_Load_All_Gold_Dimensions @RunId = @RunId;
 
 -- Example 3: Load individual dimension
 EXEC usp_Load_Gold_Dim_Resource;
-
+SELECT * FROM GOLD.GO_DIM_RESOURCE
 -- Example 4: Load individual dimension with specific RunId
 DECLARE @RunId UNIQUEIDENTIFIER = NEWID();
 EXEC usp_Load_Gold_Dim_Resource @RunId = @RunId;
@@ -2090,7 +2053,7 @@ Total Stored Procedures Created: 6
   6. usp_Load_All_Gold_Dimensions (Master Execution)
 
 Total Dimension Tables Processed: 5
-  1. Go_Dim_Resource (39 columns)
+  1. SELECT * FROM GOLD.Go_Dim_Resource (39 columns)
   2. Go_Dim_Project (28 columns)
   3. Go_Dim_Date (17 columns)
   4. Go_Dim_Holiday (8 columns)
