@@ -1,0 +1,315 @@
+## 1. Test Case List
+\
+
+\
+| Test ID | Test Description | Expected Output |
+\
+|---------|------------------|----------------|
+\
+| TC01 | Validate Total FTE KPI calculation: SUM(Submitted Hours) / (SUM(Working Days) * Location Hrs) | Value matches manual calculation, 2 decimals |
+\
+| TC02 | Validate Billed FTE KPI calculation: SUM(Approved Hours) / (SUM(Working Days) * Location Hrs) | Value matches manual calculation, 2 decimals |
+\
+| TC03 | Validate Utilization % KPI: SUM(Billed Hours) / SUM(Available Hours) | Value matches manual calculation, as percentage |
+\
+| TC04 | Validate Billable/Non-Billable count by Billing Type | Count matches expected by Billing Type |
+\
+| TC05 | Validate Bench/SGA/AVA count by Category | Count matches expected for Category in ('Bench','SGA','AVA') |
+\
+| TC06 | Validate Compliance %: SUM(Submitted Hours) / SUM(Expected Hours) | Value matches manual calculation, as percentage |
+\
+| TC07 | Utilization trend line chart: Monthly Utilization % | Trend matches aggregated monthly values |
+\
+| TC08 | FTE trend line chart: Monthly FTE | Trend matches aggregated monthly values |
+\
+| TC09 | Billing trend line chart: Monthly Billed FTE | Trend matches aggregated monthly values |
+\
+| TC10 | Utilization by Region: Clustered column chart | Each region's Utilization % matches calculation |
+\
+| TC11 | Utilization by Category: Donut chart | Each category's Utilization % matches calculation |
+\
+| TC12 | Utilization by Status: Treemap | Each status's Utilization % matches calculation |
+\
+| TC13 | Utilization by Project: Stacked bar chart | Each project's Utilization % matches calculation, stacked by Category |
+\
+| TC14 | Utilization Distribution: Histogram | Distribution bins match expected Utilization % spread |
+\
+| TC15 | Top/Bottom Performers: Table | Top 10 and bottom 10 resources by Utilization % are correct |
+\
+| TC16 | Resource-Project-Month Matrix: Matrix visual | Drill-down values match grouped Utilization % |
+\
+| TC17 | Timesheet Compliance Details: Table | Compliance % per resource is correct, <90% highlighted |
+\
+| TC18 | Input validation: Null/empty/invalid values in key columns | System handles gracefully, no calculation errors |
+\
+| TC19 | Edge case: All zero/negative/large values | System handles gracefully, calculations logical |
+\
+| TC20 | Visual type appropriateness: Each visual uses correct data fields and aggregation | Visual matches Copilot prompt specification |
+\
+
+\
+## 2. SQL Queries to Validate Each Test Case
+\
+
+\
+-- TC01: Total FTE KPI
+\
+SELECT ROUND(SUM(Submitted_Hours) * 1.0 / (SUM(Working_Days) * MAX(Location_Hrs)), 2) AS Total_FTE
+\
+FROM Timesheet_New t
+\
+JOIN DimDate d ON t.DateKey = d.DateKey
+\
+JOIN DimLocation l ON t.LocationKey = l.LocationKey;
+\
+
+\
+-- TC02: Billed FTE KPI
+\
+SELECT ROUND(SUM(Approved_Hours) * 1.0 / (SUM(Working_Days) * MAX(Location_Hrs)), 2) AS Billed_FTE
+\
+FROM Timesheet_New t
+\
+JOIN DimDate d ON t.DateKey = d.DateKey
+\
+JOIN DimLocation l ON t.LocationKey = l.LocationKey;
+\
+
+\
+-- TC03: Utilization % KPI
+\
+SELECT CAST(SUM(Billed_Hours) * 1.0 / NULLIF(SUM(Available_Hours),0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+FROM Timesheet_New;
+\
+
+\
+-- TC04: Billable/Non-Billable Count
+\
+SELECT Billing_Type, COUNT(*) AS Type_Count
+\
+FROM report_392_all
+\
+GROUP BY Billing_Type;
+\
+
+\
+-- TC05: Bench/SGA/AVA Count
+\
+SELECT Category, COUNT(*) AS Category_Count
+\
+FROM report_392_all
+\
+WHERE Category IN ('Bench','SGA','AVA')
+\
+GROUP BY Category;
+\
+
+\
+-- TC06: Compliance %
+\
+SELECT CAST(SUM(Submitted_Hours) * 1.0 / NULLIF(SUM(Expected_Hours),0) AS DECIMAL(5,4)) AS Compliance_Pct
+\
+FROM Timesheet_New;
+\
+
+\
+-- TC07: Utilization Trend (Monthly)
+\
+SELECT d.Month, CAST(SUM(t.Billed_Hours) * 1.0 / NULLIF(SUM(t.Available_Hours),0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+FROM Timesheet_New t
+\
+JOIN DimDate d ON t.DateKey = d.DateKey
+\
+GROUP BY d.Month
+\
+ORDER BY d.Month;
+\
+
+\
+-- TC08: FTE Trend (Monthly)
+\
+SELECT d.Month, ROUND(SUM(t.Submitted_Hours) * 1.0 / (SUM(d.Working_Days) * MAX(l.Location_Hrs)), 2) AS FTE
+\
+FROM Timesheet_New t
+\
+JOIN DimDate d ON t.DateKey = d.DateKey
+\
+JOIN DimLocation l ON t.LocationKey = l.LocationKey
+\
+GROUP BY d.Month
+\
+ORDER BY d.Month;
+\
+
+\
+-- TC09: Billing Trend (Monthly Billed FTE)
+\
+SELECT d.Month, ROUND(SUM(t.Approved_Hours) * 1.0 / (SUM(d.Working_Days) * MAX(l.Location_Hrs)), 2) AS Billed_FTE
+\
+FROM Timesheet_New t
+\
+JOIN DimDate d ON t.DateKey = d.DateKey
+\
+JOIN DimLocation l ON t.LocationKey = l.LocationKey
+\
+GROUP BY d.Month
+\
+ORDER BY d.Month;
+\
+
+\
+-- TC10: Utilization by Region
+\
+SELECT r.Region, CAST(SUM(t.Billed_Hours) * 1.0 / NULLIF(SUM(t.Available_Hours),0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+FROM Timesheet_New t
+\
+JOIN New_Monthly_HC_Report r ON t.ProjectKey = r.ProjectKey
+\
+GROUP BY r.Region;
+\
+
+\
+-- TC11: Utilization by Category
+\
+SELECT ra.Category, CAST(SUM(t.Billed_Hours) * 1.0 / NULLIF(SUM(t.Available_Hours),0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+FROM Timesheet_New t
+\
+JOIN report_392_all ra ON t.ProjectKey = ra.ProjectKey
+\
+GROUP BY ra.Category;
+\
+
+\
+-- TC12: Utilization by Status
+\
+SELECT ra.Status, CAST(SUM(t.Billed_Hours) * 1.0 / NULLIF(SUM(t.Available_Hours),0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+FROM Timesheet_New t
+\
+JOIN report_392_all ra ON t.ProjectKey = ra.ProjectKey
+\
+GROUP BY ra.Status;
+\
+
+\
+-- TC13: Utilization by Project (stacked by Category)
+\
+SELECT p.Project_Name, ra.Category, CAST(SUM(t.Billed_Hours) * 1.0 / NULLIF(SUM(t.Available_Hours),0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+FROM Timesheet_New t
+\
+JOIN DimProject p ON t.ProjectKey = p.ProjectKey
+\
+JOIN report_392_all ra ON t.ProjectKey = ra.ProjectKey
+\
+GROUP BY p.Project_Name, ra.Category;
+\
+
+\
+-- TC14: Utilization Distribution (Histogram)
+\
+SELECT FLOOR(Utilization_Pct*10)/10 AS Util_Bin, COUNT(*) AS Resource_Count
+\
+FROM (
+\
+  SELECT CAST(Billed_Hours * 1.0 / NULLIF(Available_Hours,0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+  FROM Timesheet_New
+\
+) t
+\
+GROUP BY FLOOR(Utilization_Pct*10)/10
+\
+ORDER BY Util_Bin;
+\
+
+\
+-- TC15: Top/Bottom Performers
+\
+SELECT TOP 10 r.Resource_Name, CAST(SUM(t.Billed_Hours) * 1.0 / NULLIF(SUM(t.Available_Hours),0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+FROM Timesheet_New t
+\
+JOIN DimResource r ON t.ResourceKey = r.ResourceKey
+\
+GROUP BY r.Resource_Name
+\
+ORDER BY Utilization_Pct DESC;
+\
+
+\
+SELECT TOP 10 r.Resource_Name, CAST(SUM(t.Billed_Hours) * 1.0 / NULLIF(SUM(t.Available_Hours),0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+FROM Timesheet_New t
+\
+JOIN DimResource r ON t.ResourceKey = r.ResourceKey
+\
+GROUP BY r.Resource_Name
+\
+ORDER BY Utilization_Pct ASC;
+\
+
+\
+-- TC16: Resource-Project-Month Matrix
+\
+SELECT r.Resource_Name, p.Project_Name, d.Month, CAST(SUM(t.Billed_Hours) * 1.0 / NULLIF(SUM(t.Available_Hours),0) AS DECIMAL(5,4)) AS Utilization_Pct
+\
+FROM Timesheet_New t
+\
+JOIN DimResource r ON t.ResourceKey = r.ResourceKey
+\
+JOIN DimProject p ON t.ProjectKey = p.ProjectKey
+\
+JOIN DimDate d ON t.DateKey = d.DateKey
+\
+GROUP BY r.Resource_Name, p.Project_Name, d.Month;
+\
+
+\
+-- TC17: Timesheet Compliance Details
+\
+SELECT r.Resource_Name, SUM(t.Submitted_Hours) AS Submitted_Hours, SUM(t.Expected_Hours) AS Expected_Hours,
+\
+  CAST(SUM(t.Submitted_Hours) * 1.0 / NULLIF(SUM(t.Expected_Hours),0) AS DECIMAL(5,4)) AS Compliance_Pct
+\
+FROM Timesheet_New t
+\
+JOIN DimResource r ON t.ResourceKey = r.ResourceKey
+\
+GROUP BY r.Resource_Name
+\
+ORDER BY Compliance_Pct ASC;
+\
+
+\
+-- TC18: Input validation (null/empty/invalid values)
+\
+SELECT * FROM Timesheet_New
+\
+WHERE Submitted_Hours IS NULL OR Approved_Hours IS NULL OR Available_Hours IS NULL
+\
+   OR Expected_Hours IS NULL OR Billed_Hours IS NULL;
+\
+
+\
+-- TC19: Edge case (zero/negative/large values)
+\
+SELECT * FROM Timesheet_New
+\
+WHERE Submitted_Hours <= 0 OR Approved_Hours < 0 OR Available_Hours < 0 OR Billed_Hours < 0
+\
+   OR Submitted_Hours > 1000 OR Approved_Hours > 1000;
+\
+
+\
+-- TC20: Visual type appropriateness (manual review, not SQL)
+\
+-- Review Copilot prompt, visual type, and SQL fields for alignment.
+\
+
+\
+-- API Cost: 1 file read, 1 file write
