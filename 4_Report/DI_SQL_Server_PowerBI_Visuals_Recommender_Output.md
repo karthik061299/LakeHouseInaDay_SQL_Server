@@ -1,143 +1,173 @@
 ____________________________________________
 ## Author : AAVA
 ## Created on :   
-## Description :   Comprehensive Power BI dashboard design recommendations for Resource Utilization & Workforce Management, including requirements analysis, data model mapping, and detailed page-by-page specifications.
+## Description :   Comprehensive Power BI dashboard design recommendations for SQL Server UTL Logic resource utilization reporting, including requirements analysis, data model mapping, page-by-page visual/UX specs, and advanced Power BI feature utilization.
 _____________________________________________
 
 # 1. REQUIREMENTS & DATA MODEL ANALYSIS SUMMARY
 
 ## Key Findings from Requirements Document
 
-- **Business Objectives:** 
-  - Track resource utilization (FTE, Billed FTE, Project Utilization) across geographies and projects.
-  - Provide accurate calculation of total/available hours, submitted/approved hours, and utilization KPIs.
-  - Address weighted average FTE logic for multi-allocation resources.
-  - Enable breakdowns by client, project, business area, status (Billed/Unbilled/SGA/Bench/AVA), and more.
-  - Support compliance (data retention, audit, error tracking).
+- **Business Objectives**: 
+  - Track resource utilization (UTL) across multiple geographies (India, US, Canada, LATAM).
+  - Calculate and display Total Hours, Submitted Hours, Approved Hours, FTE, Billed FTE, and Project Utilization.
+  - Support complex allocation logic (weighted average for multi-project allocations).
+  - Categorize resources/projects (India Billing, Client Project Matrix, SGA, Bench/AVA).
+  - Enable analysis by multiple dimensions: location, project, client, category, status, delivery leader, etc.
+  - Provide detailed breakdowns and drill-downs for operational and management reporting.
 
-- **Target Audience:** 
-  - Executives (strategic overview), Managers (operational insights), Analysts (deep dive), HR/Finance (compliance).
+- **Target Audience**: 
+  - Executives (strategic KPIs, high-level trends)
+  - Managers/Leads (team/project utilization, allocation, billing)
+  - Analysts (detailed breakdowns, anomaly detection)
+  - Operational users (resource-level data, timesheet validation)
 
-- **Metrics & KPIs:**
-  - Total Hours, Submitted Hours, Approved Hours, Total FTE, Billed FTE, Project Utilization, Available Hours, Actual Hours, Onsite/Offsite Hours, Status, Category, Portfolio Leader, Delivery Leader, Bench/AVA/ELT markers.
+- **Metrics/KPIs**:
+  - Total Hours (by location logic)
+  - Submitted Hours, Approved Hours
+  - Total FTE, Billed FTE
+  - Project Utilization
+  - Available Hours, Actual Hours, Onsite/Offsite Hours
+  - Category, Status, Delivery Leader, Portfolio Lead
 
-- **Dimensions:**
-  - Date (with holidays, weekends), Resource, Project, Client, Business Area, SOW, Vertical, Region, Status, Category, Circle, Community, Practice Type.
+- **Business Questions**:
+  - What is the overall resource utilization by region, project, and category?
+  - Which resources/projects are under/over-utilized?
+  - How do billed vs. unbilled hours trend over time?
+  - Where are the anomalies or outliers in utilization?
+  - How do allocations and FTEs distribute across projects and locations?
 
-- **Business Questions:**
-  - What is overall and segmented resource utilization?
-  - Which projects/clients have the highest/lowest billed FTE?
-  - How does utilization trend over time and across geographies?
-  - Where are the bottlenecks or underutilized resources?
+- **Filters/Interactivity**:
+  - Date range, Region, Project, Client, Category, Status, Delivery Leader, Portfolio Lead
+  - Drill-through from summary to detail
+  - Sync slicers across pages
+  - Exportable tables
 
-- **Filters/Interactivity:**
-  - Date range, Region, Project, Client, Status, Category, Portfolio Leader, Delivery Leader.
+- **Compliance/Security**:
+  - Data ownership/contact info required
+  - Data refresh/freshness indicators
+  - Potential for RLS (row-level security) by region/manager
 
-- **Compliance/Data Governance:**
-  - Data retention (5–7 years), audit trails, error tracking, data quality scoring.
-
-- **Usage Frequency:**
-  - Daily/weekly for operational, monthly/quarterly for strategic review.
+- **Usage Frequency**:
+  - Daily/weekly for operational and management review
+  - Monthly for executive summaries
 
 ## Data Model Structure Overview
 
-- **Star Schema with Conformed Dimensions:**
-  - **Dimensions:** Go_Dim_Resource, Go_Dim_Project, Go_Dim_Date, Go_Dim_Holiday, Go_Dim_Workflow_Task.
-  - **Facts:** Go_Fact_Timesheet_Entry, Go_Fact_Timesheet_Approval, Go_Agg_Resource_Utilization.
-  - **Aggregated Table:** Go_Agg_Resource_Utilization for performance.
-  - **Audit/Error:** Go_Process_Audit, Go_Error_Data for compliance.
+- **Fact Tables**:
+  - `gold Go_Agg_Resource_Utilization`: Aggregated resource utilization (Total Hours, Submitted/Approved Hours, FTEs, Utilization, etc.)
+  - `gold Go_Fact_Timesheet_Entry`: Detailed timesheet entries
+  - `gold Go_Fact_Timesheet_Approval`: Timesheet approvals
 
-- **Key Relationships:**
-  - Resource_Code links resource, timesheet, workflow.
-  - Project_Name/Project_Task_Reference links projects and timesheets.
-  - Calendar_Date/Timesheet_Date links facts to date dimension.
-  - Many-to-one relationships for dimensions to facts; one-to-one for approvals.
+- **Dimension Tables**:
+  - `gold Go_Dim_Date`: Date dimension (with working day/weekend logic)
+  - `gold Go_Dim_Holiday`: Holiday dimension (by location)
+  - `gold Go_Dim_Project`: Project metadata (Category, Status, Billing Type, etc.)
+  - `gold Go_Dim_Resource`: Resource metadata (Location, Business Area, Delivery Leader, etc.)
+  - `gold Go_Dim_Workflow_Task`: Workflow/process metadata
 
-- **Data Quality/Retention:**
-  - Data quality score fields, is_active flags, archiving strategy for old data.
+- **Relationships**:
+  - Star schema with fact tables linked to dimensions by keys (Resource_Code/ID, Project_ID, Calendar_Date, etc.)
+  - Date hierarchies and variations for time-based analysis
+  - Some inactive relationships for advanced scenarios
+
+- **Measures/Columns**:
+  - All required fields for UTL logic are present (Total_Hours, Submitted_Hours, Approved_Hours, FTEs, Utilization, etc.)
+  - Calculated columns for business logic (Category, Status, Onsite/Offsite, etc.)
 
 ## Identified Gaps or Constraints
 
-- **Weighted FTE logic** must be implemented in DAX for multi-allocation resources.
-- **Holiday/weekend logic** for total hours must use Go_Dim_Date and Go_Dim_Holiday.
-- **Category/Status logic** is complex and must be encoded in DAX or Power Query.
-- **Potential Data Quality Issues:** Nulls in approval hours, missing mappings (e.g., Portfolio Leader).
-- **Performance:** Large fact tables; use Go_Agg_Resource_Utilization for summary views.
-- **Security:** RLS may be needed for sensitive HR/Finance data.
+- **Gaps**:
+  - No explicit "weighted average" allocation field—must be implemented in DAX.
+  - Some advanced logic (e.g., SGA, Bench/AVA categorization) may require additional calculated columns/measures.
+  - Data quality and data lineage fields are present but may need surfacing in the dashboard for transparency.
+
+- **Constraints**:
+  - Large data volumes may impact performance (recommend aggregations and incremental refresh).
+  - Multi-region holiday logic requires careful DAX for accurate working day calculations.
+  - Security/RLS not explicitly defined—should be scoped if required.
 
 ## Recommended Data Model Enhancements
 
-- Add surrogate keys for all dimensions.
-- Ensure Go_Agg_Resource_Utilization is refreshed daily.
-- Add calculated columns for key business logic (Category, Status, Bench/AVA/ELT).
-- Implement data quality dashboards using Go_Error_Data.
-- Document all DAX measures and data lineage.
+- Implement DAX measures for:
+  - Weighted FTE allocation across projects
+  - Accurate working day/hour calculations by region
+  - Category/Status assignment logic as per requirements
+- Consider summary/aggregation tables for performance
+- Add calculated columns for drill-through keys if needed
+
+---
 
 # 2. DASHBOARD OVERVIEW
 
 ## Purpose and Objectives
 
-- Deliver a modern, multi-page Power BI dashboard for resource utilization and workforce management.
-- Provide actionable insights for executives, managers, and analysts.
-- Enable drill-down from strategic KPIs to granular resource/project details.
-- Support compliance, audit, and data quality monitoring.
+- Provide a comprehensive, multi-level view of resource utilization, allocation, and billing across projects and geographies.
+- Enable executives to monitor high-level KPIs and trends.
+- Allow managers and analysts to drill into detailed operational data.
+- Surface anomalies, outliers, and actionable insights using modern Power BI AI features.
 
 ## Target Audience(s)
 
-- Executives (quick KPIs, trends)
-- Managers (operational breakdowns, resource allocation)
-- Analysts (deep dive, anomaly detection, scenario modeling)
-- HR/Finance (compliance, audit)
+- Executives (quick, high-level insights)
+- Managers/Leads (team/project management)
+- Analysts (detailed analysis, anomaly detection)
+- Operational users (resource-level validation)
 
 ## Key Business Questions Addressed
 
-- What is the current and historical resource utilization?
-- Where are the underutilized or overutilized resources?
-- How do utilization and billing vary by geography, project, and client?
-- Are there anomalies or outliers in timesheet/approval data?
-- What are the drivers of utilization (Key Influencers)?
+- What is the overall and segmented resource utilization?
+- How do utilization and billing metrics trend over time?
+- Where are the inefficiencies or anomalies?
+- How are resources allocated and categorized?
+- Which projects/regions are underperforming or overperforming?
 
 ## Page Structure Summary
 
 1. Index/Landing Page
 2. Executive Summary Page
-3. Detail Pages (Utilization, Billing, Bench/AVA, Project, Resource)
+3. Detail Pages:
+   - Utilization Detail
+   - FTE/Allocation Detail
+   - Billing/Category Detail
+   - Resource/Project Detail
 4. Q&A Page
 5. AI Insights Page (Key Influencers, Decomposition Tree)
 6. Anomaly Detection Page
-7. What-If Analysis Page (optional/future)
-8. Data Quality & Audit Page
-
-# 3. PAGE-BY-PAGE DETAILED SPECIFICATIONS
+7. What-If Analysis Page (optional/phase 2)
 
 ---
 
+# 3. PAGE-BY-PAGE DETAILED SPECIFICATIONS
+
 ## 3.1 Index/Landing Page
 
-**Purpose:** Navigation, context, and quick orientation.
+**Purpose:** Orientation, navigation, and context
 
 **Layout Recommendations:**
-- Large dashboard title with company branding.
-- Last refresh date/time (from Go_Process_Audit).
-- Navigation buttons: Executive Summary, Utilization Details, Billing Details, Bench/AVA, Q&A, AI Insights, Data Quality.
-- Quick reference guide/legend (key terms: FTE, Billed FTE, etc.).
-- Contact/data owner info.
-- Optional: Recent highlights/alerts (e.g., data quality issues).
+- Large dashboard title and description
+- Last refresh date/time
+- Navigation buttons to all major pages (Exec Summary, Details, Q&A, AI, Anomaly)
+- Quick reference/legend for key terms
+- Contact/data owner info
+- Optional: Recent highlights/alerts
 
 **Visual Elements:**
-- Title text box, logo image.
-- Button visuals (rounded corners, icons, hover effects).
-- Info icon with tooltip for dashboard usage.
-- Shape elements for grouping.
+- Title text box with logo/branding
+- Card for last refresh timestamp
+- Navigation buttons (rounded, hover effect, icons)
+- Info icon with tooltip for dashboard usage
+- Legend panel (key KPIs, color codes)
+- Contact info text box
 
 **Design Specifications:**
 - Background color: #F5F7FA
 - Button style: Rounded corners (8px), subtle shadow, hover color #E0E7EF
-- Typography: Header 36pt, body 16pt, Segoe UI
+- Typography: Header 32pt bold, body 16pt regular
 - Layout: Centered grid navigation
 
 **Power BI Features:**
-- Buttons with page navigation
+- Button visuals with page navigation
 - Bookmarks for default views
 - Tooltips for guidance
 
@@ -145,227 +175,233 @@ _____________________________________________
 
 ## 3.2 Executive Summary Page
 
-**Purpose:** High-level strategic overview with key metrics.
+**Purpose:** High-level KPIs and trends for leadership
 
 **Layout Recommendations:**
-- Top: 4–6 KPI cards (Total FTE, Billed FTE, Utilization %, Available Hours, Bench Count, Data Quality Score)
-- Middle: 2–3 trend visuals (Utilization %, Billed FTE over time)
-- Bottom: Key breakdowns (by Region, Status, Category)
-- Global filters: Date range, Region, Status, Category
+- Top: 4-6 KPI cards (Total Utilization, FTE, Billed FTE, Available Hours, etc.)
+- Middle: 2-3 trend visuals (e.g., Utilization % over time, Billed vs. Unbilled trend)
+- Bottom: Key breakdowns (by region, category, status)
+- Global filters/slicers (date, region, category) top-right
 
 **Visual Elements:**
 
-- **KPI Cards:** Card visuals for each metric, with YoY/MoM arrows, conditional formatting (green/red).
-- **Trend Analysis:** Line chart (Utilization % over time), Area chart (Billed FTE trend).
-- **Breakdowns:** Clustered column chart (Utilization by Region), Donut chart (Status), Treemap (Category).
-- **Slicers:** Date (between/calendar), Region, Status, Category (dropdown/tile).
+*Top Section - KPI Cards:*
+- Card or Multi-row Card visuals
+- Metrics: 
+  - Total Utilization %
+  - Total FTE
+  - Billed FTE
+  - Available Hours
+  - Actual Hours
+  - Project Utilization
+- Conditional formatting: Green/red for above/below target
+- Data source: `gold Go_Agg_Resource_Utilization` measures
+
+*Middle Section - Trend Analysis:*
+- Line Chart: Utilization % over time (by month/quarter)
+- Area Chart: Billed vs. Unbilled trend
+- Drill-through enabled
+
+*Bottom Section - Key Breakdowns:*
+- Clustered Column Chart: Utilization by Region
+- Donut Chart: FTE by Category
+- Treemap: Hours by Project/Client
 
 **Interactivity:**
-- Drill-through from KPI cards and visuals to detail pages.
-- Sync slicers across all pages.
-- "Reset filters" button.
+- Drill-through from KPIs/visuals to detail pages
+- Sync slicers (date, region, category)
+- Bookmarks for default/filtered views
+- "Reset filters" button
+
+**Global Filters/Slicers:**
+- Date range (relative/calendar)
+- Region, Category, Status (dropdown/tile)
 
 **Design Specifications:**
-- Color palette: 
-  - KPIs: #005EB8 (primary), #00A859 (positive), #E94F37 (negative)
-  - Trends: #005EB8, #F9A602
-  - Categories: #6C757D, #17A2B8, #FFC107, #DC3545
-- Card format: Number 48pt, label 16pt
+- Color palette: Primary #0047AB, Accent #00B386, Category #F9A825, #E53935, #3949AB
+- Card format: 48pt numbers, 16pt labels
 - Spacing: 15px between visuals, ample white space
 
 **Power BI Features:**
-- Smart narratives below KPIs
+- Smart Narratives below KPIs
 - Anomaly detection on line charts
-- Drill-through to detail pages
+- Drill-through configuration
 - Mobile layout optimization
 
 ---
 
 ## 3.3 Detail Page 1: Utilization Detail
 
-**Purpose:** In-depth analysis of resource utilization.
+**Purpose:** Deep dive into resource/project utilization
 
 **Layout Recommendations:**
-- Header: Page title, back button
-- Top: Detailed KPIs (Total FTE, Utilization %, Available Hours, Onsite/Offsite split)
-- Middle: 
-  - Line and clustered column chart (Utilization % and FTE by month)
-  - Stacked bar chart (Utilization by Business Area)
-  - Waterfall chart (Variance to target utilization)
-  - Scatter chart (Utilization vs. Billed FTE by Project)
-- Bottom: Table/matrix (Resource-level utilization, conditional formatting)
-- Side panel: Filters (Date, Region, Business Area, Project, Status)
+- Header: Page title, back button, breadcrumb
+- Top: Detailed KPIs (Utilization %, FTE, Billed FTE, Project Utilization)
+- Middle: Multiple visuals (trend, breakdown, distribution, map)
+- Bottom: Data table/matrix for drill-down
+- Side: Filters (region, project, category, status)
 
 **Visual Elements:**
-- KPI cards (Total FTE, Utilization %, Onsite/Offsite split)
-- Line & clustered column chart (Go_Agg_Resource_Utilization, Go_Dim_Date)
-- Stacked bar (Utilization by Business Area)
-- Waterfall (Variance to target)
-- Scatter (Utilization vs. Billed FTE)
-- Table/matrix (Resource, Project, Utilization %, Billed FTE, Status)
+
+*Header Section:*
+- Title, back button, breadcrumb, sync slicer panel
+
+*KPI Section:*
+- Card/KPI visuals: Utilization %, FTE, Billed FTE, Project Utilization
+- Variance indicators (vs. target, YoY/MoM)
+
+*Analysis Section:*
+1. **Trend Analysis**: Line and Clustered Column Chart (Utilization % and FTE over time)
+2. **Breakdown**: Stacked Bar Chart (Utilization by Category/Status)
+3. **Distribution**: Histogram (Utilization % distribution)
+4. **Geographic**: Filled Map (Utilization by Region/Country)
+5. **Top/Bottom Performers**: Table/Matrix (Top 10/Bottom 10 Projects by Utilization)
+6. **Key Influencers**: (if applicable) - see AI page
+
+*Data Table Section:*
+- Table/Matrix: Resource, Project, Utilization %, FTE, Hours, Category, Status
+- Conditional formatting, drill-down, export enabled
 
 **Interactivity:**
-- Drill-down by hierarchy (Year > Quarter > Month)
+- Drill-through from summary
+- Drill-down on visuals (date, region, project)
 - Cross-filtering between visuals
-- Drill-through to Resource/Project detail
+- Bookmarks for saved views
 - Report page tooltips
 
 **Filters Panel:**
-- Date, Region, Business Area, Status, Project
+- Sync filters from Exec Summary
+- Page-level: Project, Category, Status
 
 **Design Specifications:**
 - Consistent color scheme
-- Section headers, grid alignment
-- White space for clarity
-
-**Power BI Features:**
-- Smart narratives
-- Anomaly detection
-- Field parameters (switch metric)
-- Performance Analyzer
-
----
-
-## 3.4 Detail Page 2: Billing & FTE Detail
-
-**Purpose:** Deep dive into billing, FTE, and approval metrics.
-
-**Layout Recommendations:**
-- Header: Page title, back button
-- Top: KPIs (Billed FTE, Approved Hours, Submitted Hours, Billing Rate)
-- Middle: 
-  - Line chart (Billed FTE trend)
-  - Clustered column chart (Billed FTE by Project/Client)
-  - Donut chart (Billing Type: Billable/NBL)
-  - Matrix (Billed FTE by Resource/Project)
-- Bottom: Table (Approval status, variance, data quality issues)
-
-**Visual Elements:**
-- KPI cards (Billed FTE, Approved Hours, Billing Rate)
-- Line chart (Billed FTE over time)
-- Clustered column (Billed FTE by Project)
-- Donut (Billing Type)
-- Matrix (Resource, Project, Billed FTE, Approval Status)
-- Table (Approval variance, error flags)
-
-**Interactivity:**
-- Drill-through to Project/Resource detail
-- Cross-filtering
-- Report page tooltips
-
-**Filters Panel:**
-- Date, Project, Client, Billing Type
-
-**Design Specifications:**
-- Use diverging color scale for variance
-- Data bars in matrix
-- Export to Excel enabled
-
-**Power BI Features:**
-- Anomaly detection
-- Drill-through
-- Smart narratives
-
----
-
-## 3.5 Detail Page 3: Bench/AVA/ELT Analysis
-
-**Purpose:** Analyze bench, AVA, and ELT resource allocation.
-
-**Layout Recommendations:**
-- Header: Page title, back button
-- Top: KPIs (Bench Count, AVA Count, ELT Count)
-- Middle: 
-  - Stacked bar (Bench/AVA by Business Area)
-  - Treemap (Bench/AVA/ELT by Category)
-  - Line chart (Bench/AVA trend over time)
-- Bottom: Table (Resource, Status, Category, Portfolio Leader)
-
-**Visual Elements:**
-- KPI cards (Bench, AVA, ELT)
-- Stacked bar (by Business Area)
-- Treemap (by Category)
-- Line chart (trend)
-- Table (Resource, Status, Category, Portfolio Leader)
-
-**Interactivity:**
-- Drill-down by hierarchy
-- Cross-filtering
-- Drill-through to Resource detail
-
-**Filters Panel:**
-- Date, Business Area, Category
-
-**Design Specifications:**
-- Use semantic colors for Bench (#FFC107), AVA (#17A2B8), ELT (#6F42C1)
-- Section dividers
-
-**Power BI Features:**
-- Drill-through
-- Smart narratives
-
----
-
-## 3.6 Detail Page 4: Project/Resource Detail
-
-**Purpose:** Resource/project-level drill-down.
-
-**Layout Recommendations:**
-- Header: Page title, back button
-- Top: KPIs (Project Utilization, Actual Hours, Available Hours)
-- Middle: Matrix (Resource/Project, Utilization %, Billed FTE, Status)
-- Bottom: Table (Timesheet entries, Approval status, Error flags)
-
-**Visual Elements:**
-- KPI cards
-- Matrix (Resource/Project)
-- Table (Timesheet, Approval, Errors)
-
-**Interactivity:**
-- Drill-down by hierarchy
-- Export to Excel
-
-**Filters Panel:**
-- Date, Resource, Project
-
-**Design Specifications:**
+- Section headers/dividers
+- 10-15px visual padding
 - Accessible contrast
-- Data bars in matrix
 
 **Power BI Features:**
-- Drill-through
-- Smart narratives
+- Smart Narratives
+- Anomaly detection
+- Drill-through/back navigation
+- Field parameters for metric switching
+- Mobile layout
 
 ---
 
-## 3.7 Q&A Page
+## 3.4 Detail Page 2: FTE/Allocation Detail
 
-**Purpose:** Natural language query interface.
+**Purpose:** Analyze FTE allocation, weighted averages, and multi-project splits
 
 **Layout Recommendations:**
-- Large Q&A visual (centered)
+- Header: Title, back button, breadcrumb
+- Top: KPIs (Total FTE, Weighted FTE, Allocation Ratio)
+- Middle: Visuals for allocation breakdowns, trends, and distributions
+- Bottom: Data table of allocations
+
+**Visual Elements:**
+- KPI Cards: Total FTE, Weighted FTE, Allocation Ratio
+- Waterfall Chart: FTE allocation changes over time
+- Clustered Bar Chart: FTE by Project/Resource
+- Matrix: Resource allocation across projects (weighted)
+- Scatter Chart: Allocation ratio vs. Utilization
+
+**Interactivity:**
+- Drill-through, drill-down, cross-filtering
+- Bookmarks
+
+**Filters Panel:**
+- Project, Resource, Category
+
+**Power BI Features:**
+- Field parameters for allocation metrics
+- Smart Narratives
+- Exportable matrix
+
+---
+
+## 3.5 Detail Page 3: Billing/Category Detail
+
+**Purpose:** Analyze billed/unbilled hours, category/status breakdowns
+
+**Layout Recommendations:**
+- Header: Title, back button, breadcrumb
+- Top: KPIs (Billed Hours, Unbilled Hours, % Billable)
+- Middle: Visuals for billing trends, category/status breakdowns
+- Bottom: Data table
+
+**Visual Elements:**
+- KPI Cards: Billed Hours, Unbilled Hours, % Billable
+- Area Chart: Billed vs. Unbilled over time
+- Donut Chart: Hours by Category
+- Treemap: Hours by Status
+- Table: Project/Resource, Billed/Unbilled, Category, Status
+
+**Interactivity:**
+- Drill-through, cross-filtering, bookmarks
+
+**Filters Panel:**
+- Category, Status, Project
+
+**Power BI Features:**
+- Anomaly detection on billing trend
+- Smart Narratives
+
+---
+
+## 3.6 Detail Page 4: Resource/Project Detail
+
+**Purpose:** Resource-level and project-level operational analysis
+
+**Layout Recommendations:**
+- Header: Title, back button, breadcrumb
+- Top: KPIs (Resource Count, Project Count, Onsite/Offsite Split)
+- Middle: Visuals for resource/project breakdowns, distributions
+- Bottom: Data table
+
+**Visual Elements:**
+- KPI Cards: Resource Count, Project Count, Onsite/Offsite Hours
+- Clustered Bar Chart: Resources by Project
+- Stacked Column Chart: Onsite vs. Offsite by Region
+- Matrix: Resource/Project, Hours, FTE, Category, Status
+
+**Interactivity:**
+- Drill-through, cross-filtering, bookmarks
+
+**Filters Panel:**
+- Resource, Project, Region
+
+**Power BI Features:**
+- Exportable matrix
+- Smart Narratives
+
+---
+
+## 3.X Q&A Page
+
+**Purpose:** Natural language queries for ad-hoc analysis
+
+**Layout Recommendations:**
+- Prominent Q&A visual (centered)
 - Suggested questions panel
 - Help text/instructions
-- Buttons with pre-built queries
 
 **Visual Elements:**
-- Q&A visual
-- Text boxes (sample questions)
-- Buttons (populate Q&A)
+- Q&A visual (full width)
+- Text box: Sample questions (e.g., "Show utilization by region for last month")
+- Buttons: Pre-built questions
 
 **Configuration:**
-- Train Q&A with synonyms (FTE, Utilization, Bench, etc.)
-- Add featured questions:
-  - "Show utilization by business area for last month"
-  - "Top 10 projects by billed FTE"
-  - "Bench count by region"
-  - "Utilization trend for India"
-- Enable Q&A for Go_Agg_Resource_Utilization, Go_Dim_Resource, Go_Dim_Project
+- Train Q&A with synonyms (e.g., "utilization", "FTE", "hours")
+- Featured questions: 
+  - "Show utilization by category"
+  - "Top 10 projects by billed hours"
+  - "Compare FTE this year vs last year"
+  - "Show unbilled hours by region"
 
 **Design Specifications:**
 - Large input box
-- Instructions
-- Branding
+- Clear instructions
+- Consistent branding
 
 **Power BI Features:**
 - Q&A visual
@@ -374,17 +410,17 @@ _____________________________________________
 
 ---
 
-## 3.8 AI Insights Page
+## 3.Y AI Insights Page (Key Influencers & Decomposition Tree)
 
-**Purpose:** AI-driven analysis (Key Influencers, Decomposition Tree).
+**Purpose:** AI-driven analysis of utilization drivers and breakdowns
 
 **Layout Recommendations:**
-- Split: Left (Key Influencers), Right (Decomposition Tree)
+- Split: Key Influencers (left), Decomposition Tree (right)
 - Context explanation at top
 
 **Visual Elements:**
-- Key Influencers (target: Utilization %, explain by: Region, Project, Category, Status)
-- Decomposition Tree (analyze: Utilization %, explain by: Business Area, Project, Resource, Status)
+- Key Influencers: Analyze what drives Utilization % or Billed FTE
+- Decomposition Tree: Break down Utilization by Region, Category, Project, Status
 
 **Interactivity:**
 - Dynamic dimension selection
@@ -392,27 +428,28 @@ _____________________________________________
 
 **Design Specifications:**
 - Clean, focused layout
+- Clear labels
 
 **Power BI Features:**
 - Key Influencers visual
-- Decomposition Tree
-- Smart narratives
+- Decomposition Tree visual
+- Smart Narratives
 
 ---
 
-## 3.9 Anomaly Detection Page
+## 3.Z Anomaly Detection Page
 
-**Purpose:** Identify and highlight outliers.
+**Purpose:** Surface outliers and unusual patterns
 
 **Layout Recommendations:**
-- Line chart(s) with anomaly detection enabled (Utilization %, Billed FTE)
-- Card (total anomalies detected)
-- Table (anomaly details: date, metric, actual, expected, deviation)
+- Time series charts with anomaly detection
+- Summary cards (anomaly count)
+- Table of anomalies
 
 **Visual Elements:**
-- Line chart (with anomalies)
-- Card (anomaly count)
-- Table (anomaly details)
+- Line Chart: Utilization % over time with anomaly detection enabled
+- Card: Total anomalies detected
+- Table: Date, Metric, Actual, Expected, Deviation %
 
 **Design Specifications:**
 - Red/orange highlights for anomalies
@@ -421,52 +458,28 @@ _____________________________________________
 **Power BI Features:**
 - Anomaly detection
 - Conditional formatting
-- Drill-through
+- Drill-through to detail
 
 ---
 
-## 3.10 What-If Analysis Page (Optional/Future)
+## 3.W What-If Analysis Page (Phase 2)
 
-**Purpose:** Scenario modeling.
+**Purpose:** Scenario modeling for utilization/billing
 
 **Layout Recommendations:**
-- What-if parameter slicers (growth %, hours, allocation)
-- Cards (baseline vs. scenario)
-- Comparison charts (baseline vs. scenario)
-- Sensitivity table
+- What-if parameter sliders (e.g., FTE %, Hours, Bill Rate)
+- Result cards (projected utilization, billed hours)
+- Comparison charts
 
 **Visual Elements:**
-- Slicers (parameters)
-- Cards
-- Line/column charts
-- Table
+- Slicers/input boxes for parameters
+- Cards: Baseline vs. scenario
+- Line/Area Chart: Scenario comparison
 
 **Power BI Features:**
 - What-if parameters
 - DAX scenario measures
-- Bookmarks
-
----
-
-## 3.11 Data Quality & Audit Page
-
-**Purpose:** Monitor data quality, audit, and errors.
-
-**Layout Recommendations:**
-- KPIs (Data Quality Score, Error Count)
-- Table (error details from Go_Error_Data)
-- Trend (errors over time)
-- Audit table (Go_Process_Audit)
-
-**Visual Elements:**
-- KPI cards
-- Table (errors)
-- Line chart (error trend)
-- Table (audit logs)
-
-**Power BI Features:**
-- Drill-through to error details
-- Export to Excel
+- Bookmarks for scenarios
 
 ---
 
@@ -475,201 +488,215 @@ _____________________________________________
 ## Color Palette
 
 **Primary Colors:**
-- Brand primary: #005EB8 (headers, key metrics)
-- Brand secondary: #F9A602 (secondary elements)
-- Brand accent: #17A2B8 (highlights/CTAs)
+- Brand primary: #0047AB (headers, key actions)
+- Brand secondary: #00B386 (accents, highlights)
+- Brand accent: #F9A825 (alerts, CTAs)
 
 **Data Visualization Colors:**
-- Sequential: #E3F2FD, #90CAF9, #42A5F5, #1E88E5, #005EB8
-- Categorical: #005EB8, #F9A602, #17A2B8, #6C757D, #FFC107, #DC3545, #6F42C1, #00A859, #E94F37, #F5F7FA
-- Diverging: #00A859 (positive), #FFC107 (neutral), #E94F37 (negative), #6C757D, #F9A602, #1E88E5, #DC3545
+- Sequential: #E3F2FD, #90CAF9, #42A5F5, #1976D2, #0047AB
+- Categorical: #0047AB, #00B386, #F9A825, #E53935, #3949AB, #8E24AA, #43A047, #F06292
+- Diverging: #E53935, #F9A825, #00B386, #0047AB, #3949AB, #8E24AA, #43A047
 
 **Semantic Colors:**
-- Success: #00A859
-- Warning: #FFC107
-- Error: #E94F37
-- Neutral: #6C757D
+- Success: #43A047
+- Warning: #F9A825
+- Error: #E53935
+- Neutral: #BDBDBD
 
 **Background & UI:**
 - Page background: #F5F7FA
 - Visual background: #FFFFFF
-- Border color: #E0E7EF
-- Text primary: #212529
-- Text secondary: #6C757D
+- Border: #E0E0E0
+- Text primary: #212121
+- Text secondary: #757575
 
 **Conditional Formatting Rules:**
-- Above target: #00A859 (green)
-- At target: #FFC107 (amber)
-- Below target: #E94F37 (red)
+- Above target: #43A047 (green)
+- At target: #F9A825 (amber)
+- Below target: #E53935 (red)
 
 ## Typography
 
-- Dashboard title: Segoe UI, 36pt, Bold
-- Page headers: Segoe UI, 28pt, Semibold
-- Visual titles: Segoe UI, 18pt, Semibold
-- Body text: Segoe UI, 16pt, Regular
-- Data labels: Segoe UI, 14pt, Semibold
+- Dashboard title: Segoe UI, 32pt, Bold
+- Page headers: Segoe UI, 24pt, SemiBold
+- Visual titles: Segoe UI, 16pt, SemiBold
+- Body text: Segoe UI, 14pt, Regular
+- Data labels: Segoe UI, 12pt, SemiBold
 
 ## Spacing & Layout Grid
 
-- Canvas size: 1920 x 1080 (large)
+- Canvas size: 1920 x 1080
 - Grid: 20px increments
 - Margin: 20px from edges
-- Visual padding: 15px between visuals
-- Section spacing: 30px between major sections
+- Visual padding: 15px
+- Section spacing: 30px
 
 ## Visual Standards
 
 - Border radius: 8px
-- Shadow effects: Subtle (0px 2px 8px #E0E7EF)
-- Visual border: 1px, #E0E7EF
+- Shadow: 0 2px 8px #E0E7EF
+- Visual border: 1px #E0E0E0
 - Title alignment: Left
-- Legend position: Top
-- Data label format: 1,234.56 (auto-scale: K/M), % for rates
+- Legend position: Top or Right
+- Data label format: 1 decimal, K/M suffix for large numbers
 
 ## Accessibility Guidelines
 
 - Alt text for all visuals
-- Contrast ratio: WCAG 2.1 AA
-- Keyboard navigation enabled
-- Tab order configured
-- Screen reader compatibility
+- Color contrast WCAG 2.1 AA
+- Keyboard navigation
+- Screen reader labels
+
+---
 
 # 5. INTERACTION & NAVIGATION DESIGN
 
-## Navigation Flow (Text Description)
+## Navigation Flow Diagram (Text Description)
 
-- **Primary:** Index → Executive Summary → Detail Pages (Utilization, Billing, Bench/AVA, Project/Resource)
-- **Feature Pages:** Q&A, AI Insights, Anomaly, What-If, Data Quality
-- Breadcrumb trail on each page
-- "Home" button on all pages
-- "Back" button on detail pages
+- Index → Executive Summary → [Utilization Detail | FTE/Allocation Detail | Billing/Category Detail | Resource/Project Detail]
+- Breadcrumb on each page
+- Home button on all pages
+- Back button on detail pages
+- Bookmarks for saved views
+- Drill-through from summary to details
+- Cross-page filtering (sync slicers)
+- Buttons for Q&A, AI, Anomaly pages
 
 ## Drill-Through Matrix
 
-| From (Visual/Page)           | To (Target Page)         | Filters Passed             |
-|------------------------------|--------------------------|----------------------------|
-| Executive Summary KPI        | Utilization Detail       | Date, Region, Status       |
-| Utilization Detail Matrix    | Project/Resource Detail  | Resource, Project, Date    |
-| Billing KPI                  | Billing Detail           | Date, Project, Client      |
-| Bench/AVA KPI                | Bench/AVA Detail         | Date, Business Area        |
-| Anomaly Point                | Project/Resource Detail  | Date, Resource, Project    |
-| Q&A Result                   | Relevant Detail Page     | Contextual                 |
+| From Page           | To Page(s)                        | Filters Passed                |
+|---------------------|-----------------------------------|-------------------------------|
+| Executive Summary   | All Detail Pages                  | Date, Region, Category, Status|
+| Detail Pages        | More granular detail (if needed)  | All active filters            |
+| Anomaly/AI Pages    | Relevant Detail Pages             | Date, Metric, Category        |
 
 ## Filter Strategy
 
-- **Sync Slicers:** Date, Region, Status, Category (across all pages)
-- **Page Filters:** Business Area, Project, Client (per page)
-- **Visual Filters:** Used for Top N, outlier highlighting
+- Sync slicers: Date, Region, Category, Status
+- Page-level filters: Project, Resource, Delivery Leader
+- Visual-level filters: For specific breakdowns
+- Filters pane: Hidden by default, accessible via icon
 
 ## Bookmark Plan
 
-- Default view bookmark (reset state)
-- Key analysis bookmarks (e.g., "Bench Focus", "Utilization Over Time")
+- Default view (reset state)
+- Key analysis bookmarks (pre-filtered)
 - Bookmark navigator for storytelling
 
 ## Tooltip Strategy
 
 - Default tooltips for all visuals
-- Report page tooltips for detail (Resource/Project/Approval)
-- Tooltip pages: "Resource Tooltip", "Project Tooltip"
+- Report page tooltips for KPI cards and trend charts
+- Tooltip pages for additional context
+
+---
 
 # 6. DATA MODEL INTEGRATION
 
 ## Table/Measure Mapping
 
-| Page/Visual                | Tables Used                         | Key Measures/DAX Patterns                         | Hierarchies              |
-|----------------------------|-------------------------------------|---------------------------------------------------|--------------------------|
-| Executive Summary          | Go_Agg_Resource_Utilization, Go_Dim_Date | Total FTE, Utilization %, Billed FTE, Bench Count | Date (Y/Q/M), Region     |
-| Utilization Detail         | Go_Agg_Resource_Utilization, Go_Dim_Resource, Go_Dim_Project, Go_Dim_Date | Utilization %, Onsite/Offsite split, Available Hours | Date, Business Area      |
-| Billing Detail             | Go_Agg_Resource_Utilization, Go_Fact_Timesheet_Approval, Go_Dim_Project | Billed FTE, Approved Hours, Billing Rate           | Project, Client          |
-| Bench/AVA Detail           | Go_Agg_Resource_Utilization, Go_Dim_Resource | Bench/AVA/ELT Count, Category                     | Business Area, Category  |
-| Project/Resource Detail    | Go_Agg_Resource_Utilization, Go_Dim_Resource, Go_Dim_Project | Utilization %, Billed FTE, Status                  | Resource, Project        |
-| Q&A                        | All summary/agg tables              | All KPIs                                          | -                        |
-| AI Insights                | Go_Agg_Resource_Utilization, Go_Dim_Resource, Go_Dim_Project | Utilization %, Key Influencers                     | Business Area, Project   |
-| Anomaly Detection          | Go_Agg_Resource_Utilization, Go_Dim_Date | Utilization %, Billed FTE                         | Date                     |
-| Data Quality & Audit       | Go_Error_Data, Go_Process_Audit     | Error Count, Data Quality Score                    | Date, Error Type         |
+- **Index/Landing**: Any table for refresh date; static content
+- **Executive Summary**: 
+  - Table: `gold Go_Agg_Resource_Utilization`
+  - Measures: Total Utilization %, FTE, Billed FTE, Available Hours, Project Utilization
+  - Dimensions: Date, Region, Category, Status
+- **Utilization Detail**: 
+  - Table: `gold Go_Agg_Resource_Utilization`
+  - Measures: Utilization %, FTE, Project Utilization, etc.
+  - Dimensions: Project, Resource, Region, Category, Status
+- **FTE/Allocation Detail**: 
+  - Table: `gold Go_Agg_Resource_Utilization`
+  - Measures: Weighted FTE (DAX), Allocation Ratio
+  - Dimensions: Project, Resource
+- **Billing/Category Detail**: 
+  - Table: `gold Go_Agg_Resource_Utilization`
+  - Measures: Billed/Unbilled Hours, % Billable
+  - Dimensions: Category, Status, Project
+- **Resource/Project Detail**: 
+  - Table: `gold Go_Agg_Resource_Utilization`, `gold Go_Dim_Resource`, `gold Go_Dim_Project`
+  - Measures: Resource/Project Count, Onsite/Offsite Hours
+- **Q&A/AI/Anomaly**: 
+  - Table: As above, plus `gold Go_Fact_Timesheet_Entry` for granular analysis
 
 ## Required DAX Measures (Patterns)
 
-- **Total FTE:** `SUM([Total_FTE])`
-- **Billed FTE:** `SUMX(Table, IF(ISBLANK([Approved_Hours]), [Submitted_Hours], [Approved_Hours]) / [Total_Hours])`
-- **Utilization %:** `DIVIDE([Submitted_Hours], [Available_Hours])`
-- **Bench/AVA/ELT Count:** `CALCULATE(COUNTROWS(Table), Table[Category] = "Bench"/"AVA"/"ELT")`
-- **Variance to Target:** `([Utilization %] - [Target Utilization %])`
-- **Anomaly Flag:** Custom DAX or Power BI anomaly detection
+- Weighted FTE: 
+  ```
+  Weighted FTE = 
+    SUMX(
+      VALUES([Resource_Code]),
+      DIVIDE([Submitted_Hours], [Total_Hours])
+    )
+  ```
+- Utilization %: 
+  ```
+  Utilization % = DIVIDE([Actual_Hours], [Available_Hours])
+  ```
+- Billed FTE: 
+  ```
+  Billed FTE = DIVIDE([Approved_Hours], [Total_Hours])
+  ```
 
-## Performance Optimization
+- Additional DAX for category/status assignment as per requirements logic.
 
-- Use Go_Agg_Resource_Utilization for summary/trend visuals.
-- Limit visuals per page (max 12).
-- Use Import mode for performance; DirectQuery only if data size is very large.
-- Incremental refresh for large tables (Go_Fact_Timesheet_Entry).
-- Aggregations for high-level KPIs.
-- Disable auto-date/time for time intelligence.
-- Optimize DAX: Avoid iterator functions in visuals, use variables.
+## Performance Optimization Recommendations
+
+- Use Import mode for main tables; DirectQuery only if data is too large
+- Aggregation tables for summary visuals
+- Incremental refresh on large fact tables
+- Limit visuals per page (max 12)
+- Optimize DAX with variables, SUMX, CALCULATE patterns
 
 ## Security Recommendations
 
-- Implement Row-Level Security (RLS) for sensitive data (HR/Finance).
-- Use is_active flags to filter out inactive resources/projects.
-- Data quality score for trust indicators.
+- Implement RLS by Region/Manager if required
+- Mask sensitive fields as needed
+- Show data lineage and refresh info
+
+---
 
 # 7. POWER BI FEATURE UTILIZATION
 
-## Modern Features Leveraged
+## Summary of Modern Features Leveraged
 
-- **Q&A Visual:** Natural language queries for self-service.
-- **Smart Narratives:** AI-generated summaries below key visuals.
-- **Key Influencers:** AI-driven root cause analysis for utilization.
-- **Decomposition Tree:** Interactive drill-down across dimensions.
-- **Anomaly Detection:** Outlier identification in time series.
-- **Field Parameters:** User-driven metric switching.
-- **What-If Parameters:** Scenario modeling (future/optional).
-- **Mobile Layouts:** Optimized for Power BI mobile app.
-- **Accessibility:** Alt text, contrast, keyboard navigation.
-- **Bookmarks:** Storytelling, reset, and saved views.
-- **Paginated Reports:** Exportable detailed reports (button link).
-- **Power Automate:** Alerts for threshold breaches (future/optional).
-- **Performance Analyzer:** Diagnose and optimize slow visuals.
+- **Q&A Visual**: Natural language queries for business users
+- **Smart Narratives**: Auto-generated text summaries on summary/detail pages
+- **Key Influencers**: AI-driven analysis of utilization drivers
+- **Decomposition Tree**: Interactive breakdowns for root cause analysis
+- **Anomaly Detection**: Highlight outliers in time series
+- **Field Parameters**: Allow users to switch metrics/dimensions on visuals
+- **What-If Parameters**: Scenario modeling for utilization/billing
+- **Bookmarks**: Storytelling and saved views
+- **Mobile Layout**: Optimized for Power BI mobile app
+- **Accessibility**: Alt text, color contrast, keyboard navigation
+- **Paginated Reports**: Export to detailed reports if needed
+- **Power Automate Integration**: Alerts for threshold breaches
 
 ## Configuration Details
 
-- **Q&A:** Train synonyms, featured questions, enable for relevant tables.
-- **Smart Narratives:** Place below KPIs and trend visuals; customize text.
-- **Key Influencers:** Target = Utilization %, Explain by = Region, Project, Category, Status.
-- **Decomposition Tree:** Analyze = Utilization %, Explain by = Business Area, Project, Resource.
-- **Anomaly Detection:** Enable on line charts, set sensitivity, highlight anomalies.
-- **Bookmarks:** Default view, key analysis, bookmark navigator.
-- **Accessibility:** Alt text for all visuals, tab order, high contrast.
-- **Mobile:** Phone layout with simplified visuals.
+- Train Q&A with synonyms and featured questions
+- Configure Key Influencers for Utilization %/Billed FTE
+- Enable anomaly detection on all trend charts
+- Use field parameters for flexible metric switching
+- Set up bookmarks for default and key analysis views
+- Optimize report for mobile and accessibility
 
 ## Benefits and Use Cases
 
-- **Q&A:** Empowers users to explore data without technical skills.
-- **AI Insights:** Accelerates root cause analysis and decision-making.
-- **Anomaly Detection:** Proactive identification of data issues.
-- **Bookmarks:** Enables guided storytelling and quick reset.
-- **Accessibility:** Ensures inclusivity for all users.
-- **Performance:** Fast, responsive dashboards for all audiences.
+- Executive insights in seconds
+- Deep-dive analysis for managers/analysts
+- Self-service exploration for all users
+- Automated anomaly and driver detection
+- Scenario planning and what-if analysis
 
 ---
 
-**PRIORITY RECOMMENDATIONS**
+# PRIORITY RECOMMENDATIONS
 
-- **High Priority:** Index, Executive Summary, Utilization Detail, Billing Detail, Bench/AVA Detail, Project/Resource Detail, Q&A, AI Insights, Data Quality Page, Mobile layout, Accessibility, Performance optimization.
-- **Medium Priority:** Anomaly Detection, What-If Analysis, Paginated Reports, Power Automate alerts.
-- **Low Priority/Future:** Advanced scenario modeling, deep audit analytics, custom Power Apps integration.
-
----
-
-**Implementation Guidance:**  
-- Build star schema in Power BI with Go_Agg_Resource_Utilization as the primary fact for summary/trend pages.
-- Use Go_Fact_Timesheet_Entry/Approval for granular drill-downs.
-- Implement all DAX measures as described; test performance with Performance Analyzer.
-- Apply design system for consistency and accessibility.
-- Document all custom logic, DAX, and data lineage for maintainability.
+- **High Priority**: Index, Executive Summary, Utilization Detail, FTE/Allocation Detail, Billing/Category Detail, Resource/Project Detail, Q&A, AI Insights, Anomaly Detection, Accessibility
+- **Medium Priority**: What-If Analysis, Paginated Reports, Power Automate integration
+- **Low Priority/Future**: Custom RLS, advanced scenario modeling, additional export/reporting features
 
 ---
 
-**End of Recommendations**
+**This document provides a complete, actionable blueprint for building a modern, performant, and user-friendly Power BI dashboard for resource utilization and UTL logic, fully aligned with business requirements and leveraging advanced Power BI features.**
