@@ -1,31 +1,65 @@
-# Power BI Copilot Prompts for Resource Utilization & Workforce Management Dashboard
+# Power BI Copilot Prompts for UTL Resource Utilization Dashboard
 
 ## Index/Landing Page
-Create a landing page with a large title text box ("Resource Utilization & Workforce Management Dashboard"), company logo image, and a card visual showing the last refresh date from Gold.Go_Process_Audit[End_Time]. Add button visuals with rounded corners and icons for navigation to each report section (Executive Summary, Utilization Details, Billing Details, Bench/AVA, Q&A, AI Insights, Data Quality). Use background color #F5F7FA and button hover color #E0E7EF. Add an info icon with tooltip explaining dashboard usage, and a text box for contact/data owner info.
+- Create a Card visual showing the latest 'gold Go_Agg_Resource_Utilization[update_date]' as Last Refresh Date.
+- Add Button visuals for navigation to each report page with rounded corners and icons.
+- Add a Text box for dashboard title and description with 32pt bold font.
+- Add a Legend panel using a Table visual listing key KPIs and color codes.
+- Add a Text box for contact/data owner info.
 
 ## Executive Summary Page
-Create KPI card visuals for Total FTE (SUM of Gold.Go_Agg_Resource_Utilization[Total_FTE]), Billed FTE (SUM of [Billed_FTE]), Utilization % (DIVIDE(SUM([Submitted_Hours]), SUM([Available_Hours]))), Available Hours (SUM([Available_Hours])), Bench Count (COUNTROWS where Gold.Go_Dim_Resource[Employee_Category] = 'Bench'), and Data Quality Score (AVG(Gold.Go_Dim_Resource[data_quality_score])). Format cards with conditional formatting: #00A859 for positive, #E94F37 for negative. Add a line chart showing Utilization % over time (Gold.Go_Agg_Resource_Utilization[Calendar_Date], [Utilization %]), and an area chart for Billed FTE trend. Add a clustered column chart for Utilization by Region (Gold.Go_Dim_Resource[Business_Area]), a donut chart for Status (Gold.Go_Dim_Resource[Status]), and a treemap for Category (Gold.Go_Dim_Project[Category]). Add slicers for Date (Gold.Go_Dim_Date[Calendar_Date]), Region, Status, and Category. Place smart narrative below KPIs.
+- Create KPI Card visuals for Total Utilization %, Total FTE, Billed FTE, Available Hours, Actual Hours, and Project Utilization using 'gold Go_Agg_Resource_Utilization' measures.
+- Add a Line Chart showing Utilization % over time using 'Calendar_Date' and 'Project_Utilization'.
+- Add an Area Chart for Billed vs. Unbilled trend using 'Calendar_Date', 'Billed_FTE', and calculated Unbilled FTE.
+- Add a Clustered Column Chart for Utilization by Region using 'gold Go_Dim_Resource[Business_Area]' and 'Project_Utilization'.
+- Add a Donut Chart for FTE by Category using 'gold Go_Dim_Project[Category]' and 'Total_FTE'.
+- Add a Treemap for Hours by Project/Client using 'gold Go_Dim_Project[Project_Name]', 'Client_Name', and 'Actual_Hours'.
+- Add Slicers for Date range, Region, Category, and Status.
 
 ## Utilization Detail Page
-Add KPI cards for Total FTE, Utilization %, Available Hours, and Onsite/Offsite split (SUM of Gold.Go_Agg_Resource_Utilization[Onsite_Hours], [Offsite_Hours]). Add a line and clustered column chart with Utilization % and FTE by month (Gold.Go_Dim_Date[Month_Year]), a stacked bar chart for Utilization by Business Area (Gold.Go_Dim_Resource[Business_Area]), a waterfall chart for variance to target utilization (Utilization % - Target Utilization %), and a scatter chart for Utilization vs. Billed FTE by Project (Gold.Go_Dim_Project[Project_Name]). Add a table or matrix with Resource, Project, Utilization %, Billed FTE, and Status, using conditional formatting for outliers. Enable drill-down by Year > Quarter > Month, and add filters for Date, Region, Business Area, Status, and Project.
+- Create KPI Cards for Utilization %, FTE, Billed FTE, and Project Utilization using 'gold Go_Agg_Resource_Utilization'.
+- Add a Line and Clustered Column Chart for Utilization % and FTE over time using 'Calendar_Date', 'Project_Utilization', and 'Total_FTE'.
+- Add a Stacked Bar Chart for Utilization by Category/Status using 'gold Go_Dim_Project[Category]', 'Status', and 'Project_Utilization'.
+- Add a Histogram for Utilization % distribution using 'Project_Utilization'.
+- Add a Filled Map for Utilization by Region using 'gold Go_Dim_Resource[Business_Area]' and 'Project_Utilization'.
+- Add a Table for Top 10/Bottom 10 Projects by Utilization using 'Project_Name' and 'Project_Utilization'.
+- Add a Matrix for Resource, Project, Utilization %, FTE, Hours, Category, Status with drill-down enabled.
+- Add Slicers for Region, Project, Category, and Status.
 
-## Billing & FTE Detail Page
-Add KPI cards for Billed FTE (SUM([Billed_FTE])), Approved Hours (SUM(Gold.Go_Fact_Timesheet_Approval[Total_Approved_Hours])), Submitted Hours (SUM([Submitted_Hours])), and Billing Rate (AVG(Gold.Go_Dim_Project[Bill_Rate])). Add a line chart for Billed FTE trend over time (Gold.Go_Dim_Date[Calendar_Date]), a clustered column chart for Billed FTE by Project or Client (Gold.Go_Dim_Project[Project_Name], [Billed_FTE]), a donut chart for Billing Type (Gold.Go_Dim_Project[Billing_Type]), and a matrix for Billed FTE by Resource/Project. Add a table for Approval variance and error flags (Gold.Go_Fact_Timesheet_Approval[Hours_Variance], Gold.Go_Fact_Timesheet_Approval[approval_status]). Use diverging color scale for variance, and enable export to Excel. Add filters for Date, Project, Client, and Billing Type.
+## FTE/Allocation Detail Page
+- Create KPI Cards for Total FTE, Weighted FTE (DAX: SUMX(VALUES([Resource_Code]), DIVIDE([Submitted_Hours],[Total_Hours]))), and Allocation Ratio.
+- Add a Waterfall Chart for FTE allocation changes over time using 'Calendar_Date' and 'Total_FTE'.
+- Add a Clustered Bar Chart for FTE by Project/Resource using 'Project_Name', 'Resource_Code', and 'Total_FTE'.
+- Add a Matrix for Resource allocation across projects using 'Resource_Code', 'Project_Name', and Weighted FTE.
+- Add a Scatter Chart for Allocation Ratio vs. Utilization using Allocation Ratio and 'Project_Utilization'.
+- Add Slicers for Project, Resource, and Category.
 
-## Bench/AVA/ELT Analysis Page
-Add KPI cards for Bench Count, AVA Count, and ELT Count (COUNTROWS where Gold.Go_Dim_Resource[Employee_Category] = 'Bench'/'AVA'/'ELT'). Add a stacked bar chart for Bench/AVA by Business Area (Gold.Go_Dim_Resource[Business_Area]), a treemap for Bench/AVA/ELT by Category (Gold.Go_Dim_Project[Category]), and a line chart for Bench/AVA trend over time (Gold.Go_Dim_Date[Calendar_Date]). Add a table with Resource, Status, Category, and Portfolio Leader. Use semantic colors: Bench #FFC107, AVA #17A2B8, ELT #6F42C1. Add filters for Date, Business Area, and Category.
+## Billing/Category Detail Page
+- Create KPI Cards for Billed Hours, Unbilled Hours, and % Billable using 'Approved_Hours', calculated Unbilled, and % Billable.
+- Add an Area Chart for Billed vs. Unbilled over time using 'Calendar_Date', 'Approved_Hours', and calculated Unbilled.
+- Add a Donut Chart for Hours by Category using 'gold Go_Dim_Project[Category]' and 'Actual_Hours'.
+- Add a Treemap for Hours by Status using 'gold Go_Dim_Project[Status]' and 'Actual_Hours'.
+- Add a Table for Project/Resource, Billed/Unbilled, Category, Status.
+- Add Slicers for Category, Status, and Project.
 
-## Project/Resource Detail Page
-Add KPI cards for Project Utilization (Gold.Go_Agg_Resource_Utilization[Project_Utilization]), Actual Hours (SUM([Actual_Hours])), and Available Hours (SUM([Available_Hours])). Add a matrix with Resource/Project, Utilization %, Billed FTE, and Status. Add a table for timesheet entries, approval status, and error flags (from Gold.Go_Fact_Timesheet_Entry, Gold.Go_Fact_Timesheet_Approval, Gold.Go_Error_Data). Enable drill-down and export to Excel. Add filters for Date, Resource, and Project.
+## Resource/Project Detail Page
+- Create KPI Cards for Resource Count, Project Count, and Onsite/Offsite Hours using 'Resource_Code', 'Project_Name', 'Onsite_Hours', and 'Offsite_Hours'.
+- Add a Clustered Bar Chart for Resources by Project using 'Project_Name' and Resource count.
+- Add a Stacked Column Chart for Onsite vs. Offsite by Region using 'Business_Area', 'Onsite_Hours', and 'Offsite_Hours'.
+- Add a Matrix for Resource/Project, Hours, FTE, Category, Status.
+- Add Slicers for Resource, Project, and Region.
 
 ## Q&A Page
-Create a Q&A visual using Gold.Go_Agg_Resource_Utilization, Gold.Go_Dim_Resource, and Gold.Go_Dim_Project. Add a text box with sample questions such as "Show utilization by business area for last month", "Top 10 projects by billed FTE", and "Bench count by region". Add buttons with pre-built queries. Train synonyms for FTE, Utilization, Bench, etc. Format with a large input box and clear instructions.
+- Create a Q&A visual using all available fields and measures from 'gold Go_Agg_Resource_Utilization', 'gold Go_Dim_Resource', and 'gold Go_Dim_Project'.
+- Add a Text box with sample questions: "Show utilization by region for last month", "Top 10 projects by billed hours", "Compare FTE this year vs last year", "Show unbilled hours by region".
+- Add Buttons for pre-built questions.
+- Train Q&A with synonyms: utilization, FTE, hours, billing, project, resource.
 
 ## AI Insights Page
-Add a Key Influencers visual with Utilization % as the target, explained by Region, Project, Category, and Status (fields from Gold.Go_Agg_Resource_Utilization, Gold.Go_Dim_Resource, Gold.Go_Dim_Project). Add a Decomposition Tree visual analyzing Utilization % by Business Area, Project, Resource, and Status. Place a context explanation at the top.
+- Create a Key Influencers visual to analyze drivers for 'Project_Utilization' and 'Billed_FTE'.
+- Add a Decomposition Tree visual to break down 'Project_Utilization' by Region, Category, Project, and Status.
 
 ## Anomaly Detection Page
-Add a line chart for Utilization % and Billed FTE over time (Gold.Go_Agg_Resource_Utilization[Calendar_Date]), enable anomaly detection, and highlight anomalies in red/orange. Add a card showing the total anomalies detected, and a table with anomaly details (date, metric, actual, expected, deviation). Use conditional formatting for anomalies.
-
-## Data Quality & Audit Page
-Add KPI cards for Data Quality Score (AVG(Gold.Go_Dim_Resource[data_quality_score])) and Error Count (COUNT(Gold.Go_Error_Data[Error_ID])). Add a table with error details (Gold.Go_Error_Data), a line chart for error trend over time (Gold.Go_Error_Data[Error_Date]), and a table for audit logs (Gold.Go_Process_Audit). Enable drill-through to error details and export to Excel.
+- Create a Line Chart for Utilization % over time with anomaly detection enabled using 'Calendar_Date' and 'Project_Utilization'.
+- Add a Card for total anomalies detected.
+- Add a Table for Date, Metric, Actual, Expected, Deviation %.
