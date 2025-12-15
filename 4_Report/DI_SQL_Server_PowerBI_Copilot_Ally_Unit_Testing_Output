@@ -1,246 +1,562 @@
-====================================================
-Author:        Insights Engineer
-Date:          
-Description:   Comprehensive Unit Test Cases & SQL Queries for Power BI Copilot Prompts - Resource Utilization & Workforce Management Dashboard
-====================================================
+Test Case List and SQL Queries for Power BI Copilot Prompts
 
-API Cost for this call: 0.03 USD
+---
 
-----------------------------------------------------
-1. Test Case List
-----------------------------------------------------
+## Index/Landing Page
 
-Test Case ID | Test Description | Expected Output
--------------|------------------|----------------
-TC01 | Validate Index Page Last Refresh Date Card: Card visual should display the latest End_Time from Gold.Go_Process_Audit. | Latest End_Time value from Gold.Go_Process_Audit
-TC02 | Validate Executive Summary KPI: Total FTE calculation (SUM of Gold.Go_Agg_Resource_Utilization[Total_FTE]). | Correct sum of Total_FTE for selected filters
-TC03 | Validate Executive Summary KPI: Billed FTE calculation (SUM of Gold.Go_Agg_Resource_Utilization[Billed_FTE]). | Correct sum of Billed_FTE for selected filters
-TC04 | Validate Executive Summary KPI: Utilization % (DIVIDE(SUM(Submitted_Hours), SUM(Available_Hours))). | Correct calculation of Utilization %
-TC05 | Validate Executive Summary KPI: Available Hours (SUM of Gold.Go_Agg_Resource_Utilization[Available_Hours]). | Correct sum of Available_Hours
-TC06 | Validate Executive Summary KPI: Bench Count (COUNTROWS where Gold.Go_Dim_Resource[Employee_Category]='Bench'). | Correct count of Bench resources
-TC07 | Validate Executive Summary KPI: Data Quality Score (AVG(Gold.Go_Dim_Resource[data_quality_score])). | Correct average data_quality_score
-TC08 | Validate Executive Summary Trend Visual: Utilization % over time. | Line chart shows correct Utilization % by Calendar_Date
-TC09 | Validate Executive Summary Area Chart: Billed FTE trend over time. | Area chart shows correct Billed_FTE by Calendar_Date
-TC10 | Validate Executive Summary Clustered Column: Utilization by Region. | Correct aggregation by Business_Area
-TC11 | Validate Executive Summary Donut: Status breakdown. | Correct count by Status
-TC12 | Validate Executive Summary Treemap: Category breakdown. | Correct count by Category
-TC13 | Validate Slicer Functionality: Date, Region, Status, Category. | Slicers filter visuals as expected
-TC14 | Validate Utilization Detail KPI: Onsite/Offsite split. | Correct SUM of Onsite_Hours and Offsite_Hours
-TC15 | Validate Utilization Detail Line/Column Chart: Utilization % and FTE by Month. | Correct values by Month_Year
-TC16 | Validate Utilization Detail Stacked Bar: Utilization by Business Area. | Correct aggregation by Business_Area
-TC17 | Validate Utilization Detail Waterfall: Variance to target utilization. | Correct calculation of variance
-TC18 | Validate Utilization Detail Scatter: Utilization vs. Billed FTE by Project. | Correct plotting by Project_Name
-TC19 | Validate Utilization Detail Table: Resource, Project, Utilization %, Billed FTE, Status. | Correct values and conditional formatting
-TC20 | Validate Billing Detail KPI: Approved Hours (SUM of Gold.Go_Fact_Timesheet_Approval[Total_Approved_Hours]). | Correct sum of Approved Hours
-TC21 | Validate Billing Detail KPI: Submitted Hours (SUM of Gold.Go_Agg_Resource_Utilization[Submitted_Hours]). | Correct sum of Submitted Hours
-TC22 | Validate Billing Detail KPI: Billing Rate (AVG(Gold.Go_Dim_Project[Bill_Rate])). | Correct average Bill_Rate
-TC23 | Validate Billing Detail Line Chart: Billed FTE trend over time. | Correct values by Calendar_Date
-TC24 | Validate Billing Detail Clustered Column: Billed FTE by Project/Client. | Correct aggregation by Project_Name/Client_Name
-TC25 | Validate Billing Detail Donut: Billing Type breakdown. | Correct count by Billing_Type
-TC26 | Validate Billing Detail Matrix: Billed FTE by Resource/Project. | Correct values by Resource/Project
-TC27 | Validate Billing Detail Table: Approval variance and error flags. | Correct Hours_Variance and approval_status
-TC28 | Validate Bench/AVA/ELT KPI: Bench/AVA/ELT Count. | Correct counts by Employee_Category
-TC29 | Validate Bench/AVA/ELT Stacked Bar: Bench/AVA by Business Area. | Correct aggregation by Business_Area
-TC30 | Validate Bench/AVA/ELT Treemap: Bench/AVA/ELT by Category. | Correct count by Category
-TC31 | Validate Bench/AVA/ELT Line Chart: Bench/AVA trend over time. | Correct values by Calendar_Date
-TC32 | Validate Bench/AVA/ELT Table: Resource, Status, Category, Portfolio Leader. | Correct values
-TC33 | Validate Project/Resource Detail KPI: Project Utilization. | Correct Project_Utilization value
-TC34 | Validate Project/Resource Detail KPI: Actual Hours. | Correct SUM of Actual_Hours
-TC35 | Validate Project/Resource Detail KPI: Available Hours. | Correct SUM of Available_Hours
-TC36 | Validate Project/Resource Detail Matrix: Resource/Project, Utilization %, Billed FTE, Status. | Correct values
-TC37 | Validate Project/Resource Detail Table: Timesheet entries, approval status, error flags. | Correct values
-TC38 | Validate Q&A Visual: Sample question 'Show utilization by business area for last month'. | Correct result for business area utilization last month
-TC39 | Validate Q&A Visual: Sample question 'Top 10 projects by billed FTE'. | Correct top 10 projects by billed FTE
-TC40 | Validate Q&A Visual: Sample question 'Bench count by region'. | Correct bench count by region
-TC41 | Validate Q&A Visual: Sample question 'Utilization trend for India'. | Correct utilization trend for India
-TC42 | Validate AI Insights: Key Influencers - Utilization % explained by Region, Project, Category, Status. | Correct influencer analysis
-TC43 | Validate AI Insights: Decomposition Tree - Utilization % by Business Area, Project, Resource, Status. | Correct drill-down structure
-TC44 | Validate Anomaly Detection: Line chart for Utilization % and Billed FTE over time with anomalies. | Correct anomaly detection and highlighting
-TC45 | Validate Anomaly Detection: Card for total anomalies detected. | Correct anomaly count
-TC46 | Validate Anomaly Detection: Table for anomaly details. | Correct anomaly details
-TC47 | Validate Data Quality & Audit KPI: Data Quality Score. | Correct average data_quality_score
-TC48 | Validate Data Quality & Audit KPI: Error Count. | Correct error count
-TC49 | Validate Data Quality & Audit Table: Error details. | Correct error details
-TC50 | Validate Data Quality & Audit Line Chart: Error trend over time. | Correct error trend
-TC51 | Validate Data Quality & Audit Table: Audit logs. | Correct audit log details
-TC52 | Validate Input Validation: Nulls, extreme values, empty datasets for all visuals. | Visuals handle edge cases gracefully
-TC53 | Validate Calculation Accuracy: All calculated fields (FTE, Utilization %, Variance, etc.). | Calculations match expected logic
-TC54 | Validate Visual Type Appropriateness: All visuals match specified types and data fields. | Visual types are correct
+### Test Cases
+- **Test ID:** IDX-001
+  - **Description:** Validate Card visual displays latest update_date from gold Go_Agg_Resource_Utilization
+  - **Expected Output:** Card shows the most recent date value
+- **Test ID:** IDX-002
+  - **Description:** Validate Button visuals for navigation exist and have correct styling
+  - **Expected Output:** Buttons present, rounded corners, icons
+- **Test ID:** IDX-003
+  - **Description:** Validate Table visual lists all key KPIs and color codes
+  - **Expected Output:** Table contains all KPIs and correct color codes
+- **Test ID:** IDX-004
+  - **Description:** Validate dashboard title and description are present and styled
+  - **Expected Output:** Text box with correct font size and content
+- **Test ID:** IDX-005
+  - **Description:** Validate contact/data owner info is present
+  - **Expected Output:** Text box with contact info
 
-----------------------------------------------------
-2. SQL Queries to Validate Each Test Case
-----------------------------------------------------
+### SQL Queries
+- **IDX-001:**
+  ```sql
+  SELECT MAX(update_date) AS Last_Refresh_Date FROM [gold Go_Agg_Resource_Utilization];
+  ```
+- **IDX-003:**
+  -- Example for KPIs
+  ```sql
+  SELECT 'Total Utilization %' AS KPI, '#43A047' AS Color UNION ALL
+  SELECT 'Total FTE', '#00B386' UNION ALL
+  SELECT 'Billed FTE', '#F9A825' UNION ALL
+  SELECT 'Available Hours', '#0047AB' UNION ALL
+  SELECT 'Actual Hours', '#E53935' UNION ALL
+  SELECT 'Project Utilization', '#3949AB';
+  ```
 
--- TC01: Last Refresh Date Card
-SELECT MAX([End_Time]) AS Last_Refresh_Date FROM Gold.Go_Process_Audit;
+---
 
--- TC02: Total FTE
-SELECT SUM([Total_FTE]) AS Total_FTE FROM Gold.Go_Agg_Resource_Utilization;
+## Executive Summary Page
 
--- TC03: Billed FTE
-SELECT SUM([Billed_FTE]) AS Billed_FTE FROM Gold.Go_Agg_Resource_Utilization;
+### Test Cases
+- **Test ID:** EXE-001
+  - **Description:** Validate KPI cards display correct values for each metric
+  - **Expected Output:** Each card shows accurate value from gold Go_Agg_Resource_Utilization
+- **Test ID:** EXE-002
+  - **Description:** Validate Line Chart shows Utilization % trend over time
+  - **Expected Output:** Line chart with correct time series data
+- **Test ID:** EXE-003
+  - **Description:** Validate Area Chart shows Billed vs. Unbilled FTE trend
+  - **Expected Output:** Area chart with correct series for Billed and Unbilled FTE
+- **Test ID:** EXE-004
+  - **Description:** Validate Clustered Column Chart for Utilization by Region
+  - **Expected Output:** Chart with correct region breakdown
+- **Test ID:** EXE-005
+  - **Description:** Validate Donut Chart for FTE by Category
+  - **Expected Output:** Donut chart with correct category breakdown
+- **Test ID:** EXE-006
+  - **Description:** Validate Treemap for Hours by Project/Client
+  - **Expected Output:** Treemap with correct values
+- **Test ID:** EXE-007
+  - **Description:** Validate slicers filter visuals correctly
+  - **Expected Output:** All visuals respond to slicer selections
 
--- TC04: Utilization %
-SELECT CASE WHEN SUM([Available_Hours]) = 0 THEN NULL ELSE CAST(SUM([Submitted_Hours]) AS FLOAT)/SUM([Available_Hours]) END AS Utilization_Percent FROM Gold.Go_Agg_Resource_Utilization;
+### SQL Queries
+- **EXE-001:**
+  ```sql
+  SELECT SUM(Project_Utilization) AS Total_Utilization_Pct,
+         SUM(Total_FTE) AS Total_FTE,
+         SUM(Billed_FTE) AS Billed_FTE,
+         SUM(Available_Hours) AS Available_Hours,
+         SUM(Actual_Hours) AS Actual_Hours,
+         SUM(Project_Utilization) AS Project_Utilization
+  FROM [gold Go_Agg_Resource_Utilization];
+  ```
+- **EXE-002:**
+  ```sql
+  SELECT Calendar_Date, AVG(Project_Utilization) AS Utilization_Pct
+  FROM [gold Go_Agg_Resource_Utilization]
+  GROUP BY Calendar_Date
+  ORDER BY Calendar_Date;
+  ```
+- **EXE-003:**
+  ```sql
+  SELECT Calendar_Date, SUM(Billed_FTE) AS Billed_FTE,
+         SUM(Total_FTE) - SUM(Billed_FTE) AS Unbilled_FTE
+  FROM [gold Go_Agg_Resource_Utilization]
+  GROUP BY Calendar_Date
+  ORDER BY Calendar_Date;
+  ```
+- **EXE-004:**
+  ```sql
+  SELECT r.Business_Area, AVG(a.Project_Utilization) AS Utilization_Pct
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  GROUP BY r.Business_Area;
+  ```
+- **EXE-005:**
+  ```sql
+  SELECT p.Category, SUM(a.Total_FTE) AS Total_FTE
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  GROUP BY p.Category;
+  ```
+- **EXE-006:**
+  ```sql
+  SELECT p.Project_Name, p.Client_Name, SUM(a.Actual_Hours) AS Actual_Hours
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  GROUP BY p.Project_Name, p.Client_Name;
+  ```
 
--- TC05: Available Hours
-SELECT SUM([Available_Hours]) AS Available_Hours FROM Gold.Go_Agg_Resource_Utilization;
+---
 
--- TC06: Bench Count
-SELECT COUNT(*) AS Bench_Count FROM Gold.Go_Dim_Resource WHERE [Employee_Category] = 'Bench';
+## Utilization Detail Page
 
--- TC07: Data Quality Score
-SELECT AVG([data_quality_score]) AS Avg_Data_Quality_Score FROM Gold.Go_Dim_Resource;
+### Test Cases
+- **Test ID:** UTL-001
+  - **Description:** Validate KPI cards for Utilization %, FTE, Billed FTE, Project Utilization
+  - **Expected Output:** Accurate values for each KPI
+- **Test ID:** UTL-002
+  - **Description:** Validate Line and Clustered Column Chart for Utilization % and FTE over time
+  - **Expected Output:** Correct time series data
+- **Test ID:** UTL-003
+  - **Description:** Validate Stacked Bar Chart for Utilization by Category/Status
+  - **Expected Output:** Chart with correct breakdown
+- **Test ID:** UTL-004
+  - **Description:** Validate Histogram for Utilization % distribution
+  - **Expected Output:** Distribution matches data
+- **Test ID:** UTL-005
+  - **Description:** Validate Filled Map for Utilization by Region
+  - **Expected Output:** Map shows correct values
+- **Test ID:** UTL-006
+  - **Description:** Validate Table for Top 10/Bottom 10 Projects by Utilization
+  - **Expected Output:** Table lists correct projects
+- **Test ID:** UTL-007
+  - **Description:** Validate Matrix for Resource, Project, Utilization %, FTE, Hours, Category, Status
+  - **Expected Output:** Matrix matches data
+- **Test ID:** UTL-008
+  - **Description:** Validate slicers filter visuals correctly
+  - **Expected Output:** All visuals respond to slicers
 
--- TC08: Utilization % Over Time
-SELECT [Calendar_Date], CASE WHEN SUM([Available_Hours]) = 0 THEN NULL ELSE CAST(SUM([Submitted_Hours]) AS FLOAT)/SUM([Available_Hours]) END AS Utilization_Percent FROM Gold.Go_Agg_Resource_Utilization GROUP BY [Calendar_Date] ORDER BY [Calendar_Date];
+### SQL Queries
+- **UTL-001:**
+  ```sql
+  SELECT AVG(Project_Utilization) AS Utilization_Pct,
+         SUM(Total_FTE) AS Total_FTE,
+         SUM(Billed_FTE) AS Billed_FTE,
+         SUM(Project_Utilization) AS Project_Utilization
+  FROM [gold Go_Agg_Resource_Utilization];
+  ```
+- **UTL-002:**
+  ```sql
+  SELECT Calendar_Date, AVG(Project_Utilization) AS Utilization_Pct, SUM(Total_FTE) AS Total_FTE
+  FROM [gold Go_Agg_Resource_Utilization]
+  GROUP BY Calendar_Date
+  ORDER BY Calendar_Date;
+  ```
+- **UTL-003:**
+  ```sql
+  SELECT p.Category, p.Status, AVG(a.Project_Utilization) AS Utilization_Pct
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  GROUP BY p.Category, p.Status;
+  ```
+- **UTL-004:**
+  ```sql
+  SELECT Project_Utilization FROM [gold Go_Agg_Resource_Utilization];
+  ```
+- **UTL-005:**
+  ```sql
+  SELECT r.Business_Area, AVG(a.Project_Utilization) AS Utilization_Pct
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  GROUP BY r.Business_Area;
+  ```
+- **UTL-006:**
+  ```sql
+  SELECT TOP 10 p.Project_Name, AVG(a.Project_Utilization) AS Utilization_Pct
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  GROUP BY p.Project_Name
+  ORDER BY Utilization_Pct DESC;
+  SELECT TOP 10 p.Project_Name, AVG(a.Project_Utilization) AS Utilization_Pct
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  GROUP BY p.Project_Name
+  ORDER BY Utilization_Pct ASC;
+  ```
+- **UTL-007:**
+  ```sql
+  SELECT r.Resource_Code, p.Project_Name, a.Project_Utilization, a.Total_FTE, a.Actual_Hours, p.Category, p.Status
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID;
+  ```
 
--- TC09: Billed FTE Trend
-SELECT [Calendar_Date], SUM([Billed_FTE]) AS Billed_FTE FROM Gold.Go_Agg_Resource_Utilization GROUP BY [Calendar_Date] ORDER BY [Calendar_Date];
+---
 
--- TC10: Utilization by Region
-SELECT r.[Business_Area], SUM(a.[Submitted_Hours]) AS Utilization_Hours FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Resource r ON a.[Resource_Code] = r.[Resource_Code] GROUP BY r.[Business_Area];
+## FTE/Allocation Detail Page
 
--- TC11: Status Breakdown
-SELECT [Status], COUNT(*) AS Status_Count FROM Gold.Go_Dim_Resource GROUP BY [Status];
+### Test Cases
+- **Test ID:** FTE-001
+  - **Description:** Validate KPI cards for Total FTE, Weighted FTE, Allocation Ratio
+  - **Expected Output:** Accurate values for each KPI
+- **Test ID:** FTE-002
+  - **Description:** Validate Waterfall Chart for FTE allocation changes over time
+  - **Expected Output:** Chart shows correct FTE changes
+- **Test ID:** FTE-003
+  - **Description:** Validate Clustered Bar Chart for FTE by Project/Resource
+  - **Expected Output:** Chart shows correct breakdown
+- **Test ID:** FTE-004
+  - **Description:** Validate Matrix for Resource allocation across projects
+  - **Expected Output:** Matrix matches weighted FTE
+- **Test ID:** FTE-005
+  - **Description:** Validate Scatter Chart for Allocation Ratio vs. Utilization
+  - **Expected Output:** Chart shows correct relationship
+- **Test ID:** FTE-006
+  - **Description:** Validate slicers filter visuals correctly
+  - **Expected Output:** All visuals respond to slicers
 
--- TC12: Category Breakdown
-SELECT [Category], COUNT(*) AS Category_Count FROM Gold.Go_Dim_Project GROUP BY [Category];
+### SQL Queries
+- **FTE-001:**
+  ```sql
+  SELECT SUM(Total_FTE) AS Total_FTE,
+         SUM(Weighted_FTE) AS Weighted_FTE,
+         AVG(Allocation_Ratio) AS Allocation_Ratio
+  FROM (
+    SELECT Resource_Code,
+           SUM(Submitted_Hours) / NULLIF(SUM(Total_Hours), 0) AS Weighted_FTE,
+           SUM(Submitted_Hours) / NULLIF(SUM(Total_Hours), 0) AS Allocation_Ratio
+    FROM [gold Go_Agg_Resource_Utilization]
+    GROUP BY Resource_Code
+  ) sub;
+  ```
+- **FTE-002:**
+  ```sql
+  SELECT Calendar_Date, SUM(Total_FTE) AS Total_FTE
+  FROM [gold Go_Agg_Resource_Utilization]
+  GROUP BY Calendar_Date
+  ORDER BY Calendar_Date;
+  ```
+- **FTE-003:**
+  ```sql
+  SELECT p.Project_Name, r.Resource_Code, SUM(a.Total_FTE) AS Total_FTE
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  GROUP BY p.Project_Name, r.Resource_Code;
+  ```
+- **FTE-004:**
+  ```sql
+  SELECT r.Resource_Code, p.Project_Name,
+         SUM(a.Submitted_Hours) / NULLIF(SUM(a.Total_Hours), 0) AS Weighted_FTE
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  GROUP BY r.Resource_Code, p.Project_Name;
+  ```
+- **FTE-005:**
+  ```sql
+  SELECT Allocation_Ratio, Project_Utilization
+  FROM (
+    SELECT Resource_Code,
+           SUM(Submitted_Hours) / NULLIF(SUM(Total_Hours), 0) AS Allocation_Ratio,
+           AVG(Project_Utilization) AS Project_Utilization
+    FROM [gold Go_Agg_Resource_Utilization]
+    GROUP BY Resource_Code
+  ) sub;
+  ```
 
--- TC13: Slicer Functionality (Example: Date)
-SELECT * FROM Gold.Go_Agg_Resource_Utilization WHERE [Calendar_Date] BETWEEN '2024-01-01' AND '2024-01-31';
+---
 
--- TC14: Onsite/Offsite Split
-SELECT SUM([Onsite_Hours]) AS Onsite_Hours, SUM([Offsite_Hours]) AS Offsite_Hours FROM Gold.Go_Agg_Resource_Utilization;
+## Billing/Category Detail Page
 
--- TC15: Utilization % and FTE by Month
-SELECT d.[Month_Year], SUM(a.[Total_FTE]) AS Total_FTE, CASE WHEN SUM(a.[Available_Hours]) = 0 THEN NULL ELSE CAST(SUM(a.[Submitted_Hours]) AS FLOAT)/SUM(a.[Available_Hours]) END AS Utilization_Percent FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Date d ON a.[Calendar_Date] = d.[Calendar_Date] GROUP BY d.[Month_Year] ORDER BY d.[Month_Year];
+### Test Cases
+- **Test ID:** BIL-001
+  - **Description:** Validate KPI cards for Billed Hours, Unbilled Hours, % Billable
+  - **Expected Output:** Accurate values for each KPI
+- **Test ID:** BIL-002
+  - **Description:** Validate Area Chart for Billed vs. Unbilled over time
+  - **Expected Output:** Chart shows correct trend
+- **Test ID:** BIL-003
+  - **Description:** Validate Donut Chart for Hours by Category
+  - **Expected Output:** Donut chart with correct breakdown
+- **Test ID:** BIL-004
+  - **Description:** Validate Treemap for Hours by Status
+  - **Expected Output:** Treemap with correct breakdown
+- **Test ID:** BIL-005
+  - **Description:** Validate Table for Project/Resource, Billed/Unbilled, Category, Status
+  - **Expected Output:** Table matches data
+- **Test ID:** BIL-006
+  - **Description:** Validate slicers filter visuals correctly
+  - **Expected Output:** All visuals respond to slicers
 
--- TC16: Utilization by Business Area
-SELECT r.[Business_Area], SUM(a.[Submitted_Hours]) AS Utilization_Hours FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Resource r ON a.[Resource_Code] = r.[Resource_Code] GROUP BY r.[Business_Area];
+### SQL Queries
+- **BIL-001:**
+  ```sql
+  SELECT SUM(Approved_Hours) AS Billed_Hours,
+         SUM(Total_Hours) - SUM(Approved_Hours) AS Unbilled_Hours,
+         CASE WHEN SUM(Total_Hours) = 0 THEN 0 ELSE SUM(Approved_Hours) * 100.0 / SUM(Total_Hours) END AS Percent_Billable
+  FROM [gold Go_Agg_Resource_Utilization];
+  ```
+- **BIL-002:**
+  ```sql
+  SELECT Calendar_Date, SUM(Approved_Hours) AS Billed_Hours,
+         SUM(Total_Hours) - SUM(Approved_Hours) AS Unbilled_Hours
+  FROM [gold Go_Agg_Resource_Utilization]
+  GROUP BY Calendar_Date
+  ORDER BY Calendar_Date;
+  ```
+- **BIL-003:**
+  ```sql
+  SELECT p.Category, SUM(a.Actual_Hours) AS Actual_Hours
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  GROUP BY p.Category;
+  ```
+- **BIL-004:**
+  ```sql
+  SELECT p.Status, SUM(a.Actual_Hours) AS Actual_Hours
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  GROUP BY p.Status;
+  ```
+- **BIL-005:**
+  ```sql
+  SELECT p.Project_Name, r.Resource_Code, SUM(a.Approved_Hours) AS Billed_Hours,
+         SUM(a.Total_Hours) - SUM(a.Approved_Hours) AS Unbilled_Hours,
+         p.Category, p.Status
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  GROUP BY p.Project_Name, r.Resource_Code, p.Category, p.Status;
+  ```
 
--- TC17: Variance to Target Utilization
--- Assume Target Utilization % is provided as a parameter, e.g., @TargetUtilization
-SELECT CASE WHEN SUM([Available_Hours]) = 0 THEN NULL ELSE CAST(SUM([Submitted_Hours]) AS FLOAT)/SUM([Available_Hours]) END - @TargetUtilization AS Variance_To_Target FROM Gold.Go_Agg_Resource_Utilization;
+---
 
--- TC18: Utilization vs. Billed FTE by Project
-SELECT [Project_Name], CASE WHEN SUM([Available_Hours]) = 0 THEN NULL ELSE CAST(SUM([Submitted_Hours]) AS FLOAT)/SUM([Available_Hours]) END AS Utilization_Percent, SUM([Billed_FTE]) AS Billed_FTE FROM Gold.Go_Agg_Resource_Utilization GROUP BY [Project_Name];
+## Resource/Project Detail Page
 
--- TC19: Resource/Project Utilization Table
-SELECT a.[Resource_Code], a.[Project_Name], CASE WHEN a.[Available_Hours] = 0 THEN NULL ELSE CAST(a.[Submitted_Hours] AS FLOAT)/a.[Available_Hours] END AS Utilization_Percent, a.[Billed_FTE], r.[Status] FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Resource r ON a.[Resource_Code] = r.[Resource_Code];
+### Test Cases
+- **Test ID:** RPD-001
+  - **Description:** Validate KPI cards for Resource Count, Project Count, Onsite/Offsite Hours
+  - **Expected Output:** Accurate values for each KPI
+- **Test ID:** RPD-002
+  - **Description:** Validate Clustered Bar Chart for Resources by Project
+  - **Expected Output:** Chart shows correct breakdown
+- **Test ID:** RPD-003
+  - **Description:** Validate Stacked Column Chart for Onsite vs. Offsite by Region
+  - **Expected Output:** Chart shows correct breakdown
+- **Test ID:** RPD-004
+  - **Description:** Validate Matrix for Resource/Project, Hours, FTE, Category, Status
+  - **Expected Output:** Matrix matches data
+- **Test ID:** RPD-005
+  - **Description:** Validate slicers filter visuals correctly
+  - **Expected Output:** All visuals respond to slicers
 
--- TC20: Approved Hours
-SELECT SUM([Total_Approved_Hours]) AS Approved_Hours FROM Gold.Go_Fact_Timesheet_Approval;
+### SQL Queries
+- **RPD-001:**
+  ```sql
+  SELECT COUNT(DISTINCT r.Resource_Code) AS Resource_Count,
+         COUNT(DISTINCT p.Project_Name) AS Project_Count,
+         SUM(a.Onsite_Hours) AS Onsite_Hours,
+         SUM(a.Offsite_Hours) AS Offsite_Hours
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID;
+  ```
+- **RPD-002:**
+  ```sql
+  SELECT p.Project_Name, COUNT(DISTINCT r.Resource_Code) AS Resource_Count
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  GROUP BY p.Project_Name;
+  ```
+- **RPD-003:**
+  ```sql
+  SELECT r.Business_Area, SUM(a.Onsite_Hours) AS Onsite_Hours, SUM(a.Offsite_Hours) AS Offsite_Hours
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  GROUP BY r.Business_Area;
+  ```
+- **RPD-004:**
+  ```sql
+  SELECT r.Resource_Code, p.Project_Name, a.Actual_Hours, a.Total_FTE, p.Category, p.Status
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID;
+  ```
 
--- TC21: Submitted Hours
-SELECT SUM([Submitted_Hours]) AS Submitted_Hours FROM Gold.Go_Agg_Resource_Utilization;
+---
 
--- TC22: Billing Rate
-SELECT AVG([Bill_Rate]) AS Avg_Bill_Rate FROM Gold.Go_Dim_Project;
+## Q&A Page
 
--- TC23: Billed FTE Trend
-SELECT a.[Calendar_Date], SUM(a.[Billed_FTE]) AS Billed_FTE FROM Gold.Go_Agg_Resource_Utilization a GROUP BY a.[Calendar_Date] ORDER BY a.[Calendar_Date];
+### Test Cases
+- **Test ID:** QNA-001
+  - **Description:** Validate Q&A visual responds to sample questions
+  - **Expected Output:** Visual returns correct results for sample queries
+- **Test ID:** QNA-002
+  - **Description:** Validate synonym training works for utilization, FTE, hours, billing, project, resource
+  - **Expected Output:** Q&A recognizes synonyms
 
--- TC24: Billed FTE by Project/Client
-SELECT p.[Project_Name], p.[Client_Name], SUM(a.[Billed_FTE]) AS Billed_FTE FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Project p ON a.[Project_Name] = p.[Project_Name] GROUP BY p.[Project_Name], p.[Client_Name];
+### SQL Queries
+- **QNA-001:**
+  -- Example: Show utilization by region for last month
+  ```sql
+  SELECT r.Business_Area, AVG(a.Project_Utilization) AS Utilization_Pct
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  WHERE a.Calendar_Date >= DATEADD(month, -1, GETDATE())
+  GROUP BY r.Business_Area;
+  ```
+- **QNA-002:**
+  -- Example: Top 10 projects by billed hours
+  ```sql
+  SELECT TOP 10 p.Project_Name, SUM(a.Approved_Hours) AS Billed_Hours
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  GROUP BY p.Project_Name
+  ORDER BY Billed_Hours DESC;
+  ```
 
--- TC25: Billing Type Breakdown
-SELECT [Billing_Type], COUNT(*) AS Billing_Type_Count FROM Gold.Go_Dim_Project GROUP BY [Billing_Type];
+---
 
--- TC26: Billed FTE by Resource/Project
-SELECT a.[Resource_Code], a.[Project_Name], SUM(a.[Billed_FTE]) AS Billed_FTE FROM Gold.Go_Agg_Resource_Utilization a GROUP BY a.[Resource_Code], a.[Project_Name];
+## AI Insights Page
 
--- TC27: Approval Variance and Error Flags
-SELECT [Hours_Variance], [approval_status] FROM Gold.Go_Fact_Timesheet_Approval;
+### Test Cases
+- **Test ID:** AI-001
+  - **Description:** Validate Key Influencers visual identifies correct drivers for Project_Utilization and Billed_FTE
+  - **Expected Output:** Visual lists top drivers
+- **Test ID:** AI-002
+  - **Description:** Validate Decomposition Tree breaks down Project_Utilization by Region, Category, Project, Status
+  - **Expected Output:** Tree shows correct breakdowns
 
--- TC28: Bench/AVA/ELT Count
-SELECT [Employee_Category], COUNT(*) AS Category_Count FROM Gold.Go_Dim_Resource WHERE [Employee_Category] IN ('Bench','AVA','ELT') GROUP BY [Employee_Category];
+### SQL Queries
+- **AI-001:**
+  -- Example: Correlation analysis for drivers
+  ```sql
+  SELECT p.Category, r.Business_Area, AVG(a.Project_Utilization) AS Avg_Utilization, AVG(a.Billed_FTE) AS Avg_Billed_FTE
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  GROUP BY p.Category, r.Business_Area;
+  ```
+- **AI-002:**
+  -- Example: Decomposition by multiple dimensions
+  ```sql
+  SELECT r.Business_Area, p.Category, p.Project_Name, p.Status, AVG(a.Project_Utilization) AS Utilization_Pct
+  FROM [gold Go_Agg_Resource_Utilization] a
+  JOIN [gold Go_Dim_Project] p ON a.Project_ID = p.Project_ID
+  JOIN [gold Go_Dim_Resource] r ON a.Resource_Code = r.Resource_Code
+  GROUP BY r.Business_Area, p.Category, p.Project_Name, p.Status;
+  ```
 
--- TC29: Bench/AVA by Business Area
-SELECT [Business_Area], [Employee_Category], COUNT(*) AS Category_Count FROM Gold.Go_Dim_Resource WHERE [Employee_Category] IN ('Bench','AVA') GROUP BY [Business_Area], [Employee_Category];
+---
 
--- TC30: Bench/AVA/ELT by Category
-SELECT p.[Category], r.[Employee_Category], COUNT(*) AS Category_Count FROM Gold.Go_Dim_Resource r INNER JOIN Gold.Go_Dim_Project p ON r.[Project_Assignment] = p.[Project_Name] WHERE r.[Employee_Category] IN ('Bench','AVA','ELT') GROUP BY p.[Category], r.[Employee_Category];
+## Anomaly Detection Page
 
--- TC31: Bench/AVA Trend Over Time
-SELECT d.[Calendar_Date], r.[Employee_Category], COUNT(*) AS Category_Count FROM Gold.Go_Dim_Resource r INNER JOIN Gold.Go_Dim_Date d ON r.[Start_Date] <= d.[Calendar_Date] AND (r.[Termination_Date] IS NULL OR r.[Termination_Date] >= d.[Calendar_Date]) WHERE r.[Employee_Category] IN ('Bench','AVA') GROUP BY d.[Calendar_Date], r.[Employee_Category] ORDER BY d.[Calendar_Date];
+### Test Cases
+- **Test ID:** ANM-001
+  - **Description:** Validate Line Chart for Utilization % over time with anomaly detection
+  - **Expected Output:** Chart highlights anomalies
+- **Test ID:** ANM-002
+  - **Description:** Validate Card for total anomalies detected
+  - **Expected Output:** Card shows correct count
+- **Test ID:** ANM-003
+  - **Description:** Validate Table for Date, Metric, Actual, Expected, Deviation %
+  - **Expected Output:** Table lists correct anomaly details
 
--- TC32: Bench/AVA/ELT Table
-SELECT [Resource_Code], [Status], [Employee_Category], [Portfolio_Leader] FROM Gold.Go_Dim_Resource WHERE [Employee_Category] IN ('Bench','AVA','ELT');
+### SQL Queries
+- **ANM-001:**
+  -- Example: Identify anomalies (simple z-score method)
+  ```sql
+  WITH UtilizationStats AS (
+    SELECT AVG(Project_Utilization) AS MeanUtil, STDEV(Project_Utilization) AS StdDevUtil
+    FROM [gold Go_Agg_Resource_Utilization]
+  )
+  SELECT a.Calendar_Date, a.Project_Utilization,
+         s.MeanUtil, s.StdDevUtil,
+         CASE WHEN ABS(a.Project_Utilization - s.MeanUtil) > 2 * s.StdDevUtil THEN 1 ELSE 0 END AS Is_Anomaly
+  FROM [gold Go_Agg_Resource_Utilization] a
+  CROSS JOIN UtilizationStats s;
+  ```
+- **ANM-002:**
+  -- Count anomalies
+  ```sql
+  WITH UtilizationStats AS (
+    SELECT AVG(Project_Utilization) AS MeanUtil, STDEV(Project_Utilization) AS StdDevUtil
+    FROM [gold Go_Agg_Resource_Utilization]
+  )
+  SELECT COUNT(*) AS Total_Anomalies
+  FROM (
+    SELECT a.Project_Utilization, s.MeanUtil, s.StdDevUtil
+    FROM [gold Go_Agg_Resource_Utilization] a
+    CROSS JOIN UtilizationStats s
+    WHERE ABS(a.Project_Utilization - s.MeanUtil) > 2 * s.StdDevUtil
+  ) sub;
+  ```
+- **ANM-003:**
+  -- Table of anomalies
+  ```sql
+  WITH UtilizationStats AS (
+    SELECT AVG(Project_Utilization) AS MeanUtil, STDEV(Project_Utilization) AS StdDevUtil
+    FROM [gold Go_Agg_Resource_Utilization]
+  )
+  SELECT a.Calendar_Date, 'Project_Utilization' AS Metric, a.Project_Utilization AS Actual,
+         s.MeanUtil AS Expected, (a.Project_Utilization - s.MeanUtil) * 100.0 / NULLIF(s.MeanUtil, 0) AS Deviation_Pct
+  FROM [gold Go_Agg_Resource_Utilization] a
+  CROSS JOIN UtilizationStats s
+  WHERE ABS(a.Project_Utilization - s.MeanUtil) > 2 * s.StdDevUtil;
+  ```
 
--- TC33: Project Utilization
-SELECT [Project_Utilization] FROM Gold.Go_Agg_Resource_Utilization;
+---
 
--- TC34: Actual Hours
-SELECT SUM([Actual_Hours]) AS Actual_Hours FROM Gold.Go_Agg_Resource_Utilization;
+## Edge Cases & Input Validation (applies to all pages)
+- **Test ID:** VAL-001
+  - **Description:** Validate handling of null values in key fields
+  - **Expected Output:** Visuals display 0 or 'N/A' for nulls
+- **Test ID:** VAL-002
+  - **Description:** Validate handling of extreme values (outliers)
+  - **Expected Output:** Visuals do not break, anomalies highlighted
+- **Test ID:** VAL-003
+  - **Description:** Validate empty dataset scenario
+  - **Expected Output:** Visuals show 'No data available' message
+- **Test ID:** VAL-004
+  - **Description:** Validate correct data types for all fields
+  - **Expected Output:** No type mismatch errors
 
--- TC35: Available Hours
-SELECT SUM([Available_Hours]) AS Available_Hours FROM Gold.Go_Agg_Resource_Utilization;
+### SQL Queries
+- **VAL-001:**
+  ```sql
+  SELECT COUNT(*) AS NullCount
+  FROM [gold Go_Agg_Resource_Utilization]
+  WHERE Project_Utilization IS NULL OR Total_FTE IS NULL OR Billed_FTE IS NULL;
+  ```
+- **VAL-002:**
+  -- Outlier detection (see ANM-001)
+- **VAL-003:**
+  ```sql
+  SELECT CASE WHEN COUNT(*) = 0 THEN 'No data available' ELSE 'Data present' END AS DataStatus
+  FROM [gold Go_Agg_Resource_Utilization];
+  ```
+- **VAL-004:**
+  -- Data type validation (pseudo-SQL, actual validation in ETL or Power BI model)
+  ```sql
+  SELECT TOP 1
+    SQL_VARIANT_PROPERTY(Project_Utilization, 'BaseType') AS UtilizationType,
+    SQL_VARIANT_PROPERTY(Total_FTE, 'BaseType') AS FTEType
+  FROM [gold Go_Agg_Resource_Utilization];
+  ```
 
--- TC36: Project/Resource Matrix
-SELECT a.[Resource_Code], a.[Project_Name], CASE WHEN a.[Available_Hours] = 0 THEN NULL ELSE CAST(a.[Submitted_Hours] AS FLOAT)/a.[Available_Hours] END AS Utilization_Percent, a.[Billed_FTE], r.[Status] FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Resource r ON a.[Resource_Code] = r.[Resource_Code];
+---
 
--- TC37: Timesheet Entries, Approval Status, Error Flags
-SELECT e.[Timesheet_Entry_ID], e.[Resource_Code], e.[Timesheet_Date], a.[approval_status], err.[Error_Type], err.[Error_Description] FROM Gold.Go_Fact_Timesheet_Entry e LEFT JOIN Gold.Go_Fact_Timesheet_Approval a ON e.[Resource_Code]=a.[Resource_Code] AND e.[Timesheet_Date]=a.[Timesheet_Date] LEFT JOIN Gold.Go_Error_Data err ON err.[Record_Identifier]=CAST(e.[Timesheet_Entry_ID] AS VARCHAR);
+## Cost Consumed by API for This Call
+- API cost: 1 file write operation (GitHub File Writer Tool)
 
--- TC38: Q&A - Utilization by Business Area Last Month
-SELECT r.[Business_Area], SUM(a.[Submitted_Hours]) AS Utilization_Hours FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Resource r ON a.[Resource_Code]=r.[Resource_Code] WHERE a.[Calendar_Date] BETWEEN DATEADD(MONTH,-1,GETDATE()) AND GETDATE() GROUP BY r.[Business_Area];
+---
 
--- TC39: Q&A - Top 10 Projects by Billed FTE
-SELECT TOP 10 [Project_Name], SUM([Billed_FTE]) AS Billed_FTE FROM Gold.Go_Agg_Resource_Utilization GROUP BY [Project_Name] ORDER BY Billed_FTE DESC;
-
--- TC40: Q&A - Bench Count by Region
-SELECT r.[Requirement_Region], COUNT(*) AS Bench_Count FROM Gold.Go_Dim_Resource r WHERE r.[Employee_Category]='Bench' GROUP BY r.[Requirement_Region];
-
--- TC41: Q&A - Utilization Trend for India
-SELECT a.[Calendar_Date], CASE WHEN SUM(a.[Available_Hours])=0 THEN NULL ELSE CAST(SUM(a.[Submitted_Hours]) AS FLOAT)/SUM(a.[Available_Hours]) END AS Utilization_Percent FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Resource r ON a.[Resource_Code]=r.[Resource_Code] WHERE r.[Requirement_Region]='India' GROUP BY a.[Calendar_Date] ORDER BY a.[Calendar_Date];
-
--- TC42: AI Insights - Key Influencers
--- (Sample: Utilization % by Region, Project, Category, Status)
-SELECT r.[Business_Area], p.[Project_Name], p.[Category], r.[Status], CASE WHEN SUM(a.[Available_Hours])=0 THEN NULL ELSE CAST(SUM(a.[Submitted_Hours]) AS FLOAT)/SUM(a.[Available_Hours]) END AS Utilization_Percent FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Resource r ON a.[Resource_Code]=r.[Resource_Code] INNER JOIN Gold.Go_Dim_Project p ON a.[Project_Name]=p.[Project_Name] GROUP BY r.[Business_Area], p.[Project_Name], p.[Category], r.[Status];
-
--- TC43: AI Insights - Decomposition Tree
-SELECT r.[Business_Area], p.[Project_Name], a.[Resource_Code], r.[Status], CASE WHEN SUM(a.[Available_Hours])=0 THEN NULL ELSE CAST(SUM(a.[Submitted_Hours]) AS FLOAT)/SUM(a.[Available_Hours]) END AS Utilization_Percent FROM Gold.Go_Agg_Resource_Utilization a INNER JOIN Gold.Go_Dim_Resource r ON a.[Resource_Code]=r.[Resource_Code] INNER JOIN Gold.Go_Dim_Project p ON a.[Project_Name]=p.[Project_Name] GROUP BY r.[Business_Area], p.[Project_Name], a.[Resource_Code], r.[Status];
-
--- TC44: Anomaly Detection - Utilization % and Billed FTE Over Time
--- (Detect outliers using statistical methods; here, just return the values)
-SELECT [Calendar_Date], CASE WHEN SUM([Available_Hours])=0 THEN NULL ELSE CAST(SUM([Submitted_Hours]) AS FLOAT)/SUM([Available_Hours]) END AS Utilization_Percent, SUM([Billed_FTE]) AS Billed_FTE FROM Gold.Go_Agg_Resource_Utilization GROUP BY [Calendar_Date] ORDER BY [Calendar_Date];
-
--- TC45: Total Anomalies Detected
--- (Assume anomalies flagged in a separate table or by deviation threshold)
-SELECT COUNT(*) AS Total_Anomalies FROM Gold.Go_Error_Data WHERE [Error_Category]='Anomaly';
-
--- TC46: Anomaly Details Table
-SELECT [Error_Date], [Error_Type], [Field_Name], [Field_Value], [Expected_Value], [Business_Rule], [Severity_Level] FROM Gold.Go_Error_Data WHERE [Error_Category]='Anomaly';
-
--- TC47: Data Quality Score
-SELECT AVG([data_quality_score]) AS Avg_Data_Quality_Score FROM Gold.Go_Dim_Resource;
-
--- TC48: Error Count
-SELECT COUNT([Error_ID]) AS Error_Count FROM Gold.Go_Error_Data;
-
--- TC49: Error Details Table
-SELECT * FROM Gold.Go_Error_Data;
-
--- TC50: Error Trend Over Time
-SELECT [Error_Date], COUNT([Error_ID]) AS Error_Count FROM Gold.Go_Error_Data GROUP BY [Error_Date] ORDER BY [Error_Date];
-
--- TC51: Audit Logs Table
-SELECT * FROM Gold.Go_Process_Audit;
-
--- TC52: Input Validation (Nulls/Extreme/Empty)
-SELECT COUNT(*) AS Null_Submitted_Hours FROM Gold.Go_Agg_Resource_Utilization WHERE [Submitted_Hours] IS NULL;
-SELECT COUNT(*) AS Extreme_FTE FROM Gold.Go_Agg_Resource_Utilization WHERE [Total_FTE] > 100 OR [Total_FTE] < 0;
-SELECT COUNT(*) AS Empty_Resource FROM Gold.Go_Dim_Resource WHERE [Resource_Code] IS NULL;
-
--- TC53: Calculation Accuracy
--- Compare calculated Utilization % to expected values for sample data
-SELECT [Resource_Code], [Project_Name], [Submitted_Hours], [Available_Hours], CASE WHEN [Available_Hours]=0 THEN NULL ELSE CAST([Submitted_Hours] AS FLOAT)/[Available_Hours] END AS Utilization_Percent FROM Gold.Go_Agg_Resource_Utilization;
-
--- TC54: Visual Type Appropriateness
--- Validate data types for visuals
-SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME IN ('Go_Agg_Resource_Utilization','Go_Dim_Resource','Go_Dim_Project','Go_Fact_Timesheet_Approval','Go_Error_Data','Go_Process_Audit');
-
-====================================================
-End of Unit Test Cases & SQL Queries
-====================================================
+**Note:** Actual results to be filled during test execution. All queries assume standard SQL Server syntax and available fields as per the provided data model mapping. Adjust field/table names if schema differs.
